@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sweeps</title>
+    
+    <script async type="application/dart" src="sweeps.dart"></script>
+    <script async src="packages/browser/dart.js"></script>
+    
+    <link rel="stylesheet" href="sweeps.css">
+    <script type="text/javascript">
+      function doWidths() {
+        var w = document.getElementById("construction").offsetWidth;
+        var h = document.getElementById("construction").offsetHeight;
+        var sca = document.getElementById("scanvas");
+        var context = sca.getContext('2d');
+        if (context.setLineDash == null ) {
+           context.setLineDash = function() {};
+        }
+        sca.width = w;
+        sca.height = h;
+        
+        var w = document.getElementById("tools").offsetWidth;
+        var h = document.getElementById("tools").offsetHeight;
+        var tca = document.getElementById("tcanvas");
+        var contextt = sca.getContext('2d');
+        if (contextt.setLineDash == null ) {
+           contextt.setLineDash = function() {};
+        }
+        tca.width = w;
+        tca.height = h;
+      }
+    </script>
+  </head>
+  
+  <body onload="doWidths()" onresize="doWidths()">
+    
+    <div id="construction" width="100%" height="84%">
+      <canvas id="scanvas" ></canvas>
+    </div>
+    <div id="tools" width="100%" height="14%" bottom="14%">
+      <canvas id="tcanvas" ></canvas>
+    </div>
+
+    <div id="splashdiv"><center><img id="splash" src="images/dummysplash.jpg"></img></center></div>
+    <div id="popupDiv"><p>&nbsp;</p>
+        Units (for example, <b>meters</b>):<br>
+        <input class="popinput" type="text" id="unitname"></input>
+        <p>&nbsp;</p>Abbreviation (for example, <b>m</b>):<br>
+        <input class="popinput" type="text" maxlength="5" id="unitshort"></input>
+        <p>&nbsp;</p>
+        <input class="popbutton" type="button" id="submitUnit" value="change units"></input>
+        </div>
+  </body>
+</html>
