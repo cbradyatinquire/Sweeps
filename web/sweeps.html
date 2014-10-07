@@ -46,12 +46,12 @@
 
     <div id="splashdiv"><center><img id="splash" src="images/dummysplash.jpg"></img></center></div>
     <div id="popupDiv"><p>&nbsp;</p>
-        Units (for example, <b>meters</b>):<br>
-        <input class="popinput" type="text" id="unitname"></input>
-        <p>&nbsp;</p>Abbreviation (for example, <b>m</b>):<br>
+        Units (for example, <b>m</b> for <b><i>meters</i></b>):<br>
         <input class="popinput" type="text" maxlength="5" id="unitshort"></input>
+        <br>Subdivision(s): <span id="sliderval"></span><br>
+        <input class="poprange" style="width:250px" type="range" id="subdiv" min=1 value=1 max=10 step=1 oninput="document.getElementById('sliderval').innerHTML=this.value"></input>
         <p>&nbsp;</p>
-        <input class="popbutton" type="button" id="submitUnit" value="change units"></input>
+        <input class="popbutton" type="button" id="submitUnit" value="change measures"></input>
         </div>
   </body>
 </html>

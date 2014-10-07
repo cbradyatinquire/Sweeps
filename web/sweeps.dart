@@ -21,10 +21,10 @@ String overrideHTMLPromptFont = "28pt sans-serif";
 
 //changing and displaying units
 String hunits_abbreviated = "hsu";
-String hunits_full = "horizontal sweep units";
+//String hunits_full = "horizontal sweep units";
 
 String vunits_abbreviated = "vsu";
-String vunits_full = "vertical sweep units";
+//String vunits_full = "vertical sweep units";
 
 String areaToDisplay = "";
 
@@ -40,10 +40,13 @@ bool readyToGoOn = true;
 var SETUPMouseDown, SETUPTouchStart, SETUPMouseMove, SETUPTouchMove, SETUPMouseUp, SETUPTouchEnd;
 int hticks = 12;
 int vticks = 9;
+int hSubTicks = 1;
+int vSubTicks = 1;
 int maxhticks = 24;
 int maxvticks = 15;
-int minhticks = 9;
-int minvticks = 6;
+int minhticks = 2; //9;
+int minvticks = 2; //6;
+
 double ticwid;
 double ticht;
 Point s1end = new Point(2, 3);
@@ -274,14 +277,14 @@ void startUp(MouseEvent event) {
 void drawStatus(CanvasRenderingContext2D ctx) {
   ctx.strokeStyle = "#000";
   ctx.fillStyle = "#000";
-  ctx.font = bigCanvasFont; 
+  ctx.font = bigCanvasFont;
   ctx.textAlign = 'center';
-  if ( ((MODE == 1 || MODE == 2) && draggedUnits != 0) || (MODE == 3 && hasCut) )  {
+  if (((MODE == 1 || MODE == 2) && draggedUnits != 0) || (MODE == 3 && hasCut)) {
     ctx.fillText("Area swept: " + areaToDisplay, tools.width / 2, 2 * tools.height / 3);
   } else {
     ctx.fillText(captions[MODE], tools.width / 2, 2 * tools.height / 3);
   }
-  
+
   /*if (MODE == 2 && grabbed == "done") {
     ctx.textAlign = 'right';
     ctx.fillStyle = "#0B0";
@@ -323,10 +326,14 @@ int sqPixelDistance(Point p1, Point p2) {
 }
 
 void displayUnitDialogH() {
-  TextInputElement tie = document.querySelector("#unitname");
-  tie.value = hunits_full;
+  //TextInputElement tie = document.querySelector("#unitname");
+  //tie.value = hunits_full;
   TextInputElement tie2 = document.querySelector("#unitshort");
   tie2.value = hunits_abbreviated;
+  RangeInputElement rie = document.querySelector("#subdiv");
+  rie.value = hSubTicks.toString();
+  SpanElement se = document.querySelector("#sliderval");
+  se.innerHtml = hSubTicks.toString();
 
   document.querySelector("#popupDiv").style.visibility = "visible";
 
@@ -337,13 +344,17 @@ void displayUnitDialogH() {
 }
 
 void getHorizUnits(MouseEvent me) {
-  TextInputElement tie = document.querySelector("#unitname");
+  //TextInputElement tie = document.querySelector("#unitname");
   TextInputElement tie2 = document.querySelector("#unitshort");
-  String proposedUnits = tie.value;
+  //String proposedUnits = tie.value;
   String proposedAbbrev = tie2.value;
-  if (proposedUnits.length > 0 && proposedAbbrev.length > 0) {
-    hunits_full = proposedUnits;
+  RangeInputElement rie = document.querySelector("#subdiv");
+  int proposedSubDivs = rie.valueAsNumber.round();
+  //if (proposedUnits.length > 0 && proposedAbbrev.length > 0) {
+  if (proposedAbbrev.length > 0) {
+    //hunits_full = proposedUnits;
     hunits_abbreviated = proposedAbbrev;
+    hSubTicks = proposedSubDivs;
     document.querySelector("#popupDiv").style.visibility = "hidden";
     drawSETUP();
   }
@@ -356,13 +367,17 @@ void getHorizUnits(MouseEvent me) {
 }
 
 void getVerticalUnits(MouseEvent me) {
-  TextInputElement tie = document.querySelector("#unitname");
+  //TextInputElement tie = document.querySelector("#unitname");
   TextInputElement tie2 = document.querySelector("#unitshort");
-  String proposedUnits = tie.value;
+  //String proposedUnits = tie.value;
   String proposedAbbrev = tie2.value;
-  if (proposedUnits.length > 0 && proposedAbbrev.length > 0) {
-    vunits_full = proposedUnits;
+  RangeInputElement rie = document.querySelector("#subdiv");
+  int proposedSubDivs = rie.valueAsNumber.round();
+  //if (proposedUnits.length > 0 && proposedAbbrev.length > 0) {
+  if (proposedAbbrev.length > 0) {
+    //vunits_full = proposedUnits;
     vunits_abbreviated = proposedAbbrev;
+    vSubTicks = proposedSubDivs;
     document.querySelector("#popupDiv").style.visibility = "hidden";
     drawSETUP();
   }
@@ -375,10 +390,14 @@ void getVerticalUnits(MouseEvent me) {
 }
 
 void displayUnitDialogV() {
-  TextInputElement tie = document.querySelector("#unitname");
-  tie.value = vunits_full;
+  //TextInputElement tie = document.querySelector("#unitname");
+  //tie.value = vunits_full;
   TextInputElement tie2 = document.querySelector("#unitshort");
   tie2.value = vunits_abbreviated;
+  RangeInputElement rie = document.querySelector("#subdiv");
+  rie.value = vSubTicks.toString();
+  SpanElement se = document.querySelector("#sliderval");
+  se.innerHtml = vSubTicks.toString();
   document.querySelector("#popupDiv").style.visibility = "visible";
   if (!listenForHorizontalUnitsSubmit.isPaused) {
     listenForHorizontalUnitsSubmit.pause();
@@ -537,10 +556,10 @@ String getAreaString() {
 
 String getAreaUnitsString() {
   if (hunits_abbreviated == vunits_abbreviated) {
-    String squareCode = "\u00B2";  //8729
-    return (hunits_abbreviated + squareCode  );
+    String squareCode = "\u00B2"; //8729
+    return (hunits_abbreviated + squareCode);
   } else {
-    String dotCode = "\u2219";  //8729
+    String dotCode = "\u2219"; //8729
     return (hunits_abbreviated + dotCode + vunits_abbreviated);
   }
 }
@@ -767,7 +786,7 @@ void updateWithShiftSETUP(Point now) {
 
 void stopDragSETUP(MouseEvent event) {
   grabbed = "";
-  print("got here - mouse");
+  //print("got here - mouse");
   drawSETUP();
 }
 
@@ -780,8 +799,8 @@ void stopTouchSETUP(TouchEvent evt) {
 
 void overrideFontsForIPAD() {
   print("got here");
-  document.querySelectorAll(".popinput").style.font="20pt sans-serif";
-  document.querySelectorAll(".popbutton").style.font="22pt sans-serif";
+  document.querySelectorAll(".popinput").style.font = "20pt sans-serif";
+  document.querySelectorAll(".popbutton").style.font = "22pt sans-serif";
 }
 
 void stopDragSWEEP(MouseEvent event) {
@@ -856,7 +875,7 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
   ctxt.beginPath();
   ctxt.strokeStyle = "#555";
   ctxt.fillStyle = "#88F";
-  
+
   if (hasCut) {
     ctxt.lineWidth = 3;
     ctxt.setLineDash([3]);
@@ -872,8 +891,8 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
     ctxt.fill();
   }
   ctxt.stroke();
-  
-  if (hasCut ) {
+
+  if (hasCut) {
     ctxt.setLineDash([]);
     ctxt.lineWidth = 1;
   }
@@ -894,7 +913,7 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
     //ADD Drag Units to rulers.
     ctxt.strokeStyle = "#000";
     ctxt.fillStyle = "#000";
-    ctxt.font = littleCanvasFont; 
+    ctxt.font = littleCanvasFont;
     ctxt.textAlign = 'center';
     //horizontal
 
@@ -1044,7 +1063,7 @@ int getYForVTick(num j) {
 }
 
 void drawGrid(CanvasRenderingContext2D ctxt) {
-  ctxt.strokeStyle = "#777";
+  ctxt.strokeStyle = "#555";
 
   ctxt.beginPath();
   ctxt.setLineDash([2]);
@@ -1055,7 +1074,6 @@ void drawGrid(CanvasRenderingContext2D ctxt) {
     ctxt.moveTo(x, 0);
     ctxt.lineTo(x, canv.height);
   }
-
   ticht = vrulerheight / vticks;
   vhots = new Point(hoff - 20, (voff + ticht).round());
   for (num j = 0; j <= vticks; j++) {
@@ -1065,10 +1083,34 @@ void drawGrid(CanvasRenderingContext2D ctxt) {
   }
   ctxt.closePath();
   ctxt.stroke();
+  
+  ctxt.beginPath();
+  ctxt.strokeStyle = "#30F";
   ctxt.setLineDash([]);
+  ctxt.lineWidth = 0.1;
+  for (num i = 0; i <= hticks; i++) {
+    for (num j = 1; j < hSubTicks; j++) {
+      int x1 = getXForHTick(i + j / hSubTicks);
+      ctxt.moveTo(x1, 0);
+      ctxt.lineTo(x1, canv.height);
+    }
+  }
+  for (num j = 0; j <= vticks; j++) {
+    for (num k = 1; k < vSubTicks; k++) {
+      int y1 = getYForVTick(j + k / vSubTicks);
+      ctxt.moveTo(0, y1);
+      ctxt.lineTo(canv.width, y1);
+    }
+  }
+  ctxt.closePath();
+  ctxt.stroke();
+  ctxt.lineWidth = 1;
+  
+
 }
 
 void drawRulers(CanvasRenderingContext2D ctxt) {
+  //print("h subdivisions = " + hSubTicks.toString() + ", and v subdivisions = " + vSubTicks.toString());
   ctxt.beginPath();
   ctxt.strokeStyle = "#000";
   ctxt.fillStyle = "#FA7";
@@ -1101,6 +1143,11 @@ void drawHorizontalAxis(CanvasRenderingContext2D ctxt, int bott) {
     int x = hoff + (i * ticwid).round();
     ctxt.moveTo(x, bott);
     ctxt.lineTo(x, bott - tsize);
+    for (num j = 1; j < hSubTicks; j++) {
+      int x1 = getXForHTick(i + j / hSubTicks);
+      ctxt.moveTo(x1, bott);
+      ctxt.lineTo(x1, bott - tsize / 2);
+    }
   }
   ctxt.closePath();
   ctxt.stroke();
@@ -1137,6 +1184,11 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
     int y = voff + (i * ticht).round();
     ctxt.moveTo(right, y);
     ctxt.lineTo(right - tsize, y);
+    for (num k = 1; k < vSubTicks; k++) {
+      int y1 = getYForVTick(i + k / vSubTicks);
+      ctxt.moveTo(right, y1);
+      ctxt.lineTo(right - tsize / 2, y1);
+    }
   }
   ctxt.closePath();
   ctxt.stroke();
