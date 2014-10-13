@@ -52,6 +52,24 @@
         <input class="poprange" style="width:250px" type="range" id="subdiv" min=1 value=1 max=10 step=1 oninput="document.getElementById('sliderval').innerHTML=this.value"></input>
         <p>&nbsp;</p>
         <input class="popbutton" type="button" id="submitUnit" value="change measures"></input>
+    </div>
+    <div id="screenCapDiv" width="90%" height="85%">
+        <div id="topbar">
+        <table class="nav">
+        <tr>
+          <th>
+            <img id="trashIcon" src="/images/trash.png" alt="Note" style="height:32px;width:24px">
+          </th>
+          <td>
+            screenshot #<span id="screennum">0</span>
+          </td>
+        <th>
+            <img id="closeIcon" src="/images/x.png" alt="Note" style="height:24px;width:24px">
+          </th>
+        </tr>
+        </table>
         </div>
+        <canvas id="screencap" ></canvas>
+    </div>
   </body>
 </html>

@@ -85,6 +85,48 @@ html, body {
    -webkit-transition: opacity 1s, z-index 1.2s ease-in-out;
 }
 
+#topbar {
+  height:8%;
+  background-color : #008800;
+  color: white;
+}
+
+
+#screenCapDiv {
+  position:absolute;
+    border: 4px solid black;
+    left: 5%;
+    top: 5%;
+    width: 92%;
+    height: 85%;
+    z-index: 4;
+    visibility: hidden;
+    background-color : #F0F0FF;
+    color: #600000;
+    font: 22pt sans-serif;
+    opacity:1;
+    
+   transition: opacity 1s, z-index 1.2s ease-in-out;
+   -moz-transition: opacity 1s, z-index 1.2s ease-in-out;
+   -webkit-transition: opacity 1s, z-index 1.2s ease-in-out;
+}
+
+#screencap {
+  background-color : #FEFEFE;
+  float:left;
+}
+
+
+table.nav {
+    width:100%;
+}
+
+table.nav td { 
+    width:95%;
+   text-align:center;
+}
+
+
 #splashdiv {
     position: absolute;
     left: 0px;

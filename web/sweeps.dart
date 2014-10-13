@@ -9,6 +9,7 @@ part "piece.dart";
 ImageElement rightButton, leftButton;
 CanvasElement canv, tools;
 DivElement splash;
+DivElement sCapBook;
 int voff = 60;
 int hoff = 60;
 int vrulerheight, hrulerwidth;
@@ -73,6 +74,11 @@ List<Piece> pieces = new List<Piece>();
 Piece draggingPiece = null;
 Point pieceDragOrigin;
 
+//Screen captures
+List<ImageData> screencaps = new List<ImageData>();
+List<String> screens = new List<String>();
+int screenPointer = 0;
+
 
 void main() {
   rightButton = new ImageElement()..src = "images/rightImage.jpg";
@@ -82,6 +88,7 @@ void main() {
   splash = querySelector("#splashdiv");
   submitUnitsButton = document.querySelector("#submitUnit");
   splash.onClick.listen(startUp);
+  
 }
 
 void doEventSetup() {
@@ -131,23 +138,120 @@ void doEventSetup() {
   CUTTouchMove.pause();
   CUTMouseUp.pause();
   CUTTouchEnd.pause();
+ 
+  
+  
+  //set up mouse actions on the screen capture dialog.
+  document.querySelector("#trashIcon").onMouseUp.listen( deleteScreenCap );
+  document.querySelector("#trashIcon").onTouchEnd.listen( deleteScreenCap );
+  
+  
+  document.querySelector("#closeIcon").onMouseUp.listen( closeScreenCapWindow );
+  document.querySelector("#closeIcon").onTouchEnd.listen( closeScreenCapWindow );
+  
+  document.querySelector("#screencap").onMouseUp.listen( MOUSEforwardOrBackInScreens );
+  document.querySelector("#screencap").onTouchEnd.listen( TOUCHforwardOrBackInScreens );
+  
 }
 
 void testSwitchMode(MouseEvent e) {
   int rbound = tools.width - 2 * tools.height;
   int lbound = tools.height * 2;
+  Point screenCapIconCenter = new Point( tools.width / 3, tools.height / 2);
+  int screenCapIconTolerance = 50;
   if (e.offset.x > rbound && MODE < 3) { //we're in the right arrow
     MODE++;
     readyToGoOn = false;
+    doModeSpecificLogic();
   } else if (e.offset.x < lbound) { //we're in the left arrow
     if (MODE > 1) {
       MODE--;
       readyToGoOn = false;
       draggedUnits = 0;
+      doModeSpecificLogic();
     } else if (MODE == 1) {
       window.location.reload();
     }
+  } else if (e.offset.distanceTo(screenCapIconCenter) < screenCapIconTolerance ) {
+    addScreenCap();
+    openScreenCapsWindow();
   }
+}
+
+void addScreenCap() {
+  //ImageData imageData = canv.context2D.getImageData(0,0,canv.width,canv.height);
+  String base64Cap = canv.toDataUrl("image/png");
+  //screencaps.add(imageData);
+  screens.add(base64Cap);
+}
+
+void closeScreenCapWindow( var event ) {
+  document.querySelector("#screenCapDiv").style.visibility = "hidden";
+}
+ 
+void deleteScreenCap( var event ) {
+  screens.removeAt(screenPointer);
+  if (screens.length == 0) {
+    closeScreenCapWindow( event );
+  } else {
+    changeScreen(0);
+  }
+}
+
+void MOUSEforwardOrBackInScreens ( MouseEvent me ) {
+  Point clickPoint = me.client;
+  doFwdBackLogic( clickPoint );
+}
+
+void  TOUCHforwardOrBackInScreens ( TouchEvent evt ) {
+  Point clickPoint = evt.changedTouches[0].client;
+  doFwdBackLogic( clickPoint );
+}
+
+
+void doFwdBackLogic( Point clickPoint ) {
+  print(clickPoint.x);
+  if ( clickPoint.x > (2 * document.querySelector("#screencap").clientWidth / 3) ) {
+    changeScreen(1);
+    print("next");
+  } else if ( clickPoint.x < ( document.querySelector("#screencap").clientWidth / 3) ) {
+    changeScreen( -1 );
+    print("prev");
+  }
+  
+}
+
+void changeScreen( int del ) {
+  screenPointer = screenPointer + del;
+  if (screenPointer >= screens.length) {
+    screenPointer = 0;
+  } else if (screenPointer < 0 ) {
+    screenPointer = screens.length - 1;
+  }
+  loadScreen(document.querySelector("#screencap"));
+}
+
+void loadScreen(CanvasElement sc ) {
+  ImageElement i = new ImageElement();
+  i.src = screens[ screenPointer ];
+  SpanElement numLabel = document.querySelector("#screennum"); 
+  numLabel.innerHtml = (screenPointer + 1).toString() + " of " + screens.length.toString();
+  sc.context2D.clearRect(0, 0, sc.width, sc.height);
+  sc.context2D.drawImageScaled(i, 0, 0, sc.width, sc.height);
+}
+
+void openScreenCapsWindow() {
+  DivElement scpop = document.querySelector("#screenCapDiv");
+  DivElement topstuff = document.querySelector("#topbar");
+  scpop.style.visibility = "visible";
+  CanvasElement sc = document.querySelector("#screencap");
+  sc.width = scpop.clientWidth;
+  sc.height = scpop.clientHeight - topstuff.clientHeight;
+  loadScreen(sc);
+}
+
+//response to forward back buttons, once the MODE value has been switched.
+void doModeSpecificLogic() {
   //print("MODE = " + MODE.toString());
   if (MODE == 1) {
     SETUPMouseDown.resume();
@@ -258,7 +362,6 @@ void testSwitchMode(MouseEvent e) {
     drawCUT();
     drawTools();
   }
-
 }
 
 
@@ -325,6 +428,9 @@ int sqPixelDistance(Point p1, Point p2) {
   return (p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y);
 }
 
+
+//dialog contents & logic for the measurement changing dialog.
+//TODO:  add the idea of equalizing the units.
 void displayUnitDialogH() {
   //TextInputElement tie = document.querySelector("#unitname");
   //tie.value = hunits_full;
@@ -417,6 +523,8 @@ bool userChangesUnits(Point clickSpot) {
   return toGoOn;
 }
 
+
+
 //**************************************************************************
 //SETUP MODE FLAVORS OF METHODS
 void startDragSETUP(MouseEvent event) {
@@ -439,6 +547,7 @@ void startTouchSWEEP(TouchEvent evt) {
   initInteractionSWEEP(initPoint);
 }
 
+//CUT MODE HAS AN IMMEDIATE RESPONSE TO THE CLICK.
 void startDragCUT(MouseEvent event) {
   clickLogicCUT(event.offset);
 }
@@ -471,7 +580,6 @@ void clickLogicCUT(Point pt) {
 }
 
 void doCut() {
-
   for (int xc = 0; xc < hticks; xc++) {
     List<Piece> newPcs = new List<Piece>();
     pieces.forEach((piece) => newPcs.addAll(piece.cutVertical(xc)));
@@ -548,6 +656,7 @@ num getSweeperLength() {
   }
 }
 
+//TODO: this will have to change if draggedUnits becomes draggedSubUnits -- reason: h and v are different.  so have to do a dragVertical check.
 String getAreaString() {
   num sweeperLen = getSweeperLength();
   num theArea = (sweeperLen * draggedUnits).abs();
@@ -683,7 +792,14 @@ void draggingCUT(Point currentPt) {
   draggingPiece.drawAsDragging(ctx);
 }
 
-
+/*
+ * idea -- change 'wantToDragUnits to wantToDragSubdivisions'
+ * to do it, multiply  by vSubTicks or hSubTicks before rounding
+ * then, make the draggedUnits be draggedSubUnits
+ * and draw accordingly.
+ * deal with perfect integers, probably.
+ * 
+ */
 void draggingSWEEP(Point currentPt) {
   int delx = currentPt.x - dragOrigin.x;
   int dely = currentPt.y - dragOrigin.y;
@@ -752,6 +868,9 @@ void draggingSETUP(Point currentPt) {
   }
 }
 
+//TODO:  when we change the number of subdivisions and we can drag onto the subdivisions, 
+//then we need to call s1end = updateEndSETUP(s1end, s1end); and similar for s2end, where we 
+//are using the the subdivision version of the  getXFor reporter.
 Point updateEndSETUP(Point endpt, Point mspt) {
   Point pxPt = new Point(getXForHTick(endpt.x), getYForVTick(endpt.y));
   int delx = mspt.x - pxPt.x;
@@ -859,6 +978,7 @@ void updateVSweepsSETUP(int newticks) {
   s2end = new Point(s2end.x, n2y.round());
 }
 
+//TODO: need to make new getYFor and getXFor functions for subdivisions.
 void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
   Point strt = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
   Point end = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
@@ -917,6 +1037,7 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
     ctxt.textAlign = 'center';
     //horizontal
 
+    //TODO:  this measure needs to be put in terms of fractional subunits, 
     if (dragIsVertical) {
       String numToDraw = getSweeperLength().abs().toString();
       String toDraw = numToDraw + " " + hunits_abbreviated;
@@ -929,6 +1050,7 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
 
 
     //vertical
+    //TODO: this measure also needs to be put in terms of fractional subunits
     if (dragIsVertical) {
       String numToDraw = draggedUnits.abs().toString();
       String toDraw = numToDraw + " " + vunits_abbreviated;
