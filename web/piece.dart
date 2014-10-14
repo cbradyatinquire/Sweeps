@@ -41,10 +41,10 @@ class Piece {
   bool hitTest( Point click ) {
     String side = "?";
     Point init = vertices.last;
-    Point v0 = new Point( getXForHTick(init.x), getYForVTick(init.y) );
+    Point v0 = new Point( getXForHSubTick(init.x), getYForVSubTick(init.y) );
     for (int i = 0; i < vertices.length; i++) {
       Point fin = vertices[i];
-      Point v1 = new Point( getXForHTick(fin.x), getYForVTick(fin.y) );
+      Point v1 = new Point( getXForHSubTick(fin.x), getYForVSubTick(fin.y) );
       Point asegment = vectr(v1, v0);
       Point apoint = vectr(click, v0);
       String sideNow = sideOfSegment(asegment, apoint);
@@ -235,8 +235,8 @@ class Piece {
   void mainDraw(CanvasRenderingContext2D ctxt) {
     ctxt.beginPath();
     Point strtpt = vertices.last;
-    ctxt.moveTo(getXForHTick(strtpt.x), getYForVTick(strtpt.y));
-    vertices.forEach((vertex) => ctxt.lineTo(getXForHTick(vertex.x), getYForVTick(vertex.y)));
+    ctxt.moveTo(getXForHSubTick(strtpt.x), getYForVSubTick(strtpt.y));
+    vertices.forEach((vertex) => ctxt.lineTo(getXForHSubTick(vertex.x), getYForVSubTick(vertex.y)));
     ctxt.closePath();
     ctxt.fill();
     ctxt.stroke();

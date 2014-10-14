@@ -43,6 +43,8 @@ int hticks = 12;
 int vticks = 9;
 int hSubTicks = 1;
 int vSubTicks = 1;
+int hSubTicksBefore = 1;
+int vSubTicksBefore = 1;
 int maxhticks = 24;
 int maxvticks = 15;
 int minhticks = 2; //9;
@@ -249,6 +251,8 @@ void openScreenCapsWindow() {
   sc.height = scpop.clientHeight - topstuff.clientHeight;
   loadScreen(sc);
 }
+
+
 
 //response to forward back buttons, once the MODE value has been switched.
 void doModeSpecificLogic() {
@@ -460,7 +464,9 @@ void getHorizUnits(MouseEvent me) {
   if (proposedAbbrev.length > 0) {
     //hunits_full = proposedUnits;
     hunits_abbreviated = proposedAbbrev;
+    int oldHSubTicks = hSubTicks;
     hSubTicks = proposedSubDivs;
+    updateSweeperHPoints(oldHSubTicks, hSubTicks);
     document.querySelector("#popupDiv").style.visibility = "hidden";
     drawSETUP();
   }
@@ -470,6 +476,16 @@ void getHorizUnits(MouseEvent me) {
   if (!listenForHorizontalUnitsSubmit.isPaused) {
     listenForHorizontalUnitsSubmit.pause();
   }
+}
+
+void updateSweeperHPoints(int oldval, int newval ) {
+  s1end = new Point((newval * s1end.x / oldval).round(), s1end.y);
+  s2end = new Point((newval * s2end.x / oldval).round(), s2end.y);
+}
+
+void updateSweeperVPoints(int oldval, int newval ) {
+  s1end = new Point(s1end.x, (newval * s1end.y / oldval).round() );
+  s2end = new Point(s2end.x, (newval * s2end.y / oldval).round() );
 }
 
 void getVerticalUnits(MouseEvent me) {
@@ -483,7 +499,11 @@ void getVerticalUnits(MouseEvent me) {
   if (proposedAbbrev.length > 0) {
     //vunits_full = proposedUnits;
     vunits_abbreviated = proposedAbbrev;
+       
+    int oldVSubTicks = vSubTicks;
     vSubTicks = proposedSubDivs;
+    updateSweeperVPoints(oldVSubTicks, vSubTicks);
+    
     document.querySelector("#popupDiv").style.visibility = "hidden";
     drawSETUP();
   }
@@ -580,7 +600,7 @@ void clickLogicCUT(Point pt) {
 }
 
 void doCut() {
-  for (int xc = 0; xc < hticks; xc++) {
+  for (int xc = 0; xc < hticks * hSubTicks ; xc++) {
     List<Piece> newPcs = new List<Piece>();
     pieces.forEach((piece) => newPcs.addAll(piece.cutVertical(xc)));
     pieces = newPcs;
@@ -589,7 +609,7 @@ void doCut() {
   // print(pieces.length.toString() + " PIECES. with vertices...");
   // pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
 
-  for (int yc = 0; yc < vticks; yc++) {
+  for (int yc = 0; yc < vticks * vSubTicks ; yc++) {
     List<Piece> newPcs = new List<Piece>();
     pieces.forEach((piece) => newPcs.addAll(piece.cutHorizontal(yc)));
     pieces = newPcs;
@@ -656,11 +676,16 @@ num getSweeperLength() {
   }
 }
 
-//TODO: this will have to change if draggedUnits becomes draggedSubUnits -- reason: h and v are different.  so have to do a dragVertical check.
+//TODO: check it worked
 String getAreaString() {
   num sweeperLen = getSweeperLength();
   num theArea = (sweeperLen * draggedUnits).abs();
-  return theArea.toString();
+  String toreturn = theArea.toString() ;
+  if (hSubTicks > 1 || vSubTicks > 1) {
+    num denom = hSubTicks * vSubTicks;
+    toreturn = "<sup>" + toreturn + "</sup> &frasl; <sub>" + denom.toString() + "</sub>";
+  }
+  return toreturn;
 }
 
 String getAreaUnitsString() {
@@ -679,11 +704,14 @@ void setupDragOriginMemorySETUPSWEEP(Point initPoint) {
   rememberPresentSETUPSWEEP();
 }
 
+//TODO:  check it worked
 void rememberPresentSETUPSWEEP() {
   olds1 = new Point(s1end.x, s1end.y);
   olds2 = new Point(s2end.x, s2end.y);
-  oldpx1 = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
-  oldpx2 = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
+//  oldpx1 = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
+//  oldpx2 = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));  
+  oldpx1 = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y));
+  oldpx2 = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
   oldvtix = vticks;
   oldhtix = hticks;
 }
@@ -698,10 +726,12 @@ void initInteractionSETUP(Point initPoint) {
     grabbed = "horizontal";
     setupDragOriginMemorySETUPSWEEP(initPoint);
     drawSETUP();
-  } else if (sqPixelDistance(initPoint, new Point(getXForHTick(s1end.x), getYForVTick(s1end.y))) < dragThreshold) {
+//  } else if (sqPixelDistance(initPoint, new Point(getXForHTick(s1end.x), getYForVTick(s1end.y))) < dragThreshold) {
+  } else if (sqPixelDistance(initPoint, new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y))) < dragThreshold) {
     grabbed = "s1end";
     drawSETUP();
-  } else if (sqPixelDistance(initPoint, new Point(getXForHTick(s2end.x), getYForVTick(s2end.y))) < dragThreshold) {
+  //} else if (sqPixelDistance(initPoint, new Point(getXForHTick(s2end.x), getYForVTick(s2end.y))) < dragThreshold) {
+  } else if (sqPixelDistance(initPoint, new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y))) < dragThreshold) {
     grabbed = "s2end";
     drawSETUP();
   } else if (inMiddle(initPoint)) {
@@ -712,8 +742,10 @@ void initInteractionSETUP(Point initPoint) {
 }
 
 bool inMiddle(Point mse) {
-  Point one = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
-  Point two = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
+  //Point one = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
+  //Point two = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
+  Point one = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y));
+  Point two = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
   Point mid = new Point(((one.x + two.x) / 2).round(), ((one.y + two.y) / 2).round());
   if (sqPixelDistance(mse, mid) < 2 * dragThreshold) {
     return true;
@@ -766,8 +798,8 @@ void draggingCUT(Point currentPt) {
   num dx = currentPt.x - pieceDragOrigin.x;
   num dy = currentPt.y - pieceDragOrigin.y;
   // print("DX=" + dx.toString() + "; DY=" + dy.toString() + "; originx=" + pieceDragOrigin.x.toString() + "originy="+pieceDragOrigin.y.toString());
-  num wantToDragUnitsX = (dx / ticwid).round();
-  num wantToDragUnitsY = (dy / ticht).round();
+  num wantToDragUnitsX = (hSubTicks * (dx / ticwid)).round();
+  num wantToDragUnitsY = (vSubTicks * (dy / ticht)).round();
 
   num delx = wantToDragUnitsX; //need to prevent dragging off screen
   num dely = wantToDragUnitsY; //need to prevent dragging off screen
@@ -781,7 +813,7 @@ void draggingCUT(Point currentPt) {
     neworiginy = currentPt.y;
   }
   if (delx.abs() + dely.abs() > 0) {
-    pieceDragOrigin = new Point(pieceDragOrigin.x + delx * ticwid, pieceDragOrigin.y + dely * ticht);
+    pieceDragOrigin = new Point(pieceDragOrigin.x + (delx * ticwid / hSubTicks), pieceDragOrigin.y + (dely * ticht / vSubTicks) );
     //print("before shift by " + delx.toString() + ","  + dely.toString() + "--" + draggingPiece.vertices[0].x.toString()+","+draggingPiece.vertices[0].y.toString());
     draggingPiece.shiftBy(delx, dely);
     //print("after shift by " + delx.toString() + ","  + dely.toString() + "--" + draggingPiece.vertices[0].x.toString()+","+draggingPiece.vertices[0].y.toString());
@@ -793,7 +825,7 @@ void draggingCUT(Point currentPt) {
 }
 
 /*
- * idea -- change 'wantToDragUnits to wantToDragSubdivisions'
+ * TODO: idea -- change 'wantToDragUnits to wantToDragSubdivisions'
  * to do it, multiply  by vSubTicks or hSubTicks before rounding
  * then, make the draggedUnits be draggedSubUnits
  * and draw accordingly.
@@ -810,21 +842,24 @@ void draggingSWEEP(Point currentPt) {
   }
 
   Point new1, new2;
-  int wantToDragUnits;
+  //int wantToDragUnits;
+  int wantToDragSubUnits;
   if (dragIsVertical) {
-    wantToDragUnits = (dely / ticht).round();
-    new1 = new Point(olds1.x, olds1.y + wantToDragUnits);
-    new2 = new Point(olds2.x, olds2.y + wantToDragUnits);
+    //wantToDragUnits = (dely / ticht).round();
+    wantToDragSubUnits = (vSubTicks * dely / ticht).round();
+    new1 = new Point(olds1.x, olds1.y + wantToDragSubUnits);
+    new2 = new Point(olds2.x, olds2.y + wantToDragSubUnits);
   } else {
-    wantToDragUnits = (delx / ticwid).round();
-    new1 = new Point(olds1.x + wantToDragUnits, olds1.y);
-    new2 = new Point(olds2.x + wantToDragUnits, olds2.y);
+    //wantToDragUnits = (delx / ticwid).round();
+    wantToDragSubUnits = (hSubTicks * delx / ticwid).round();
+    new1 = new Point(olds1.x + wantToDragSubUnits, olds1.y);
+    new2 = new Point(olds2.x + wantToDragSubUnits, olds2.y);
   }
-  if (new1.x >= 0 && new1.x <= hticks && new1.y >= 0 && new1.y <= vticks) {
-    if (new2.x >= 0 && new2.x <= hticks && new2.y >= 0 && new2.y <= vticks) {
+  if (new1.x >= 0 && new1.x <= hticks * hSubTicks && new1.y >= 0 && new1.y <= vticks * vSubTicks) {
+    if (new2.x >= 0 && new2.x <= hticks * hSubTicks && new2.y >= 0 && new2.y <= vticks* vSubTicks) {
       s1end = new1;
       s2end = new2;
-      draggedUnits = wantToDragUnits;
+      draggedUnits = wantToDragSubUnits;
     }
   }
   drawSWEEP();
@@ -871,32 +906,45 @@ void draggingSETUP(Point currentPt) {
 //TODO:  when we change the number of subdivisions and we can drag onto the subdivisions, 
 //then we need to call s1end = updateEndSETUP(s1end, s1end); and similar for s2end, where we 
 //are using the the subdivision version of the  getXFor reporter.
-Point updateEndSETUP(Point endpt, Point mspt) {
-  Point pxPt = new Point(getXForHTick(endpt.x), getYForVTick(endpt.y));
+Point updateEndSETUPOLD(Point endpt, Point mspt) {
+  //Point pxPt = new Point(getXForHTick(endpt.x), getYForVTick(endpt.y));
+  Point pxPt = new Point(getXForHSubTick(endpt.x), getYForVSubTick(endpt.y));
   int delx = mspt.x - pxPt.x;
   int dely = mspt.y - pxPt.y;
-  if (delx > .5 * ticwid && endpt.x < hticks) {
+  if (delx > .5 * ticwid / hSubTicks && endpt.x < hticks * hSubTicks) {
     return new Point(endpt.x + 1, endpt.y);
-  } else if (delx < -.5 * ticwid && endpt.x > 0) {
+  } else if (delx < -.5 * ticwid / hSubTicks && endpt.x > 0) {
     return new Point(endpt.x - 1, endpt.y);
   }
-  if (dely > .5 * ticht && endpt.y < vticks) {
+  if (dely > .5 * ticht / vSubTicks && endpt.y < vticks * vSubTicks) {
     return new Point(endpt.x, endpt.y + 1);
-  } else if (dely < -.5 * ticht && endpt.y > 0) {
+  } else if (dely < -.5 * ticht / vSubTicks && endpt.y > 0) {
     return new Point(endpt.x, endpt.y - 1);
   }
   return endpt;
 }
 
+Point updateEndSETUP(Point endpt, Point mspt) {
+ return new Point(getSubTickCoordForPixelH(mspt.x), getSubTickCoordForPixelV(mspt.y));
+}
+
+int getSubTickCoordForPixelH( int px ) {
+  return (hSubTicks *  (px - hoff) / (ticwid )).round();
+}
+
+int getSubTickCoordForPixelV( int py ) {
+  return (vSubTicks *  (py - voff) / (ticht )).round();
+}
+
 void updateWithShiftSETUP(Point now) {
-  int delx = now.x - dragOrigin.x;
-  int dely = now.y - dragOrigin.y;
-  int shiftx = (delx / ticwid).round();
-  int shifty = (dely / ticht).round();
+  num delx = now.x - dragOrigin.x;
+  num dely = now.y - dragOrigin.y;
+  int shiftx = ((hSubTicks * delx) / ticwid).round();
+  int shifty = ((vSubTicks * dely) / ticht).round();
   Point new1 = new Point(olds1.x + shiftx, olds1.y + shifty);
   Point new2 = new Point(olds2.x + shiftx, olds2.y + shifty);
-  if (new1.x >= 0 && new1.x <= hticks && new1.y >= 0 && new1.y <= vticks) {
-    if (new2.x >= 0 && new2.x <= hticks && new2.y >= 0 && new2.y <= vticks) {
+  if (new1.x >= 0 && new1.x <= hticks * hSubTicks && new1.y >= 0 && new1.y <= vticks * vSubTicks) {
+    if (new2.x >= 0 && new2.x <= hticks * hSubTicks && new2.y >= 0 && new2.y <= vticks * vSubTicks) {
       s1end = new1;
       s2end = new2;
     }
@@ -956,8 +1004,10 @@ void drawSETUP() {
     //if (grabbed != "") {
     drawGrid(ctx);
     //}
-    Point strt = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
-    Point end = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
+    //Point strt = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
+    //Point end = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
+    Point strt = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y));
+    Point end = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
     drawRulers(ctx);
     drawSweeperSETUP(ctx, strt, end);
   }
@@ -978,18 +1028,25 @@ void updateVSweepsSETUP(int newticks) {
   s2end = new Point(s2end.x, n2y.round());
 }
 
-//TODO: need to make new getYFor and getXFor functions for subdivisions.
+//TODO: remove comments when it works.
 void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
-  Point strt = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
-  Point end = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
+//  Point strt = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
+//  Point end = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
+  Point strt = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y));
+  Point end = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
 
+  
   Point strt2, end2;
   if (dragIsVertical) {
-    strt2 = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y - draggedUnits));
-    end2 = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y - draggedUnits));
+    //strt2 = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y - draggedUnits));
+    //end2 = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y - draggedUnits));
+    strt2 = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y - draggedUnits));
+    end2 = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y - draggedUnits));
   } else {
-    strt2 = new Point(getXForHTick(s1end.x - draggedUnits), getYForVTick(s1end.y));
-    end2 = new Point(getXForHTick(s2end.x - draggedUnits), getYForVTick(s2end.y));
+    //strt2 = new Point(getXForHTick(s1end.x - draggedUnits), getYForVTick(s1end.y));
+    //end2 = new Point(getXForHTick(s2end.x - draggedUnits), getYForVTick(s2end.y));
+    strt2 = new Point(getXForHSubTick(s1end.x - draggedUnits), getYForVSubTick(s1end.y));
+    end2 = new Point(getXForHSubTick(s2end.x - draggedUnits), getYForVSubTick(s2end.y));
   }
 
   ctxt.beginPath();
@@ -1037,28 +1094,46 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
     ctxt.textAlign = 'center';
     //horizontal
 
-    //TODO:  this measure needs to be put in terms of fractional subunits, 
+    //TODO:  check it worked.
+    String ifFractions = " ";
     if (dragIsVertical) {
       String numToDraw = getSweeperLength().abs().toString();
-      String toDraw = numToDraw + " " + hunits_abbreviated;
+      if (hSubTicks > 1) {
+        numToDraw = "<sup>" + numToDraw + "</sup>";
+        ifFractions = " &frasl; <sub>" + hSubTicks.toString() + "</sub>";
+      }
+      String toDraw = numToDraw + ifFractions + hunits_abbreviated;
       ctxt.fillText(toDraw, ((strt.x + end.x) / 2).round(), 28);
     } else {
       String numToDraw = draggedUnits.abs().toString();
-      String toDraw = numToDraw + " " + hunits_abbreviated;
+      if (hSubTicks > 1) {
+        numToDraw = "<sup>" + numToDraw + "</sup>";
+        ifFractions = " &frasl; <sub>" + hSubTicks.toString() + "</sub>";
+      }
+      String toDraw = numToDraw + ifFractions + hunits_abbreviated;
       ctxt.fillText(toDraw, ((strt.x + strt2.x) / 2).round(), 28);
     }
 
 
+    ifFractions = " ";
     //vertical
-    //TODO: this measure also needs to be put in terms of fractional subunits
+    //TODO: check it worked
     if (dragIsVertical) {
       String numToDraw = draggedUnits.abs().toString();
-      String toDraw = numToDraw + " " + vunits_abbreviated;
+      if ( vSubTicks > 1) {
+        numToDraw = "<sup>" + numToDraw + "</sup>";
+        ifFractions = " &frasl; <sub>" + vSubTicks.toString() + "</sub>";
+      }
+      String toDraw = numToDraw + ifFractions + vunits_abbreviated;
       int ycor = ((strt.y + strt2.y) / 2).round();
       drawVerticalText(ctxt, toDraw, 28, ycor);
     } else {
       String numToDraw = getSweeperLength().abs().toString();
-      String toDraw = numToDraw + " " + vunits_abbreviated;
+      if (vSubTicks > 1) {
+        numToDraw = "<sup>" + numToDraw + "</sup>";
+        ifFractions = " &frasl; <sub>" + vSubTicks.toString() + "</sub>";
+      }
+      String toDraw = numToDraw +  ifFractions + vunits_abbreviated;
       int ycor = ((strt.y + end.y) / 2).round();
       drawVerticalText(ctxt, toDraw, 28, ycor);
     }
@@ -1077,8 +1152,8 @@ void drawVerticalText(CanvasRenderingContext2D ctxt, String toDraw, int xc, int 
 
 void drawSweeperCurrentSWEEP(CanvasRenderingContext2D ctxt) {
 
-  Point strt = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
-  Point end = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
+  Point strt = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y));
+  Point end = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
 
   ctxt.strokeStyle = "#000";
 
@@ -1180,9 +1255,17 @@ int getXForHTick(num i) {
   return hoff + (i * ticwid).round();
 }
 
+int getXForHSubTick( num i ) {
+  return hoff + (i * ticwid / hSubTicks).round();
+}
+
 int getYForVTick(num j) {
   return voff + (j * ticht).round();
 }
+
+int getYForVSubTick(num j) {
+  return voff + (j * ticht / vSubTicks).round();
+} 
 
 void drawGrid(CanvasRenderingContext2D ctxt) {
   ctxt.strokeStyle = "#555";
