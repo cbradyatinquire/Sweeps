@@ -91,17 +91,23 @@ html, body {
   color: white;
 }
 
+#bottombar {
+  height:8%;
+  background-color : #008800;
+  color: white;
+}
+
 
 #screenCapDiv {
   position:absolute;
     border: 4px solid black;
-    left: 5%;
+    left: 10%;
     top: 5%;
-    width: 92%;
+    width: 82%;
     height: 85%;
     z-index: 4;
     visibility: hidden;
-    background-color : #F0F0FF;
+    background-color : #008800;
     color: #600000;
     font: 22pt sans-serif;
     opacity:1;

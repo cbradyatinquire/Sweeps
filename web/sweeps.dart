@@ -7,6 +7,7 @@ import 'dart:core';
 part "piece.dart";
 
 ImageElement rightButton, leftButton;
+ImageElement cameraButton;
 CanvasElement canv, tools;
 DivElement splash;
 DivElement sCapBook;
@@ -80,12 +81,16 @@ Point pieceDragOrigin;
 //Screen captures
 List<ImageData> screencaps = new List<ImageData>();
 List<String> screens = new List<String>();
+List<String> toolsText = new List<String>();
+String currentToolsText = "";
 int screenPointer = 0;
+Point screenCapIconCenter = new Point( tools.width / 4, 2 * tools.height / 3);
 
 
 void main() {
   rightButton = new ImageElement()..src = "images/rightImage.jpg";
   leftButton = new ImageElement()..src = "images/leftImage.jpg";
+  cameraButton = new ImageElement()..src = "images/screencap.png";
   canv = querySelector("#scanvas");
   tools = querySelector("#tcanvas");
   splash = querySelector("#splashdiv");
@@ -160,8 +165,8 @@ void doEventSetup() {
 void testSwitchMode(MouseEvent e) {
   int rbound = tools.width - 2 * tools.height;
   int lbound = tools.height * 2;
-  Point screenCapIconCenter = new Point( tools.width / 3, tools.height / 2);
-  int screenCapIconTolerance = 50;
+  
+  int screenCapIconTolerance = 40;
   if (e.offset.x > rbound && MODE < 3) { //we're in the right arrow
     MODE++;
     readyToGoOn = false;
@@ -186,6 +191,7 @@ void addScreenCap() {
   String base64Cap = canv.toDataUrl("image/png");
   //screencaps.add(imageData);
   screens.add(base64Cap);
+  toolsText.add( currentToolsText ); 
 }
 
 void closeScreenCapWindow( var event ) {
@@ -235,17 +241,23 @@ void loadScreen(CanvasElement sc ) {
   i.src = screens[ screenPointer ];
   SpanElement numLabel = document.querySelector("#screennum"); 
   numLabel.innerHtml = (screenPointer + 1).toString() + " of " + screens.length.toString();
+  
+  DivElement bottomLabel = document.querySelector("#toolstext"); 
+  bottomLabel.innerHtml = toolsText[screenPointer];
+  
   sc.context2D.clearRect(0, 0, sc.width, sc.height);
   sc.context2D.drawImageScaled(i, 0, 0, sc.width, sc.height);
+  
 }
 
 void openScreenCapsWindow() {
   DivElement scpop = document.querySelector("#screenCapDiv");
   DivElement topstuff = document.querySelector("#topbar");
+  DivElement botstuff = document.querySelector("#bottombar");
   scpop.style.visibility = "visible";
   CanvasElement sc = document.querySelector("#screencap");
   sc.width = scpop.clientWidth;
-  sc.height = scpop.clientHeight - topstuff.clientHeight;
+  sc.height = scpop.clientHeight - topstuff.clientHeight - botstuff.clientHeight;
   loadScreen(sc);
 }
 
@@ -384,11 +396,13 @@ void drawStatus(CanvasRenderingContext2D ctx) {
   ctx.font = bigCanvasFont;
   ctx.textAlign = 'center';
   if (((MODE == 1 || MODE == 2) && draggedUnits != 0) || (MODE == 3 && hasCut)) {
-    ctx.fillText("Area swept: " + areaToDisplay, tools.width / 2, 2 * tools.height / 3);
+    currentToolsText = "Area swept: " + areaToDisplay;
   } else {
-    ctx.fillText(captions[MODE], tools.width / 2, 2 * tools.height / 3);
+    currentToolsText = captions[MODE];
   }
 
+  ctx.fillText(currentToolsText, tools.width / 2, tools.height / 2); // 2 * tools.height / 3);
+  ctx.drawImageScaled(cameraButton, screenCapIconCenter.x - 32, screenCapIconCenter.y - 32, 64, 64);
   /*if (MODE == 2 && grabbed == "done") {
     ctx.textAlign = 'right';
     ctx.fillStyle = "#0B0";
