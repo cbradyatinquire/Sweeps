@@ -212,15 +212,11 @@ void  TOUCHforwardOrBackInScreens ( TouchEvent evt ) {
 
 
 void doFwdBackLogic( Point clickPoint ) {
-  print(clickPoint.x);
   if ( clickPoint.x > (2 * document.querySelector("#screencap").clientWidth / 3) ) {
     changeScreen(1);
-    print("next");
   } else if ( clickPoint.x < ( document.querySelector("#screencap").clientWidth / 3) ) {
     changeScreen( -1 );
-    print("prev");
   }
-  
 }
 
 void changeScreen( int del ) {
@@ -683,7 +679,7 @@ String getAreaString() {
   String toreturn = theArea.toString() ;
   if (hSubTicks > 1 || vSubTicks > 1) {
     num denom = hSubTicks * vSubTicks;
-    toreturn = "<sup>" + toreturn + "</sup> &frasl; <sub>" + denom.toString() + "</sub>";
+    toreturn =  toreturn + " / " + denom.toString() + " ";
   }
   return toreturn;
 }
@@ -1099,16 +1095,16 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
     if (dragIsVertical) {
       String numToDraw = getSweeperLength().abs().toString();
       if (hSubTicks > 1) {
-        numToDraw = "<sup>" + numToDraw + "</sup>";
-        ifFractions = " &frasl; <sub>" + hSubTicks.toString() + "</sub>";
+        //numToDraw = "<sup>" + numToDraw + "</sup>";
+        ifFractions = " / " + hSubTicks.toString()+ " ";
       }
       String toDraw = numToDraw + ifFractions + hunits_abbreviated;
       ctxt.fillText(toDraw, ((strt.x + end.x) / 2).round(), 28);
     } else {
       String numToDraw = draggedUnits.abs().toString();
       if (hSubTicks > 1) {
-        numToDraw = "<sup>" + numToDraw + "</sup>";
-        ifFractions = " &frasl; <sub>" + hSubTicks.toString() + "</sub>";
+        //numToDraw = "<sup>" + numToDraw + "</sup>";
+        ifFractions = " / " + hSubTicks.toString()+ " ";
       }
       String toDraw = numToDraw + ifFractions + hunits_abbreviated;
       ctxt.fillText(toDraw, ((strt.x + strt2.x) / 2).round(), 28);
@@ -1121,8 +1117,8 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
     if (dragIsVertical) {
       String numToDraw = draggedUnits.abs().toString();
       if ( vSubTicks > 1) {
-        numToDraw = "<sup>" + numToDraw + "</sup>";
-        ifFractions = " &frasl; <sub>" + vSubTicks.toString() + "</sub>";
+        //numToDraw = "<sup>" + numToDraw + "</sup>";
+        ifFractions = " / " + vSubTicks.toString()+ " ";
       }
       String toDraw = numToDraw + ifFractions + vunits_abbreviated;
       int ycor = ((strt.y + strt2.y) / 2).round();
@@ -1130,8 +1126,8 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
     } else {
       String numToDraw = getSweeperLength().abs().toString();
       if (vSubTicks > 1) {
-        numToDraw = "<sup>" + numToDraw + "</sup>";
-        ifFractions = " &frasl; <sub>" + vSubTicks.toString() + "</sub>";
+        //numToDraw = "<sup>" + numToDraw + "</sup>";
+        ifFractions = " / " + vSubTicks.toString() + " ";
       }
       String toDraw = numToDraw +  ifFractions + vunits_abbreviated;
       int ycor = ((strt.y + end.y) / 2).round();
