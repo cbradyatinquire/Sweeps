@@ -39,8 +39,8 @@ bool readyToGoOn = true;
 
 //relevant to the SETUP mode
 var SETUPMouseDown, SETUPTouchStart, SETUPMouseMove, SETUPTouchMove, SETUPMouseUp, SETUPTouchEnd;
-int hticks = 12;
-int vticks = 9;
+num hticks = 12;
+num vticks = 9;
 int hSubTicks = 1;
 int vSubTicks = 1;
 int hSubTicksBefore = 1;
@@ -55,7 +55,8 @@ double ticht;
 Point s1end = new Point(2, 3);
 Point s2end = new Point(4, 6);
 Point olds1, olds2, oldpx1, oldpx2;
-int oldvtix, oldhtix;
+num oldvtix;
+num oldhtix;
 
 Point vhots = new Point(hoff - 10, voff);
 Point hhots = new Point(hoff, voff - 10);
@@ -449,6 +450,16 @@ void displayUnitDialogH() {
   listenForHorizontalUnitsSubmit.resume();
 }
 
+void makeHEqualToV() {
+  ticwid = ticht;
+  hticks = (hrulerwidth / ticwid);
+}
+
+void makeVEqualToH() {
+  ticht = ticwid;
+  vticks = (vrulerheight / ticht);
+}
+
 void getHorizUnits(MouseEvent me) {
   //TextInputElement tie = document.querySelector("#unitname");
   TextInputElement tie2 = document.querySelector("#unitshort");
@@ -464,6 +475,10 @@ void getHorizUnits(MouseEvent me) {
     hSubTicks = proposedSubDivs;
     updateSweeperHPoints(oldHSubTicks, hSubTicks);
     document.querySelector("#popupDiv").style.visibility = "hidden";
+    
+    if ( hunits_abbreviated == vunits_abbreviated) {
+      makeHEqualToV(); 
+    }
     drawSETUP();
   }
   if (!listenForVerticalUnitsSubmit.isPaused) {
@@ -501,6 +516,10 @@ void getVerticalUnits(MouseEvent me) {
     updateSweeperVPoints(oldVSubTicks, vSubTicks);
     
     document.querySelector("#popupDiv").style.visibility = "hidden";
+    
+    if ( vunits_abbreviated == hunits_abbreviated) {
+      makeVEqualToH(); 
+    }
     drawSETUP();
   }
   if (!listenForVerticalUnitsSubmit.isPaused) {
