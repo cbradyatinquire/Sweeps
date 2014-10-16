@@ -150,15 +150,18 @@ void doEventSetup() {
   
   
   //set up mouse actions on the screen capture dialog.
-  document.querySelector("#trashIcon").onMouseUp.listen( deleteScreenCap );
-  document.querySelector("#trashIcon").onTouchEnd.listen( deleteScreenCap );
+ // document.querySelector("#trashIcon").onMouseUp.listen( deleteScreenCap );
+ // document.querySelector("#trashIcon").onTouchEnd.listen( deleteScreenCap );
+  document.querySelector("#trashIcon").onClick.listen( deleteScreenCap );
+  
+ // document.querySelector("#closeIcon").onMouseUp.listen( closeScreenCapWindow );
+//  document.querySelector("#closeIcon").onTouchEnd.listen( closeScreenCapWindow );
+  document.querySelector("#closeIcon").onClick.listen( closeScreenCapWindow );
   
   
-  document.querySelector("#closeIcon").onMouseUp.listen( closeScreenCapWindow );
-  document.querySelector("#closeIcon").onTouchEnd.listen( closeScreenCapWindow );
-  
-  document.querySelector("#screencap").onMouseUp.listen( MOUSEforwardOrBackInScreens );
-  document.querySelector("#screencap").onTouchEnd.listen( TOUCHforwardOrBackInScreens );
+  //document.querySelector("#screencap").onMouseUp.listen( MOUSEforwardOrBackInScreens );
+  //document.querySelector("#screencap").onTouchEnd.listen( TOUCHforwardOrBackInScreens );
+  document.querySelector("#screencap").onClick.listen( MOUSEforwardOrBackInScreens );
   
 }
 
@@ -206,6 +209,7 @@ void deleteScreenCap( var event ) {
     changeScreen(0);
   }
 }
+
 
 void MOUSEforwardOrBackInScreens ( MouseEvent me ) {
   Point clickPoint = me.client;
