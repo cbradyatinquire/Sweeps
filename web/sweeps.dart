@@ -244,20 +244,20 @@ void changeScreen( int del ) {
 void loadScreen(CanvasElement sc ) {
   ImageElement i = new ImageElement();
   i.src = screens[ screenPointer ];
-  SpanElement numLabel = document.querySelector("#screennum"); 
-  numLabel.innerHtml = (screenPointer + 1).toString() + " of " + screens.length.toString();
-  
-  DivElement bottomLabel = document.querySelector("#toolstext"); 
-  bottomLabel.innerHtml = toolsText[screenPointer];
-  
-  sc.context2D.clearRect(0, 0, sc.width, sc.height);
-  while (!i.complete) {
+  i.onLoad.listen((e) {
+    SpanElement numLabel = document.querySelector("#screennum"); 
+    numLabel.innerHtml = (screenPointer + 1).toString() + " of " + screens.length.toString();
     
-  }
-  
-  sc.context2D.drawImageScaled(i, 0, 0, sc.width, sc.height);
-  
+    DivElement bottomLabel = document.querySelector("#toolstext"); 
+    bottomLabel.innerHtml = toolsText[screenPointer];
+    
+    sc.context2D.clearRect(0, 0, sc.width, sc.height);
+    
+    sc.context2D.drawImageScaled(i, 0, 0, sc.width, sc.height);
+  });
 }
+
+
 
 void openScreenCapsWindow() {
   DivElement scpop = document.querySelector("#screenCapDiv");
