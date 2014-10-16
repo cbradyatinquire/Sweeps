@@ -203,6 +203,7 @@ void closeScreenCapWindow( var event ) {
  
 void deleteScreenCap( var event ) {
   screens.removeAt(screenPointer);
+  toolsText.removeAt(screenPointer);
   if (screens.length == 0) {
     closeScreenCapWindow( event );
   } else {
@@ -250,6 +251,10 @@ void loadScreen(CanvasElement sc ) {
   bottomLabel.innerHtml = toolsText[screenPointer];
   
   sc.context2D.clearRect(0, 0, sc.width, sc.height);
+  while (!i.complete) {
+    
+  }
+  
   sc.context2D.drawImageScaled(i, 0, 0, sc.width, sc.height);
   
 }
