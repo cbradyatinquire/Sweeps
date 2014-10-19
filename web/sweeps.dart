@@ -3,11 +3,12 @@ library sweeps;
 import 'dart:html';
 import 'dart:math';
 import 'dart:core';
+import 'dart:async';
 
 part "piece.dart";
 
 ImageElement rightButton, leftButton;
-ImageElement cameraButton;
+ImageElement cameraButton, rulerCompareButton;
 CanvasElement canv, tools;
 DivElement splash;
 DivElement sCapBook;
@@ -86,11 +87,16 @@ String currentToolsText = "";
 int screenPointer = 0;
 Point screenCapIconCenter = new Point( tools.width / 4, 2 * tools.height / 3);
 
+bool comparingRulers = false;
+int compareRulerAngle = 0;
+int compareRulerFrame = 0;
+
 
 void main() {
   rightButton = new ImageElement()..src = "images/rightImage.jpg";
   leftButton = new ImageElement()..src = "images/leftImage.jpg";
   cameraButton = new ImageElement()..src = "images/screencap.png";
+  rulerCompareButton = new ImageElement()..src = "images/rulerCompare.png";
   canv = querySelector("#scanvas");
   tools = querySelector("#tcanvas");
   splash = querySelector("#splashdiv");
@@ -776,7 +782,29 @@ void initInteractionSETUP(Point initPoint) {
     grabbed = "middle";
     setupDragOriginMemorySETUPSWEEP(initPoint);
     drawSETUP();
+  } else if ( initPoint.x < 2 * hoff / 3 && initPoint.y < 2 * voff / 3 ) {
+    comparingRulers = true;
+    compareRulerAngle = 0;
+    compareRulerFrame = 0;
+    startCompareRulerAnimation(10);
   }
+}
+
+
+void incrementFrame(Timer t){
+  compareRulerFrame++;
+  if (compareRulerFrame <= 45) {
+    compareRulerAngle = compareRulerFrame;
+  }
+  if (compareRulerFrame >= 95 ) {
+    comparingRulers = false;
+    t.cancel();
+  }
+  drawSETUP();
+}
+
+startCompareRulerAnimation(int msec){
+  return new Timer.periodic(new Duration(milliseconds:msec), incrementFrame);
 }
 
 bool inMiddle(Point mse) {
@@ -1048,6 +1076,11 @@ void drawSETUP() {
     Point end = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
     drawRulers(ctx);
     drawSweeperSETUP(ctx, strt, end);
+  }
+  ctx.drawImageScaled(rulerCompareButton, 0, 0, 58, 58);
+  if ( comparingRulers ) {
+    drawHorizontalAxisCompare(ctx, 50);
+    drawVerticalAxisCompare(ctx, 50);
   }
   drawTools();
 }
@@ -1416,6 +1449,7 @@ void drawHorizontalAxis(CanvasRenderingContext2D ctxt, int bott) {
   ctxt.fillText(hunits_abbreviated, hrulerwidth + hoff / 2, 25);
 }
 
+
 void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
   int tsize = 30;
   ctxt.beginPath();
@@ -1459,5 +1493,66 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
   ctxt.translate(25, vrulerheight + voff - 10);
   ctxt.rotate(-PI / 2);
   ctxt.fillText(vunits_abbreviated, 0, 0);
+  ctxt.restore();
+}
+
+void drawHorizontalAxisCompare(CanvasRenderingContext2D ctxt, int bott) {
+  int tsize = 30;
+  
+  ctxt.save();
+  ctxt.translate(hoff, bott);
+  ctxt.rotate(compareRulerAngle * (PI/180));
+  ctxt.beginPath();
+  ctxt.strokeStyle = "#000";
+  
+  ctxt.fillStyle = "#FA7";
+  ctxt.rect(0, -50, hrulerwidth, 50);
+  ctxt.fillRect(0, -50, hrulerwidth, 50);
+  ctxt.closePath();
+  ctxt.fill();
+  ctxt.stroke();
+  
+  ctxt.beginPath();
+  ticwid = hrulerwidth / hticks;
+
+  
+  for (num i = 0; i <= hticks; i++) {
+    int x = 0 + (i * ticwid).round();
+    ctxt.moveTo(x, tsize / 2);
+    ctxt.lineTo(x, 0 - tsize);
+  }
+  ctxt.moveTo(0, 0);
+  ctxt.lineTo((hticks*ticwid).round(), 0);
+  ctxt.closePath();
+  ctxt.stroke();
+  ctxt.restore();
+}
+
+void drawVerticalAxisCompare(CanvasRenderingContext2D ctxt, int right) {
+  int tsize = 30;
+  ctxt.save();
+  ctxt.translate(right, voff);
+  ctxt.rotate(compareRulerAngle * (-PI/180));
+  ctxt.beginPath();
+  ctxt.strokeStyle = "#000";
+  ctxt.fillStyle = "#FA7";
+  ctxt.rect(-50, 0, 50, vrulerheight * 1.5);
+  ctxt.fillRect(-50, 0, 50, vrulerheight * 1.5);
+  ctxt.closePath();
+  ctxt.fill();
+  ctxt.stroke();
+  
+  ctxt.beginPath();
+  ticht = vrulerheight / vticks;
+  
+  for (num i = 0; i <= (vticks * 1.5); i++) {
+    int y = 0 + (i * ticht).round();
+    ctxt.moveTo(tsize / 2, y);
+    ctxt.lineTo(0 - tsize , y);
+  }
+  ctxt.moveTo(0, 0);
+  ctxt.lineTo(0,(vticks * ticht * 1.5).round());
+  ctxt.closePath();
+  ctxt.stroke();
   ctxt.restore();
 }
