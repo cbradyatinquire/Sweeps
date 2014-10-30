@@ -374,6 +374,10 @@ void doModeSpecificLogic() {
     CUTMouseUp.resume();
     CUTTouchEnd.resume();
     hasCut = false;
+    
+    cutFlavor = "selected";
+    setDummyCutPoints();
+    
     List<Point> gridPoints = new List<Point>();
     gridPoints.add(s1end);
     gridPoints.add(s2end);
@@ -720,6 +724,21 @@ void drawHorizontalAxis(CanvasRenderingContext2D ctxt, int bott) {
       ctxt.fill();
     }
     ctxt.stroke();
+  } else if (MODE == 3 && cutFlavor == "selected" ) {
+    ctxt.beginPath();
+    ctxt.moveTo(hcuts.x, hcuts.y);
+    ctxt.lineTo(hcuts.x,  hcuts.y + vrulerheight);
+    ctxt.moveTo(hcuts.x, hcuts.y);
+    ctxt.arc(hcuts.x, hcuts.y, 10, 0, 2 * PI);
+    ctxt.closePath();
+    if (grabbed == "horizontal") {
+      ctxt.fillStyle = "#4C4";
+      ctxt.fill();
+    } else {
+      ctxt.fillStyle = "#999";
+      ctxt.fill();
+    }
+    ctxt.stroke();
   }
 
   ctxt.strokeStyle = "#000";
@@ -755,6 +774,21 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
 
   if (MODE == 0 || MODE == 1) { //SETUP MODE, draw hotspot
     if (grabbed == "vertical") {
+      ctxt.fillStyle = "#4C4";
+      ctxt.fill();
+    } else {
+      ctxt.fillStyle = "#999";
+      ctxt.fill();
+    }
+    ctxt.stroke();
+  } else if (MODE == 3 && cutFlavor == "selected" ) {
+    ctxt.beginPath();
+    ctxt.moveTo(vcuts.x, vcuts.y);
+    ctxt.lineTo(vcuts.x + hrulerwidth, vcuts.y);
+    ctxt.moveTo(vcuts.x, vcuts.y);
+    ctxt.arc(vcuts.x, vcuts.y, 10, 0, 2 * PI);
+    ctxt.closePath();
+    if (grabbed == "horizontal") {
       ctxt.fillStyle = "#4C4";
       ctxt.fill();
     } else {
