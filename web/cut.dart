@@ -6,22 +6,9 @@ Point vcuts = new Point(hoff - 10, voff);
 Point hcuts = new Point(hoff, voff - 10);
 var cutGrabbed = "none";
 
-/*
- * if (sqPixelDistance(initPoint, vhots) < dragThreshold) {
-    grabbed = "vertical";
-    setupDragOriginMemorySETUPSWEEP(initPoint);
-    drawSETUP();
-  } else if (sqPixelDistance(initPoint, hhots) < dragThreshold) {
-    grabbed = "horizontal";
-    setupDragOriginMemorySETUPSWEEP(initPoint);
-    drawSETUP();
-//  } else if (sqPixelDistance(initPoint, new Point(getXForHTick(s1end.x), getYForVTick(s1end.y))) < dragThreshold) {
-  }
- */
-
-void setDummyCutPoints() {
-  vcuts = new Point( hoff-10, getYForVSubTick( 4) );
-  hcuts = new Point( getXForHSubTick(3), voff-10 );
+void setCutPoints() {
+  vcuts = new Point( hoff-20, getYForVSubTick( -1 + vticks * vSubTicks ) );
+  hcuts = new Point( getXForHSubTick( -1 + hticks * hSubTicks ), voff-20 );
 }
 
 //CUT MODE HAS AN IMMEDIATE RESPONSE TO THE CLICK.
@@ -56,8 +43,6 @@ void clickLogicCUT(Point pt) {
       }
     }
   } else {
-    print("got to selected cut mode");
-    print(sqPixelDistance(pt, vcuts));
     if (sqPixelDistance(pt, vcuts) < dragThreshold) {
       cutGrabbed = "vertical";
       drawCUT();
@@ -65,10 +50,10 @@ void clickLogicCUT(Point pt) {
       cutGrabbed = "horizontal";
       drawCUT();
     } else if (pt.y < 50 && pt.x < 50 ) {
-      print("would actually cut");
-      doCut();
+      //doCut();
+      cutGrabbed = "scissors";
       drawCUT();
-      hasCut = true;  //TODO: make sure that this was needed
+      //hasCut = true;  //TODO: make sure that this was needed
     } else {
       drawCUT();
       for (int i = 0; i < pieces.length; i++) {
@@ -108,7 +93,6 @@ void doCut() {
 //  print(pieces.length.toString() + " PIECES. with vertices...");
 //  pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
   } else {
-    print("actually cut in selected flavor");
     num cx = getSubTickCoordForPixelH(hcuts.x);
     num cy = getSubTickCoordForPixelV(vcuts.y);
     List<Piece> newPcs = new List<Piece>();
@@ -124,6 +108,17 @@ void doCut() {
 void drawCUT() {
   CanvasRenderingContext2D ctx = canv.context2D;
   ctx.clearRect(0, 0, canv.width, canv.height);
+  if (cutFlavor == "selected") {
+    
+    if (cutGrabbed == "scissors" ) {
+      ctx.drawImageScaled(cutSelectedClosedButton, 0, 0, 58, 58);
+      canv.style.backgroundColor = "#aaaacc";
+    } else {
+      ctx.drawImageScaled(cutSelectedButton, 0, 0, 58, 58);
+      canv.style.backgroundColor = "#fff8ff";
+    }
+    
+  }
   if (hasCut) {
     drawRulers(ctx);
     drawSweeperSweptSWEEP(ctx);
@@ -158,7 +153,7 @@ void mouseDragCUT(MouseEvent event) {
 
 
 void dragCutHotSpots( Point currentPt ) {
-  print("dragging " + cutGrabbed );
+  //print("dragging " + cutGrabbed );
   if (cutGrabbed == "horizontal") {
     hcuts = new Point(  getXForHSubTick( getSubTickCoordForPixelH(currentPt.x) )  , hcuts.y);
   } else if ( cutGrabbed == "vertical") {
@@ -209,12 +204,18 @@ void draggingCUT(Point currentPt) {
 
 void stopDragCUT(MouseEvent event) {
   draggingPiece = null;
+  if (cutGrabbed == "scissors") {
+    doCut();
+  }
   cutGrabbed = "none";
   drawCUT();
 }
 
 void stopTouchCUT(TouchEvent evt) {
   draggingPiece = null;
+  if (cutGrabbed == "scissors") {
+    doCut();
+  }
   cutGrabbed = "none";
   drawCUT();
 }

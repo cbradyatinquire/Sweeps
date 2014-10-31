@@ -11,7 +11,7 @@ part "sweep.dart";
 part "cut.dart";
 
 ImageElement rightButton, leftButton;
-ImageElement cameraButton, rulerCompareButton;
+ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton;
 CanvasElement canv, tools;
 DivElement splash;
 DivElement sCapBook;
@@ -100,6 +100,8 @@ void main() {
   leftButton = new ImageElement()..src = "images/leftImage.jpg";
   cameraButton = new ImageElement()..src = "images/screencap.png";
   rulerCompareButton = new ImageElement()..src = "images/rulerCompare.png";
+  cutSelectedButton = new ImageElement()..src = "images/cutSelected.png";
+  cutSelectedClosedButton = new ImageElement()..src = "images/cutSelectedClosed.png";
   canv = querySelector("#scanvas");
   tools = querySelector("#tcanvas");
   splash = querySelector("#splashdiv");
@@ -376,7 +378,8 @@ void doModeSpecificLogic() {
     hasCut = false;
     
     cutFlavor = "selected";
-    setDummyCutPoints();
+    hasCut = true;
+    setCutPoints();
     
     List<Point> gridPoints = new List<Point>();
     gridPoints.add(s1end);
@@ -728,14 +731,16 @@ void drawHorizontalAxis(CanvasRenderingContext2D ctxt, int bott) {
     ctxt.beginPath();
     ctxt.moveTo(hcuts.x, hcuts.y);
     ctxt.lineTo(hcuts.x,  hcuts.y + vrulerheight);
-    ctxt.moveTo(hcuts.x, hcuts.y);
-    ctxt.arc(hcuts.x, hcuts.y, 10, 0, 2 * PI);
+    ctxt.moveTo(hcuts.x - 10, hcuts.y - 10);
+    ctxt.rect(hcuts.x - 10,  hcuts.y - 10, 20, 20);  //(hcuts.x, hcuts.y, 10, 0, 2 * PI);
     ctxt.closePath();
-    if (grabbed == "horizontal") {
-      ctxt.fillStyle = "#4C4";
+    if (cutGrabbed == "horizontal") {
+      ctxt.fillStyle = "#7F4";
+      ctxt.strokeStyle = "#7F4";
       ctxt.fill();
     } else {
       ctxt.fillStyle = "#999";
+      ctxt.strokeStyle = "#000";
       ctxt.fill();
     }
     ctxt.stroke();
@@ -785,14 +790,16 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
     ctxt.beginPath();
     ctxt.moveTo(vcuts.x, vcuts.y);
     ctxt.lineTo(vcuts.x + hrulerwidth, vcuts.y);
-    ctxt.moveTo(vcuts.x, vcuts.y);
-    ctxt.arc(vcuts.x, vcuts.y, 10, 0, 2 * PI);
+    ctxt.moveTo(vcuts.x - 10, vcuts.y - 10);
+    ctxt.rect(vcuts.x - 10, vcuts.y - 10, 20, 20); 
     ctxt.closePath();
-    if (grabbed == "horizontal") {
-      ctxt.fillStyle = "#4C4";
+    if (cutGrabbed == "vertical") {
+      ctxt.fillStyle = "#7F4";
+      ctxt.strokeStyle = "#7F4";
       ctxt.fill();
     } else {
       ctxt.fillStyle = "#999";
+      ctxt.strokeStyle = "#000";
       ctxt.fill();
     }
     ctxt.stroke();
