@@ -24,7 +24,7 @@ html, body {
     padding: 15px;
     background: rgba(255,255,255,0.8);
     margin: 0 0 10px 0;
-    font: 30pt sans-serif;
+    font: 20pt sans-serif;
 }
 
 .popbutton {
@@ -42,7 +42,7 @@ html, body {
     padding: 15px;
     background: rgba(255,225,225,0.9);
     margin: 0 0 10px 0;
-    font: 32pt sans-serif;
+    font: 22pt sans-serif;
 }
 
 #construction {
@@ -76,7 +76,7 @@ html, body {
     visibility: hidden;
     background-color : #F0F0FF;
     color: #600000;
-    font: 32pt sans-serif;
+    font: 22pt sans-serif;
     text-align:center;
     opacity:.9;
     

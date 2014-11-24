@@ -10,8 +10,8 @@ part "setup.dart";
 part "sweep.dart";
 part "cut.dart";
 
-ImageElement rightButton, leftButton;
-ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton;
+ImageElement forkedRightButton, rightButton, leftButton;
+ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton, experimentWithAnglesButton;
 CanvasElement canv, tools;
 DivElement splash;
 DivElement sCapBook;
@@ -88,7 +88,8 @@ List<String> screens = new List<String>();
 List<String> toolsText = new List<String>();
 String currentToolsText = "";
 int screenPointer = 0;
-Point screenCapIconCenter = new Point( tools.width / 4, 2 * tools.height / 3);
+Point screenCapIconCenter = new Point(tools.width / 4, 2 * tools.height / 3);
+Point experimentWithAnglesCenter = new  Point(3 * tools.width / 4, 2 * tools.height / 3);
 
 bool comparingRulers = false;
 int compareRulerAngle = 0;
@@ -98,7 +99,9 @@ int compareRulerFrame = 0;
 void main() {
   rightButton = new ImageElement()..src = "images/rightImage.jpg";
   leftButton = new ImageElement()..src = "images/leftImage.jpg";
+  forkedRightButton = new ImageElement()..src = "images/forkedRightImage.jpg";
   cameraButton = new ImageElement()..src = "images/screencap.png";
+  experimentWithAnglesButton = new ImageElement()..src = "images/angles.gif";
   rulerCompareButton = new ImageElement()..src = "images/rulerCompare.png";
   cutSelectedButton = new ImageElement()..src = "images/cutSelected.png";
   cutSelectedClosedButton = new ImageElement()..src = "images/cutSelectedClosed.png";
@@ -107,7 +110,7 @@ void main() {
   splash = querySelector("#splashdiv");
   submitUnitsButton = document.querySelector("#submitUnit");
   splash.onClick.listen(startUp);
-  
+
 }
 
 void doEventSetup() {
@@ -157,34 +160,52 @@ void doEventSetup() {
   CUTTouchMove.pause();
   CUTMouseUp.pause();
   CUTTouchEnd.pause();
- 
-  
-  
+
+
+
   //set up mouse actions on the screen capture dialog.
- // document.querySelector("#trashIcon").onMouseUp.listen( deleteScreenCap );
- // document.querySelector("#trashIcon").onTouchEnd.listen( deleteScreenCap );
-  document.querySelector("#trashIcon").onClick.listen( deleteScreenCap );
-  
- // document.querySelector("#closeIcon").onMouseUp.listen( closeScreenCapWindow );
+  // document.querySelector("#trashIcon").onMouseUp.listen( deleteScreenCap );
+  // document.querySelector("#trashIcon").onTouchEnd.listen( deleteScreenCap );
+  document.querySelector("#trashIcon").onClick.listen(deleteScreenCap);
+
+  // document.querySelector("#closeIcon").onMouseUp.listen( closeScreenCapWindow );
 //  document.querySelector("#closeIcon").onTouchEnd.listen( closeScreenCapWindow );
-  document.querySelector("#closeIcon").onClick.listen( closeScreenCapWindow );
-  
-  
+  document.querySelector("#closeIcon").onClick.listen(closeScreenCapWindow);
+
+
   //document.querySelector("#screencap").onMouseUp.listen( MOUSEforwardOrBackInScreens );
   //document.querySelector("#screencap").onTouchEnd.listen( TOUCHforwardOrBackInScreens );
   document.querySelector("#screencap").onClick.listen( MOUSEforwardOrBackInScreens );
-  
+  document.querySelector("#leftIcon").onClick.listen(MOUSEbackInScreens);
+  document.querySelector("#rightIcon").onClick.listen(MOUSEforwardInScreens);
+
 }
 
 void testSwitchMode(MouseEvent e) {
   int rbound = tools.width - 2 * tools.height;
   int lbound = tools.height * 2;
-  
+
   int screenCapIconTolerance = 40;
+  int experimentAngleTolerance = 64;
   if (e.offset.x > rbound && MODE < 3) { //we're in the right arrow
-    MODE++;
-    readyToGoOn = false;
-    doModeSpecificLogic();
+    if (readyToGoOn) {
+      MODE++;
+      readyToGoOn = false;
+      if (MODE == 3) {
+        if (e.offset.y < (tools.height / 2)) {
+          cutFlavor = "all";
+          hasCut = false;
+          doModeSpecificLogic();
+        } else {
+          cutFlavor = "selected";
+          hasCut = true;
+          setCutPoints();
+          doModeSpecificLogic();
+        }
+      } else {
+        doModeSpecificLogic();
+      }
+    }
   } else if (e.offset.x < lbound) { //we're in the left arrow
     if (MODE > 1) {
       MODE--;
@@ -194,9 +215,13 @@ void testSwitchMode(MouseEvent e) {
     } else if (MODE == 1) {
       window.location.reload();
     }
-  } else if (e.offset.distanceTo(screenCapIconCenter) < screenCapIconTolerance ) {
+  } else if (e.offset.distanceTo(screenCapIconCenter) < screenCapIconTolerance) {
     addScreenCap();
     openScreenCapsWindow();
+  } else if (MODE==2) {
+    if (  (e.offset.x - experimentWithAnglesCenter.x < experimentAngleTolerance) && (e.offset.y > tools.height / 3)  ) {
+      print("would go to angle manipulator");
+    }
   }
 }
 
@@ -205,65 +230,72 @@ void addScreenCap() {
   String base64Cap = canv.toDataUrl("image/png");
   //screencaps.add(imageData);
   screens.add(base64Cap);
-  toolsText.add( currentToolsText ); 
+  toolsText.add(currentToolsText);
 }
 
-void closeScreenCapWindow( var event ) {
+void closeScreenCapWindow(var event) {
   document.querySelector("#screenCapDiv").style.visibility = "hidden";
 }
- 
-void deleteScreenCap( var event ) {
+
+void deleteScreenCap(var event) {
   screens.removeAt(screenPointer);
   toolsText.removeAt(screenPointer);
   if (screens.length == 0) {
-    closeScreenCapWindow( event );
+    closeScreenCapWindow(event);
   } else {
     changeScreen(0);
   }
 }
 
 
-void MOUSEforwardOrBackInScreens ( MouseEvent me ) {
+void MOUSEforwardOrBackInScreens(MouseEvent me) {
   Point clickPoint = me.client;
-  doFwdBackLogic( clickPoint );
+  doFwdBackLogic(clickPoint);
 }
 
-void  TOUCHforwardOrBackInScreens ( TouchEvent evt ) {
+void MOUSEforwardInScreens(MouseEvent me ) {
+  changeScreen(1);
+}
+void MOUSEbackInScreens(MouseEvent me ) {
+  changeScreen(-1);
+}
+
+void TOUCHforwardOrBackInScreens(TouchEvent evt) {
   Point clickPoint = evt.changedTouches[0].client;
-  doFwdBackLogic( clickPoint );
+  doFwdBackLogic(clickPoint);
 }
 
 
-void doFwdBackLogic( Point clickPoint ) {
-  if ( clickPoint.x > (2 * document.querySelector("#screencap").clientWidth / 3) ) {
+void doFwdBackLogic(Point clickPoint) {
+  if (clickPoint.x > (2 * document.querySelector("#screencap").clientWidth / 3)) {
     changeScreen(1);
-  } else if ( clickPoint.x < ( document.querySelector("#screencap").clientWidth / 3) ) {
-    changeScreen( -1 );
+  } else if (clickPoint.x < (document.querySelector("#screencap").clientWidth / 3)) {
+    changeScreen(-1);
   }
 }
 
-void changeScreen( int del ) {
+void changeScreen(int del) {
   screenPointer = screenPointer + del;
   if (screenPointer >= screens.length) {
     screenPointer = 0;
-  } else if (screenPointer < 0 ) {
+  } else if (screenPointer < 0) {
     screenPointer = screens.length - 1;
   }
   loadScreen(document.querySelector("#screencap"));
 }
 
-void loadScreen(CanvasElement sc ) {
+void loadScreen(CanvasElement sc) {
   ImageElement i = new ImageElement();
-  i.src = screens[ screenPointer ];
+  i.src = screens[screenPointer];
   i.onLoad.listen((e) {
-    SpanElement numLabel = document.querySelector("#screennum"); 
+    SpanElement numLabel = document.querySelector("#screennum");
     numLabel.innerHtml = (screenPointer + 1).toString() + " of " + screens.length.toString();
-    
-    DivElement bottomLabel = document.querySelector("#toolstext"); 
+
+    DivElement bottomLabel = document.querySelector("#toolstext");
     bottomLabel.innerHtml = toolsText[screenPointer];
-    
+
     sc.context2D.clearRect(0, 0, sc.width, sc.height);
-    
+
     sc.context2D.drawImageScaled(i, 0, 0, sc.width, sc.height);
   });
 }
@@ -375,12 +407,7 @@ void doModeSpecificLogic() {
     CUTTouchMove.resume();
     CUTMouseUp.resume();
     CUTTouchEnd.resume();
-    hasCut = false;
-    
-    cutFlavor = "selected";
-    hasCut = true;
-    setCutPoints();
-    
+
     List<Point> gridPoints = new List<Point>();
     gridPoints.add(s1end);
     gridPoints.add(s2end);
@@ -428,6 +455,10 @@ void drawStatus(CanvasRenderingContext2D ctx) {
 
   ctx.fillText(currentToolsText, tools.width / 2, tools.height / 2); // 2 * tools.height / 3);
   ctx.drawImageScaled(cameraButton, screenCapIconCenter.x - 32, screenCapIconCenter.y - 32, 64, 64);
+  
+  if (MODE == 2 && readyToGoOn) { 
+    ctx.drawImageScaled(experimentWithAnglesButton, experimentWithAnglesCenter.x - 64, experimentWithAnglesCenter.y - 33, 128, 64);
+  }
   /*if (MODE == 2 && grabbed == "done") {
     ctx.textAlign = 'right';
     ctx.fillStyle = "#0B0";
@@ -450,7 +481,10 @@ void drawTools() {
   if (MODE > 0) {
     ctx.drawImageScaled(leftButton, 0, 0, imwid, imht);
   }
-  if (MODE < 3 && readyToGoOn) {
+  if (MODE == 2 && readyToGoOn) {
+    ctx.drawImageScaled(forkedRightButton, tools.width - imwid, 0, imwid, imht);
+  }
+  if (MODE < 2 && readyToGoOn) {
     ctx.drawImageScaled(rightButton, tools.width - imwid, 0, imwid, imht);
   }
   drawStatus(ctx);
@@ -471,14 +505,14 @@ int sqPixelDistance(Point p1, Point p2) {
 
 
 
-void updateSweeperHPoints(int oldval, int newval ) {
+void updateSweeperHPoints(int oldval, int newval) {
   s1end = new Point((newval * s1end.x / oldval).round(), s1end.y);
   s2end = new Point((newval * s2end.x / oldval).round(), s2end.y);
 }
 
-void updateSweeperVPoints(int oldval, int newval ) {
-  s1end = new Point(s1end.x, (newval * s1end.y / oldval).round() );
-  s2end = new Point(s2end.x, (newval * s2end.y / oldval).round() );
+void updateSweeperVPoints(int oldval, int newval) {
+  s1end = new Point(s1end.x, (newval * s1end.y / oldval).round());
+  s2end = new Point(s2end.x, (newval * s2end.y / oldval).round());
 }
 
 
@@ -529,10 +563,10 @@ num getSweeperLength() {
 String getAreaString() {
   num sweeperLen = getSweeperLength();
   num theArea = (sweeperLen * draggedUnits).abs();
-  String toreturn = theArea.toString() ;
+  String toreturn = theArea.toString();
   if (hSubTicks > 1 || vSubTicks > 1) {
     num denom = hSubTicks * vSubTicks;
-    toreturn =  toreturn + " / " + denom.toString() + " ";
+    toreturn = toreturn + " / " + denom.toString() + " ";
   }
   return toreturn;
 }
@@ -558,7 +592,7 @@ void rememberPresentSETUPSWEEP() {
   olds1 = new Point(s1end.x, s1end.y);
   olds2 = new Point(s2end.x, s2end.y);
 //  oldpx1 = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
-//  oldpx2 = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));  
+//  oldpx2 = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
   oldpx1 = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y));
   oldpx2 = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
   oldvtix = vticks;
@@ -581,12 +615,12 @@ bool inMiddle(Point mse) {
 
 
 
-int getSubTickCoordForPixelH( int px ) {
-  return (hSubTicks *  (px - hoff) / (ticwid )).round();
+int getSubTickCoordForPixelH(int px) {
+  return (hSubTicks * (px - hoff) / (ticwid)).round();
 }
 
-int getSubTickCoordForPixelV( int py ) {
-  return (vSubTicks *  (py - voff) / (ticht )).round();
+int getSubTickCoordForPixelV(int py) {
+  return (vSubTicks * (py - voff) / (ticht)).round();
 }
 
 
@@ -613,7 +647,7 @@ int getXForHTick(num i) {
   return hoff + (i * ticwid).round();
 }
 
-int getXForHSubTick( num i ) {
+int getXForHSubTick(num i) {
   return hoff + (i * ticwid / hSubTicks).round();
 }
 
@@ -623,7 +657,7 @@ int getYForVTick(num j) {
 
 int getYForVSubTick(num j) {
   return voff + (j * ticht / vSubTicks).round();
-} 
+}
 
 void drawGrid(CanvasRenderingContext2D ctxt) {
   ctxt.strokeStyle = "#555";
@@ -646,7 +680,7 @@ void drawGrid(CanvasRenderingContext2D ctxt) {
   }
   ctxt.closePath();
   ctxt.stroke();
-  
+
   ctxt.beginPath();
   ctxt.strokeStyle = "#30F";
   ctxt.setLineDash([]);
@@ -668,7 +702,7 @@ void drawGrid(CanvasRenderingContext2D ctxt) {
   ctxt.closePath();
   ctxt.stroke();
   ctxt.lineWidth = 1;
-  
+
 
 }
 
@@ -727,12 +761,12 @@ void drawHorizontalAxis(CanvasRenderingContext2D ctxt, int bott) {
       ctxt.fill();
     }
     ctxt.stroke();
-  } else if (MODE == 3 && cutFlavor == "selected" ) {
+  } else if (MODE == 3 && cutFlavor == "selected") {
     ctxt.beginPath();
     ctxt.moveTo(hcuts.x, hcuts.y);
-    ctxt.lineTo(hcuts.x,  hcuts.y + vrulerheight);
+    ctxt.lineTo(hcuts.x, hcuts.y + vrulerheight);
     ctxt.moveTo(hcuts.x - 10, hcuts.y - 10);
-    ctxt.rect(hcuts.x - 10,  hcuts.y - 10, 20, 20);  //(hcuts.x, hcuts.y, 10, 0, 2 * PI);
+    ctxt.rect(hcuts.x - 10, hcuts.y - 10, 20, 20); //(hcuts.x, hcuts.y, 10, 0, 2 * PI);
     ctxt.closePath();
     if (cutGrabbed == "horizontal") {
       ctxt.fillStyle = "#7F4";
@@ -786,12 +820,12 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
       ctxt.fill();
     }
     ctxt.stroke();
-  } else if (MODE == 3 && cutFlavor == "selected" ) {
+  } else if (MODE == 3 && cutFlavor == "selected") {
     ctxt.beginPath();
     ctxt.moveTo(vcuts.x, vcuts.y);
     ctxt.lineTo(vcuts.x + hrulerwidth, vcuts.y);
     ctxt.moveTo(vcuts.x - 10, vcuts.y - 10);
-    ctxt.rect(vcuts.x - 10, vcuts.y - 10, 20, 20); 
+    ctxt.rect(vcuts.x - 10, vcuts.y - 10, 20, 20);
     ctxt.closePath();
     if (cutGrabbed == "vertical") {
       ctxt.fillStyle = "#7F4";
@@ -819,31 +853,31 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
 
 void drawHorizontalAxisCompare(CanvasRenderingContext2D ctxt, int bott) {
   int tsize = 30;
-  
+
   ctxt.save();
   ctxt.translate(hoff, bott);
-  ctxt.rotate(compareRulerAngle * (PI/180));
+  ctxt.rotate(compareRulerAngle * (PI / 180));
   ctxt.beginPath();
   ctxt.strokeStyle = "#000";
-  
+
   ctxt.fillStyle = "#FA7";
   ctxt.rect(0, -50, hrulerwidth, 50);
   ctxt.fillRect(0, -50, hrulerwidth, 50);
   ctxt.closePath();
   ctxt.fill();
   ctxt.stroke();
-  
+
   ctxt.beginPath();
   ticwid = hrulerwidth / hticks;
 
-  
+
   for (num i = 0; i <= hticks; i++) {
     int x = 0 + (i * ticwid).round();
     ctxt.moveTo(x, tsize / 2);
     ctxt.lineTo(x, 0 - tsize);
   }
   ctxt.moveTo(0, 0);
-  ctxt.lineTo((hticks*ticwid).round(), 0);
+  ctxt.lineTo((hticks * ticwid).round(), 0);
   ctxt.closePath();
   ctxt.stroke();
   ctxt.restore();
@@ -853,7 +887,7 @@ void drawVerticalAxisCompare(CanvasRenderingContext2D ctxt, int right) {
   int tsize = 30;
   ctxt.save();
   ctxt.translate(right, voff);
-  ctxt.rotate(compareRulerAngle * (-PI/180));
+  ctxt.rotate(compareRulerAngle * (-PI / 180));
   ctxt.beginPath();
   ctxt.strokeStyle = "#000";
   ctxt.fillStyle = "#FA7";
@@ -862,17 +896,17 @@ void drawVerticalAxisCompare(CanvasRenderingContext2D ctxt, int right) {
   ctxt.closePath();
   ctxt.fill();
   ctxt.stroke();
-  
+
   ctxt.beginPath();
   ticht = vrulerheight / vticks;
-  
+
   for (num i = 0; i <= (vticks * 1.5); i++) {
     int y = 0 + (i * ticht).round();
     ctxt.moveTo(tsize / 2, y);
-    ctxt.lineTo(0 - tsize , y);
+    ctxt.lineTo(0 - tsize, y);
   }
   ctxt.moveTo(0, 0);
-  ctxt.lineTo(0,(vticks * ticht * 1.5).round());
+  ctxt.lineTo(0, (vticks * ticht * 1.5).round());
   ctxt.closePath();
   ctxt.stroke();
   ctxt.restore();

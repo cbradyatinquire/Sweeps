@@ -12,6 +12,13 @@ void displayUnitDialogH() {
   rie.value = hSubTicks.toString();
   SpanElement se = document.querySelector("#sliderval");
   se.innerHtml = hSubTicks.toString();
+  
+  CheckboxInputElement ce = document.querySelector("#sameUnit");
+  if ( ticwid == ticht ) { ce.checked = true; }
+  else { ce.checked = false; }
+  
+  document.querySelector("#oppDirection").innerHtml = "Vertical";
+  
 
   document.querySelector("#popupDiv").style.visibility = "visible";
 
@@ -42,16 +49,28 @@ void getHorizUnits(MouseEvent me) {
   if (proposedAbbrev.length > 0) {
     //hunits_full = proposedUnits;
     hunits_abbreviated = proposedAbbrev;
+  } 
+  
+  CheckboxInputElement ce = document.querySelector("#sameUnit");
+  if (ce.checked) {
+    makeHEqualToV();
+    if (s1end.x >= hticks * hSubTicks ) { s1end = new Point((hticks * hSubTicks), s1end.y); }
+    if (s2end.x >= hticks * hSubTicks  ) { s2end = new Point((hticks * hSubTicks), s2end.y); }
+  }
+  /*
+   * if (hunits_abbreviated == vunits_abbreviated) {
+      makeHEqualToV();
+      if (s1end.x >= hticks * hSubTicks ) { s1end = new Point((hticks * hSubTicks), s1end.y); }
+      if (s2end.x >= hticks * hSubTicks  ) { s2end = new Point((hticks * hSubTicks), s2end.y); }
+    }
+   */
     int oldHSubTicks = hSubTicks;
     hSubTicks = proposedSubDivs;
     updateSweeperHPoints(oldHSubTicks, hSubTicks);
     document.querySelector("#popupDiv").style.visibility = "hidden";
-
-    if (hunits_abbreviated == vunits_abbreviated) {
-      makeHEqualToV();
-    }
+      
     drawSETUP();
-  }
+  
   if (!listenForVerticalUnitsSubmit.isPaused) {
     listenForVerticalUnitsSubmit.pause();
   }
@@ -72,18 +91,31 @@ void getVerticalUnits(MouseEvent me) {
   if (proposedAbbrev.length > 0) {
     //vunits_full = proposedUnits;
     vunits_abbreviated = proposedAbbrev;
-
+  }
+  /*
+   *  if (vunits_abbreviated == hunits_abbreviated) {
+      makeVEqualToH();
+      if (s1end.y >= vticks * vSubTicks ) { s1end = new Point(s1end.x, (vticks * vSubTicks)); }
+      if (s2end.y >= vticks * vSubTicks ) { s2end = new Point(s2end.x, (vticks * vSubTicks)); }
+    }
+   */
+  
+  CheckboxInputElement ce = document.querySelector("#sameUnit");
+    if (ce.checked) {
+      makeVEqualToH();
+      if (s1end.y >= vticks * vSubTicks ) { s1end = new Point(s1end.x, (vticks * vSubTicks)); }
+      if (s2end.y >= vticks * vSubTicks ) { s2end = new Point(s2end.x, (vticks * vSubTicks)); }
+    }
+  
     int oldVSubTicks = vSubTicks;
     vSubTicks = proposedSubDivs;
     updateSweeperVPoints(oldVSubTicks, vSubTicks);
 
     document.querySelector("#popupDiv").style.visibility = "hidden";
 
-    if (vunits_abbreviated == hunits_abbreviated) {
-      makeVEqualToH();
-    }
+   
     drawSETUP();
-  }
+  
   if (!listenForVerticalUnitsSubmit.isPaused) {
     listenForVerticalUnitsSubmit.pause();
   }
@@ -101,6 +133,13 @@ void displayUnitDialogV() {
   rie.value = vSubTicks.toString();
   SpanElement se = document.querySelector("#sliderval");
   se.innerHtml = vSubTicks.toString();
+  
+  document.querySelector("#oppDirection").innerHtml = "Horizontal";
+  
+  CheckboxInputElement ce = document.querySelector("#sameUnit");
+    if ( ticwid == ticht ) { ce.checked = true; }
+    else { ce.checked = false; }
+  
   document.querySelector("#popupDiv").style.visibility = "visible";
   if (!listenForHorizontalUnitsSubmit.isPaused) {
     listenForHorizontalUnitsSubmit.pause();
