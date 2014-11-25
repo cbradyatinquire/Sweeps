@@ -523,7 +523,7 @@ void drawStatus(CanvasRenderingContext2D ctx) {
   ctx.drawImageScaled(cameraButton, screenCapIconCenter.x - 32, screenCapIconCenter.y - 32, 64, 64);
   
   if (MODE == 2 && readyToGoOn) { 
-    ctx.drawImageScaled(experimentWithAnglesButton, experimentWithAnglesCenter.x - 64, experimentWithAnglesCenter.y - 33, 128, 64);
+    ctx.drawImageScaled(experimentWithAnglesButton, experimentWithAnglesCenter.x - 48, experimentWithAnglesCenter.y - 25, 96, 48);
   }
   /*if (MODE == 2 && grabbed == "done") {
     ctx.textAlign = 'right';
