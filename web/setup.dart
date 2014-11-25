@@ -26,6 +26,7 @@ void displayUnitDialogH() {
     listenForVerticalUnitsSubmit.pause();
   }
   listenForHorizontalUnitsSubmit.resume();
+  pauseEventsForScreenCapsWindow();
 }
 
 void makeHEqualToV() {
@@ -77,6 +78,8 @@ void getHorizUnits(MouseEvent me) {
   if (!listenForHorizontalUnitsSubmit.isPaused) {
     listenForHorizontalUnitsSubmit.pause();
   }
+  
+  resumeEventsForScreenCapsWindow();
 }
 
 
@@ -122,6 +125,8 @@ void getVerticalUnits(MouseEvent me) {
   if (!listenForHorizontalUnitsSubmit.isPaused) {
     listenForHorizontalUnitsSubmit.pause();
   }
+  
+  resumeEventsForScreenCapsWindow();
 }
 
 void displayUnitDialogV() {
@@ -145,6 +150,7 @@ void displayUnitDialogV() {
     listenForHorizontalUnitsSubmit.pause();
   }
   listenForVerticalUnitsSubmit.resume();
+  pauseEventsForScreenCapsWindow();
 }
 
 bool userChangesUnits(Point clickSpot) {

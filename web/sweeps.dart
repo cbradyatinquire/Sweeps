@@ -77,6 +77,8 @@ int draggedUnits = 0;
 
 //relevant to the CUT mode
 var CUTMouseDown, CUTTouchStart, CUTMouseMove, CUTTouchMove, CUTMouseUp, CUTTouchEnd;
+//for forward/back navigation.
+var navigationEvents;
 bool hasCut = false;
 List<Piece> pieces = new List<Piece>();
 Piece draggingPiece = null;
@@ -235,6 +237,7 @@ void addScreenCap() {
 
 void closeScreenCapWindow(var event) {
   document.querySelector("#screenCapDiv").style.visibility = "hidden";
+  resumeEventsForScreenCapsWindow();
 }
 
 void deleteScreenCap(var event) {
@@ -311,8 +314,71 @@ void openScreenCapsWindow() {
   sc.width = scpop.clientWidth;
   sc.height = scpop.clientHeight - topstuff.clientHeight - botstuff.clientHeight;
   loadScreen(sc);
+  pauseEventsForScreenCapsWindow();
 }
 
+
+void pauseEventsForScreenCapsWindow() {
+  print("Pausing nav");
+  navigationEvents.pause();
+  if (MODE == 1) {
+      SETUPMouseDown.pause();
+      SETUPTouchStart.pause();
+      SETUPMouseMove.pause();
+      SETUPTouchMove.pause();
+      SETUPMouseUp.pause();
+      SETUPTouchEnd.pause();
+    }
+
+    if (MODE == 2) {
+      SWEEPMouseDown.pause();
+      SWEEPTouchStart.pause();
+      SWEEPMouseMove.pause();
+      SWEEPTouchMove.pause();
+      SWEEPMouseUp.pause();
+      SWEEPTouchEnd.pause();
+    }
+  
+  if (MODE == 3) {
+      CUTMouseDown.pause();
+      CUTTouchStart.pause();
+      CUTMouseMove.pause();
+      CUTTouchMove.pause();
+      CUTMouseUp.pause();
+      CUTTouchEnd.pause();  
+  }
+}
+
+void resumeEventsForScreenCapsWindow() {
+  print("resuming nav");
+  navigationEvents.resume();
+  if (MODE == 1) {
+        SETUPMouseDown.resume();
+        SETUPTouchStart.resume();
+        SETUPMouseMove.resume();
+        SETUPTouchMove.resume();
+        SETUPMouseUp.resume();
+        SETUPTouchEnd.resume();
+      }
+
+      if (MODE == 2) {
+        SWEEPMouseDown.resume();
+        SWEEPTouchStart.resume();
+        SWEEPMouseMove.resume();
+        SWEEPTouchMove.resume();
+        SWEEPMouseUp.resume();
+        SWEEPTouchEnd.resume();
+      }
+    
+    if (MODE == 3) {
+        CUTMouseDown.resume();
+        CUTTouchStart.resume();
+        CUTMouseMove.resume();
+        CUTTouchMove.resume();
+        CUTMouseUp.resume();
+        CUTTouchEnd.resume();  
+    }
+}
 
 
 //response to forward back buttons, once the MODE value has been switched.
@@ -435,7 +501,7 @@ void doModeSpecificLogic() {
 void startUp(MouseEvent event) {
   doEventSetup();
   MODE = 1;
-  tools.onMouseDown.listen(testSwitchMode);
+  navigationEvents = tools.onMouseDown.listen(testSwitchMode);
   splash.style.opacity = "0.0";
   splash.style.zIndex = "-1";
   drawSETUP();
