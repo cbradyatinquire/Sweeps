@@ -20,9 +20,9 @@ int hoff = 60;
 int vrulerheight, hrulerwidth;
 
 String littleCanvasFont = 'italic 20pt Calibri';
-String bigCanvasFont = 'italic 31pt  Calibri';
-String overrideHTMLInputFont = "26pt sans-serif";
-String overrideHTMLPromptFont = "28pt sans-serif";
+String bigCanvasFont = 'italic 28pt  Calibri';
+String overrideHTMLInputFont = "24pt sans-serif";
+String overrideHTMLPromptFont = "26pt sans-serif";
 
 
 //changing and displaying units
@@ -319,7 +319,7 @@ void openScreenCapsWindow() {
 
 
 void pauseEventsForScreenCapsWindow() {
-  print("Pausing nav");
+  //print("Pausing nav");
   navigationEvents.pause();
   if (MODE == 1) {
       SETUPMouseDown.pause();
@@ -350,7 +350,7 @@ void pauseEventsForScreenCapsWindow() {
 }
 
 void resumeEventsForScreenCapsWindow() {
-  print("resuming nav");
+  //print("resuming nav");
   navigationEvents.resume();
   if (MODE == 1) {
         SETUPMouseDown.resume();
