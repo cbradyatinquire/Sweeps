@@ -20,7 +20,7 @@ int hoff = 60;
 int vrulerheight, hrulerwidth;
 
 String littleCanvasFont = 'italic 20pt Calibri';
-String bigCanvasFont = 'italic 28pt  Calibri';
+String bigCanvasFont = 'italic 26pt  Calibri';
 String overrideHTMLInputFont = "24pt sans-serif";
 String overrideHTMLPromptFont = "26pt sans-serif";
 
