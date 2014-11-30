@@ -136,7 +136,7 @@ table.nav td {
 #splashdiv {
     position: absolute;
     left: 0px;
-    top: 10%;
+    top: 20%;
     width: 100%;
     height: 60%;
     z-index: 3;
@@ -147,8 +147,8 @@ table.nav td {
 }
 
 #splash {
-  width:60%;
-  height:60%;
+  width:40%;
+  height:50%;
   border: 1px solid black;
 }
 

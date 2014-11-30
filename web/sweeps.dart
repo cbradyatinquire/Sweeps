@@ -39,7 +39,7 @@ ButtonInputElement submitUnitsButton;
 
 
 int MODE = 0;
-var captions = ["Click to start!", "Set up Sweeper & Measures", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Arrange the Pieces"];
+var captions = ["Click to start!", "Set up Sweeper & Unit Measures", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Arrange the Pieces"];
 bool readyToGoOn = true;
 
 //relevant to the SETUP mode
