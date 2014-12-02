@@ -14,7 +14,8 @@ void displayUnitDialogH() {
   se.innerHtml = hSubTicks.toString();
   
   CheckboxInputElement ce = document.querySelector("#sameUnit");
-  if ( ticwid == ticht ) { ce.checked = true; }
+  if (unitsLocked) { //( ticwid == ticht ) 
+    ce.checked = true; }
   else { ce.checked = false; }
   
   document.querySelector("#oppDirection").innerHtml = "Vertical";
@@ -166,7 +167,8 @@ void displayUnitDialogV() {
   document.querySelector("#oppDirection").innerHtml = "Horizontal";
   
   CheckboxInputElement ce = document.querySelector("#sameUnit");
-    if ( ticwid == ticht ) { ce.checked = true; }
+    if ( unitsLocked ) { //(ticwid == ticht ) 
+      ce.checked = true; }
     else { ce.checked = false; }
   
   document.querySelector("#popupDiv").style.visibility = "visible";
