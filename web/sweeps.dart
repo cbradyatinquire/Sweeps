@@ -25,6 +25,8 @@ String overrideHTMLInputFont = "24pt sans-serif";
 String overrideHTMLPromptFont = "26pt sans-serif";
 
 
+bool unitsLocked = false;
+
 //changing and displaying units
 String hunits_abbreviated = "hsu";
 //String hunits_full = "horizontal sweep units";
@@ -873,19 +875,23 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
   }
   ctxt.closePath();
   ctxt.stroke();
-  ctxt.beginPath();
-  ctxt.arc(vhots.x, vhots.y, 10, 0, 2 * PI);
-  ctxt.closePath();
+  
 
   if (MODE == 0 || MODE == 1) { //SETUP MODE, draw hotspot
-    if (grabbed == "vertical") {
-      ctxt.fillStyle = "#4C4";
-      ctxt.fill();
-    } else {
-      ctxt.fillStyle = "#999";
-      ctxt.fill();
+    
+    if (unitsLocked == false) {
+      ctxt.beginPath();
+      ctxt.arc(vhots.x, vhots.y, 10, 0, 2 * PI);
+      ctxt.closePath();
+      if (grabbed == "vertical") {
+        ctxt.fillStyle = "#4C4";
+        ctxt.fill();
+      } else {
+        ctxt.fillStyle = "#999";
+        ctxt.fill();
+      }
+      ctxt.stroke();
     }
-    ctxt.stroke();
   } else if (MODE == 3 && cutFlavor == "selected") {
     ctxt.beginPath();
     ctxt.moveTo(vcuts.x, vcuts.y);

@@ -39,6 +39,13 @@ void makeVEqualToH() {
   vticks = (vrulerheight / ticht);
 }
 
+void ensureAllPointsAreOnscreen() {
+  if (s1end.x >= hticks * hSubTicks ) { s1end = new Point((hticks.floor() * hSubTicks), s1end.y); }
+  if (s2end.x >= hticks * hSubTicks  ) { s2end = new Point((hticks.floor() * hSubTicks), s2end.y); }
+  if (s1end.y >= vticks * vSubTicks ) { s1end = new Point(s1end.x, (vticks.floor() * vSubTicks)); }
+  if (s2end.y >= vticks * vSubTicks ) { s2end = new Point(s2end.x, (vticks.floor() * vSubTicks)); }
+}
+
 void getHorizUnits(MouseEvent me) {
 //TextInputElement tie = document.querySelector("#unitname");
   TextInputElement tie2 = document.querySelector("#unitshort");
@@ -57,6 +64,15 @@ void getHorizUnits(MouseEvent me) {
     makeHEqualToV();
     if (s1end.x >= hticks * hSubTicks ) { s1end = new Point((hticks * hSubTicks), s1end.y); }
     if (s2end.x >= hticks * hSubTicks  ) { s2end = new Point((hticks * hSubTicks), s2end.y); }
+    hunits_abbreviated = vunits_abbreviated;
+    unitsLocked = true;
+    ensureAllPointsAreOnscreen();
+  } else {
+    if ( unitsLocked == true ) {
+      unitsLocked = false;
+      hunits_abbreviated = "hsu";
+      vunits_abbreviated = "vsu";
+    }
   }
   /*
    * if (hunits_abbreviated == vunits_abbreviated) {
@@ -108,6 +124,14 @@ void getVerticalUnits(MouseEvent me) {
       makeVEqualToH();
       if (s1end.y >= vticks * vSubTicks ) { s1end = new Point(s1end.x, (vticks * vSubTicks)); }
       if (s2end.y >= vticks * vSubTicks ) { s2end = new Point(s2end.x, (vticks * vSubTicks)); }
+      vunits_abbreviated = hunits_abbreviated;
+      unitsLocked = true;
+    } else {
+      if ( unitsLocked == true ) {
+        unitsLocked = false;
+        hunits_abbreviated = "hsu";
+        vunits_abbreviated = "vsu";
+      }
     }
   
     int oldVSubTicks = vSubTicks;
@@ -182,7 +206,7 @@ void startTouchSETUP(TouchEvent evt) {
 
 void initInteractionSETUP(Point initPoint) {
   readyToGoOn = true;
-  if (sqPixelDistance(initPoint, vhots) < dragThreshold) {
+  if (unitsLocked == false && sqPixelDistance(initPoint, vhots) < dragThreshold) {
     grabbed = "vertical";
     setupDragOriginMemorySETUPSWEEP(initPoint);
     drawSETUP();
@@ -256,9 +280,16 @@ void draggingSETUP(Point currentPt) {
         newhtickw = 1;
       }
       int newhticks = (hrulerwidth / newhtickw).round();
+      //TODO: seems to allow more resolution on horizontal than is taken account of in vertical.
+      //TODO:  Issue is that the units are being snapped to rounded versions of the tickw.
       if (newhticks != hticks && newhticks <= maxhticks && newhticks >= minhticks) {
         updateHSweepsSETUP(newhticks);
         hticks = newhticks;
+        ticwid = hrulerwidth / hticks;
+        if (unitsLocked) {
+          makeVEqualToH();
+          ensureAllPointsAreOnscreen();
+        }
         drawSETUP();
       }
     } else if (grabbed == "s1end") {
