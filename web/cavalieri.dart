@@ -51,8 +51,8 @@ void maybeFall( ) {
       cs1y = s1end.y + 1;
       cs2y = s2end.y + 1;
     }
-    if ( cs1x > 0 && cs2x > 0  && cs1x < hSubTicks && cs2x < hSubTicks ) {
-      if (cs1y < vSubTicks && cs2y < vSubTicks) {
+    if ( cs1x > 0 && cs2x > 0  && cs1x < hticks * hSubTicks && cs2x < hticks * hSubTicks ) {
+      if (cs1y < vticks * vSubTicks && cs2y < vticks * vSubTicks) {
         s1end = new Point(cs1x, cs1y);
         s2end = new Point(cs2x, cs2y);
         t1s.add(s1end);
@@ -63,6 +63,8 @@ void maybeFall( ) {
   //querySelector("#dartInfo")
    //       ..text = message;
   drawCavalieri();
+  print("s1end=(" + s1end.x.toString() + ", " + s1end.y.toString() + ") and s2end=(" + s2end.x.toString() + ", " + s2end.y.toString() + ")");
+  print("hst=" + hSubTicks.toString() + "; vst=" + vSubTicks.toString() );
   animLoopTimer = new Timer(new Duration(milliseconds: 500), maybeFall);
 }
 
