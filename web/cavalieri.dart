@@ -51,8 +51,8 @@ void maybeFall( ) {
       cs1y = s1end.y + 1;
       cs2y = s2end.y + 1;
     }
-    if ( cs1x > 0 && cs2x > 0  && cs1x < hticks && cs2x < hticks ) {
-      if (cs1y < vticks && cs2y < vticks) {
+    if ( cs1x > 0 && cs2x > 0  && cs1x < hSubTicks && cs2x < hSubTicks ) {
+      if (cs1y < vSubTicks && cs2y < vSubTicks) {
         s1end = new Point(cs1x, cs1y);
         s2end = new Point(cs2x, cs2y);
         t1s.add(s1end);
