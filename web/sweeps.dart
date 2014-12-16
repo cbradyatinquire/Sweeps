@@ -533,11 +533,10 @@ void doModeSpecificLogic() {
       CUTTouchEnd.pause();
     }
     
-    if (ss == null){
-      startCavalieriLoop();
-    } else if (ss.isPaused) {
+    if (ss != null && ss.isPaused){
       ss.resume();
     }
+    startCavalieriLoop();
     
     drawCavalieri();
     drawTools();

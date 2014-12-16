@@ -11,16 +11,17 @@ List<Point>t1s, t2s;
 void startCavalieriLoop() {
   t1s = new List<Point>();
   t2s = new List<Point>();
-  ss = window.onDeviceMotion.listen((DeviceMotionEvent e) {
-      ax = e.accelerationIncludingGravity.x;
-      ay = e.accelerationIncludingGravity.y;
-      az = e.accelerationIncludingGravity.z;
-      //querySelector("#dartGAccel")
-      //     ..text = "("+ax.toString()+", "+ay.toString()+", "+az.toString()+")";
-      if (numDeviceMotionEvents > 0) { print("i believe there really is an accelerometer here... "); }
-      numDeviceMotionEvents++;
-    });
-       
+  if (ss == null) {
+    ss = window.onDeviceMotion.listen((DeviceMotionEvent e) {
+        ax = e.accelerationIncludingGravity.x;
+        ay = e.accelerationIncludingGravity.y;
+        az = e.accelerationIncludingGravity.z;
+        //querySelector("#dartGAccel")
+        //     ..text = "("+ax.toString()+", "+ay.toString()+", "+az.toString()+")";
+        if (numDeviceMotionEvents > 0) { print("i believe there really is an accelerometer here... "); }
+        numDeviceMotionEvents++;
+      });
+  }
     t1s.add(s1end);
     t2s.add(s2end);
     animLoopTimer = new Timer(new Duration(milliseconds: 50), maybeFall);
