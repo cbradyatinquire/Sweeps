@@ -9,6 +9,7 @@ part "piece.dart";
 part "setup.dart";
 part "sweep.dart";
 part "cut.dart";
+part "cavalieri.dart";
 
 ImageElement forkedRightButton, rightButton, leftButton;
 ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton, cavalieriButton;
@@ -41,7 +42,7 @@ ButtonInputElement submitUnitsButton;
 
 
 int MODE = 0;
-var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Arrange the Pieces"];
+var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Tilt to Sweep Down"];
 bool readyToGoOn = true;
 
 //relevant to the SETUP mode
@@ -190,7 +191,7 @@ void testSwitchMode(MouseEvent e) {
   int lbound = tools.height * 2;
 
   int screenCapIconTolerance = 40;
-  int experimentAngleTolerance = 64;
+  int cavalieriButtonTolerance = 64;
   if (e.offset.x > rbound && MODE < 3) { //we're in the right arrow
     if (readyToGoOn) {
       MODE++;
@@ -211,7 +212,13 @@ void testSwitchMode(MouseEvent e) {
       }
     }
   } else if (e.offset.x < lbound) { //we're in the left arrow
-    if (MODE > 1) {
+    if (MODE == 4) {
+      MODE = 1;
+      readyToGoOn = false;
+      draggedUnits = 0;
+      animLoopTimer.cancel();
+      doModeSpecificLogic();
+    } else if (MODE > 1) {
       MODE--;
       readyToGoOn = false;
       draggedUnits = 0;
@@ -223,8 +230,9 @@ void testSwitchMode(MouseEvent e) {
     addScreenCap();
     openScreenCapsWindow();
   } else if (MODE==1) {
-    if (  (e.offset.x - cavalieriCenter.x < experimentAngleTolerance) && (e.offset.y > tools.height / 3)  ) {
-      print("would go to angle manipulator");
+    if (  (e.offset.x - cavalieriCenter.x < cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
+      MODE = 4;
+      doModeSpecificLogic();
     }
   }
 }
@@ -387,12 +395,14 @@ void resumeEventsForScreenCapsWindow() {
 void doModeSpecificLogic() {
   //print("MODE = " + MODE.toString());
   if (MODE == 1) {
-    SETUPMouseDown.resume();
-    SETUPTouchStart.resume();
-    SETUPMouseMove.resume();
-    SETUPTouchMove.resume();
-    SETUPMouseUp.resume();
-    SETUPTouchEnd.resume();
+    if (SETUPMouseDown.isPaused) {
+      SETUPMouseDown.resume();
+      SETUPTouchStart.resume();
+      SETUPMouseMove.resume();
+      SETUPTouchMove.resume();
+      SETUPMouseUp.resume();
+      SETUPTouchEnd.resume();
+    }
 
     if (!SWEEPMouseDown.isPaused) {
       SWEEPMouseDown.pause();
@@ -493,6 +503,43 @@ void doModeSpecificLogic() {
     pieces.add(whole);
 
     drawCUT();
+    drawTools();
+  }
+  if (MODE == 4) {
+    if (!SETUPMouseDown.isPaused) {
+      SETUPMouseDown.pause();
+      SETUPTouchStart.pause();
+      SETUPMouseMove.pause();
+      SETUPTouchMove.pause();
+      SETUPMouseUp.pause();
+      SETUPTouchEnd.pause();
+    }
+
+    if (!SWEEPMouseDown.isPaused) {
+      SWEEPMouseDown.pause();
+      SWEEPTouchStart.pause();
+      SWEEPMouseMove.pause();
+      SWEEPTouchMove.pause();
+      SWEEPMouseUp.pause();
+      SWEEPTouchEnd.pause();
+    }
+    
+    if (!CUTMouseDown.isPaused) {
+      CUTMouseDown.pause();
+      CUTTouchStart.pause();
+      CUTMouseMove.pause();
+      CUTTouchMove.pause();
+      CUTMouseUp.pause();
+      CUTTouchEnd.pause();
+    }
+    
+    if (ss == null){
+      startCavalieriLoop();
+    } else if (ss.isPaused) {
+      ss.resume();
+    }
+    
+    drawCavalieri();
     drawTools();
   }
 }
