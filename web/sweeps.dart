@@ -11,7 +11,7 @@ part "sweep.dart";
 part "cut.dart";
 
 ImageElement forkedRightButton, rightButton, leftButton;
-ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton, experimentWithAnglesButton;
+ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton, cavalieriButton;
 CanvasElement canv, tools;
 DivElement splash;
 DivElement sCapBook;
@@ -41,7 +41,7 @@ ButtonInputElement submitUnitsButton;
 
 
 int MODE = 0;
-var captions = ["Click to start!", "Set up Sweeper & Unit Measures", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Arrange the Pieces"];
+var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Arrange the Pieces"];
 bool readyToGoOn = true;
 
 //relevant to the SETUP mode
@@ -93,7 +93,7 @@ List<String> toolsText = new List<String>();
 String currentToolsText = "";
 int screenPointer = 0;
 Point screenCapIconCenter = new Point(tools.width / 4, 2 * tools.height / 3);
-Point experimentWithAnglesCenter = new  Point(3 * tools.width / 4, 2 * tools.height / 3);
+Point cavalieriCenter = new  Point(3 * tools.width / 4, 2 * tools.height / 3);
 
 bool comparingRulers = false;
 int compareRulerAngle = 0;
@@ -105,7 +105,7 @@ void main() {
   leftButton = new ImageElement()..src = "images/leftImage.jpg";
   forkedRightButton = new ImageElement()..src = "images/forkedRightImage.jpg";
   cameraButton = new ImageElement()..src = "images/screencap.png";
-  experimentWithAnglesButton = new ImageElement()..src = "images/angles.gif";
+  cavalieriButton = new ImageElement()..src = "images/cavalieri2.png";
   rulerCompareButton = new ImageElement()..src = "images/rulerCompare.png";
   cutSelectedButton = new ImageElement()..src = "images/cutSelected.png";
   cutSelectedClosedButton = new ImageElement()..src = "images/cutSelectedClosed.png";
@@ -222,8 +222,8 @@ void testSwitchMode(MouseEvent e) {
   } else if (e.offset.distanceTo(screenCapIconCenter) < screenCapIconTolerance) {
     addScreenCap();
     openScreenCapsWindow();
-  } else if (MODE==2) {
-    if (  (e.offset.x - experimentWithAnglesCenter.x < experimentAngleTolerance) && (e.offset.y > tools.height / 3)  ) {
+  } else if (MODE==1) {
+    if (  (e.offset.x - cavalieriCenter.x < experimentAngleTolerance) && (e.offset.y > tools.height / 3)  ) {
       print("would go to angle manipulator");
     }
   }
@@ -524,8 +524,8 @@ void drawStatus(CanvasRenderingContext2D ctx) {
   ctx.fillText(currentToolsText, tools.width / 2, tools.height / 2); // 2 * tools.height / 3);
   ctx.drawImageScaled(cameraButton, screenCapIconCenter.x - 32, screenCapIconCenter.y - 32, 64, 64);
   
-  if (MODE == 2 && readyToGoOn) { 
-    ctx.drawImageScaled(experimentWithAnglesButton, experimentWithAnglesCenter.x - 48, experimentWithAnglesCenter.y - 25, 96, 48);
+  if (MODE == 1 ) { 
+    ctx.drawImageScaled(cavalieriButton, cavalieriCenter.x - 49, cavalieriCenter.y - 28, 98, 56);
   }
   /*if (MODE == 2 && grabbed == "done") {
     ctx.textAlign = 'right';
