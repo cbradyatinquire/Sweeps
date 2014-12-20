@@ -211,6 +211,10 @@ void testSwitchMode(MouseEvent e) {
         doModeSpecificLogic();
       }
     }
+  } else if (e.offset.x > rbound && MODE == 4 ) {
+    MODE == 3; 
+    animLoopTimer.cancel();
+    goOnFromCavalieri();
   } else if (e.offset.x < lbound) { //we're in the left arrow
     if (MODE == 4) {
       MODE = 1;
@@ -235,6 +239,53 @@ void testSwitchMode(MouseEvent e) {
       doModeSpecificLogic();
     }
   }
+}
+
+
+
+void goOnFromCavalieri() {
+  if (!SETUPMouseDown.isPaused) {
+       SETUPMouseDown.pause();
+       SETUPTouchStart.pause();
+       SETUPMouseMove.pause();
+       SETUPTouchMove.pause();
+       SETUPMouseUp.pause();
+       SETUPTouchEnd.pause();
+     }
+
+     if (!SWEEPMouseDown.isPaused) {
+       SWEEPMouseDown.pause();
+       SWEEPTouchStart.pause();
+       SWEEPMouseMove.pause();
+       SWEEPTouchMove.pause();
+       SWEEPMouseUp.pause();
+       SWEEPTouchEnd.pause();
+     }
+
+     if (CUTMouseDown.isPaused) {
+       CUTMouseDown.resume();
+       CUTTouchStart.resume();
+       CUTMouseMove.resume();
+       CUTTouchMove.resume();
+       CUTMouseUp.resume();
+       CUTTouchEnd.resume();
+     }
+
+     List<Point> gridPoints = new List<Point>();
+     for (int i = 0; i<t1s.length; i++ ) {
+         gridPoints.add(t1s[i]);
+       }
+       for (int j = t2s.length - 1; j>=0; j-- ) {
+         gridPoints.add(t2s[j]);
+       }
+     gridPoints.add(t1s[0]);
+     
+     pieces.clear();
+     Piece whole = new Piece(gridPoints);
+     pieces.add(whole);
+     
+     drawCUT();
+     drawTools();
 }
 
 void addScreenCap() {
@@ -563,6 +614,13 @@ void drawStatus(CanvasRenderingContext2D ctx) {
   ctx.textAlign = 'center';
   if (((MODE == 1 || MODE == 2) && draggedUnits != 0) || (MODE == 3 && hasCut)) {
     currentToolsText = "Area swept: " + areaToDisplay;
+  } else if (MODE == 4 && cavalieriHeight > 0) {
+    num denom = hSubTicks * vSubTicks;
+    String fracString = " ";
+    if (denom != 1) {
+      fracString = "/" + denom.toString() + " ";
+    }
+    currentToolsText = "Area swept: " + cavalieriArea.toString() + fracString + getAreaUnitsString();
   } else {
     currentToolsText = captions[MODE];
   }
@@ -598,7 +656,7 @@ void drawTools() {
   if (MODE == 2 && readyToGoOn) {
     ctx.drawImageScaled(forkedRightButton, tools.width - imwid, 0, imwid, imht);
   }
-  if (MODE < 2 && readyToGoOn) {
+  if ((MODE < 2 && readyToGoOn) || (MODE==4 && cavalieriHeight > 0 )) {
     ctx.drawImageScaled(rightButton, tools.width - imwid, 0, imwid, imht);
   }
   drawStatus(ctx);
