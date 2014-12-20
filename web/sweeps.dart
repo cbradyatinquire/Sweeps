@@ -10,6 +10,7 @@ part "setup.dart";
 part "sweep.dart";
 part "cut.dart";
 part "cavalieri.dart";
+part "post.dart";
 
 ImageElement forkedRightButton, rightButton, leftButton;
 ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton, cavalieriButton;
@@ -291,9 +292,11 @@ void goOnFromCavalieri() {
 void addScreenCap() {
   //ImageData imageData = canv.context2D.getImageData(0,0,canv.width,canv.height);
   String base64Cap = canv.toDataUrl("image/png");
+  
   //screencaps.add(imageData);
   screens.add(base64Cap);
   toolsText.add(currentToolsText);
+  postImageData(canv, currentToolsText, currentToolsText);
 }
 
 void closeScreenCapWindow(var event) {
