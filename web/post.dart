@@ -1,25 +1,26 @@
 part of sweeps;
 
 
-void postImageData(CanvasElement canv, String identifier, String annotation) {
+//requires classes from dart:html
+void postImageData(CanvasElement canv, String annotation) {
  
-  HttpRequest request = new HttpRequest(); // create a new XHR
+  //HttpRequest request = new HttpRequest(); 
 
-  // add an event handler that is called when the request finishes
-  request.onReadyStateChange.listen((_) {
-    if (request.readyState == HttpRequest.DONE &&
-       (request.status == 200 || request.status == 0)) {
-      print("data saved ok..." + request.responseText); // output the response from the server
-    }
-  });
+  //logic for receipt of response to the request.
+  //request.onReadyStateChange.listen((_) {
+   // if (request.readyState == HttpRequest.DONE &&
+   //    (request.status == 200 || request.status == 0)) {
+   //   print("data saved ok..." + request.responseText); // output the response from the server
+   // }
+ // });
   
   String idata = canv.toDataUrl();
   
-  request.open("POST","http://54.69.108.80/sweep_image_old/", async: false);
+  //request.open("POST","http://54.69.108.80/sweep_image_old/", async: false);
   
-  FormData fdata = new FormData(); // from dart:html
+  FormData fdata = new FormData(); 
 
-  fdata.append('app_id', identifier);
+  fdata.append('app_id', myUID.toString());
   fdata.append('app_annotation', annotation);
   fdata.append('app_imagedata', idata);
 

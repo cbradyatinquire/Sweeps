@@ -5,6 +5,8 @@ import 'dart:math';
 import 'dart:core';
 import 'dart:async';
 
+import 'package:uuid/uuid.dart';
+
 part "piece.dart";
 part "setup.dart";
 part "sweep.dart";
@@ -102,7 +104,14 @@ int compareRulerAngle = 0;
 int compareRulerFrame = 0;
 
 
+
+var uuid = new Uuid();
+var myUID = uuid.v4();
+
+
 void main() {
+  //print(myUID.toString());
+  
   rightButton = new ImageElement()..src = "images/rightImage.jpg";
   leftButton = new ImageElement()..src = "images/leftImage.jpg";
   forkedRightButton = new ImageElement()..src = "images/forkedRightImage.jpg";
@@ -296,7 +305,7 @@ void addScreenCap() {
   //screencaps.add(imageData);
   screens.add(base64Cap);
   toolsText.add(currentToolsText);
-  postImageData(canv, currentToolsText, currentToolsText);
+  postImageData(canv, currentToolsText);
 }
 
 void closeScreenCapWindow(var event) {
