@@ -96,6 +96,8 @@ List<String> screens = new List<String>();
 List<String> toolsText = new List<String>();
 String currentToolsText = "";
 int screenPointer = 0;
+
+bool wasInCavalieri = false;
 Point screenCapIconCenter = new Point(tools.width / 4, 2 * tools.height / 3);
 Point cavalieriCenter = new  Point(3 * tools.width / 4, 2 * tools.height / 3);
 
@@ -254,6 +256,14 @@ void testSwitchMode(MouseEvent e) {
 
 
 void goOnFromCavalieri() {
+  wasInCavalieri = true;
+  //cutFlavor = "selected";
+  if (mouseDownSubscription != null && !mouseDownSubscription.isPaused ) {
+    mouseDownSubscription.pause();
+    mouseUpSubscription.pause();
+    mouseMoveSubscription.pause();
+  }
+  
   if (!SETUPMouseDown.isPaused) {
        SETUPMouseDown.pause();
        SETUPTouchStart.pause();
@@ -288,7 +298,7 @@ void goOnFromCavalieri() {
        for (int j = t2s.length - 1; j>=0; j-- ) {
          gridPoints.add(t2s[j]);
        }
-     gridPoints.add(t1s[0]);
+     //gridPoints.add(t1s[0]);
      
      pieces.clear();
      Piece whole = new Piece(gridPoints);

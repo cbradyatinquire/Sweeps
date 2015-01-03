@@ -26,6 +26,7 @@ void clickLogicCUT(Point pt) {
     if (!hasCut) {
       hasCut = true;
       doCut();
+      if (wasInCavalieri) { doCut(); }
       drawCUT();
     } else {
       drawCUT();
@@ -81,8 +82,8 @@ void doCut() {
     pieces = newPcs;
   }
 
-// print(pieces.length.toString() + " PIECES. with vertices...");
-// pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
+ //print(pieces.length.toString() + " PIECES. with vertices...");
+ //pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
 
   for (int yc = 0; yc < vticks * vSubTicks; yc++) {
     List<Piece> newPcs = new List<Piece>();
@@ -90,8 +91,8 @@ void doCut() {
     pieces = newPcs;
   }
 
-//  print(pieces.length.toString() + " PIECES. with vertices...");
-//  pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
+ // print(pieces.length.toString() + " PIECES. with vertices...");
+ // pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
   } else {
     num cx = getSubTickCoordForPixelH(hcuts.x);
     num cy = getSubTickCoordForPixelV(vcuts.y);
@@ -121,14 +122,16 @@ void drawCUT() {
   }
   if (hasCut) {
     drawRulers(ctx);
-    drawSweeperSweptSWEEP(ctx);
+    if (wasInCavalieri) { drawCavalieriPath(ctx); }
+    else { drawSweeperSweptSWEEP(ctx); }
     pieces.forEach((piece) => piece.draw(ctx));
     drawGrid(ctx);
     drawTools();
   } else {
     drawRulers(ctx);
     drawGrid(ctx);
-    drawSweeperSweptSWEEP(ctx);
+    if (wasInCavalieri) { drawCavalieriPath(ctx); }
+    else { drawSweeperSweptSWEEP(ctx); }
     drawTools();
   }
 }
