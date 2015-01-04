@@ -10,6 +10,7 @@ num slopeCalc;
 bool canGoRight, canGoLeft;
 num cavalieriLength;
 num cavalieriArea;
+num cavalieriLeftAdd, cavalieriRightAdd, cavalieriA, cavalieriB;
 num cavalieriHeight = 0.0;
 
 
@@ -32,12 +33,21 @@ void initAndCheckForConstraints() {
   cavalieriLength = (s1end.x - s2end.x).abs();
   cavalieriArea = 0.0;
   cavalieriHeight = 0.0;
+  cavalieriA = (s1end.x - s2end.x).abs();
+  cavalieriB = (s1end.y - s2end.y).abs();
   slopeCalc = (s1end.y - s2end.y) / (s1end.x - s2end.x);
-  if (slopeCalc >= 1) {
-    canGoRight = false;
-  }
-  if (slopeCalc <= -1) {
-    canGoLeft = false;
+  if (slopeCalc >= 0) {
+    cavalieriRightAdd = cavalieriA - cavalieriB;
+    cavalieriLeftAdd = cavalieriA + cavalieriB;
+    if (slopeCalc >= 1) {
+        canGoRight = false; 
+    }
+  } else {
+    cavalieriRightAdd = cavalieriA + cavalieriB;
+    cavalieriLeftAdd = cavalieriA - cavalieriB;
+    if (slopeCalc <= -1) {
+      canGoLeft = false; 
+    }
   }
 }
 
@@ -149,8 +159,14 @@ void maybeFall() {
           t1s.add(s1end);
           t2s.add(s2end);
           cavalieriHeight += 1;
+          if (message == "fall down") {
+            cavalieriArea += cavalieriA;
+          } else if (message == "fall right") {
+            cavalieriArea += cavalieriRightAdd;                            
+          } else if (message == "fall left"){
+            cavalieriArea += cavalieriLeftAdd; 
+          }
         }
-        cavalieriArea = cavalieriHeight * cavalieriLength;
       }
     }
   }
