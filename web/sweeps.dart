@@ -224,7 +224,7 @@ void testSwitchMode(MouseEvent e) {
       }
     }
   } else if (e.offset.x > rbound && MODE == 4 ) {
-    MODE == 3; 
+    MODE = 3; 
     animLoopTimer.cancel();
     goOnFromCavalieri();
   } else if (e.offset.x < lbound) { //we're in the left arrow
@@ -257,7 +257,7 @@ void testSwitchMode(MouseEvent e) {
 
 void goOnFromCavalieri() {
   wasInCavalieri = true;
-  //cutFlavor = "selected";
+
   if (mouseDownSubscription != null && !mouseDownSubscription.isPaused ) {
     mouseDownSubscription.pause();
     mouseUpSubscription.pause();
@@ -290,6 +290,11 @@ void goOnFromCavalieri() {
        CUTMouseUp.resume();
        CUTTouchEnd.resume();
      }
+     
+     //FOR CUTTING CAVALIERI MANUALLY.
+     cutFlavor = "selected";
+     hasCut = true;
+     setCutPoints();
 
      List<Point> gridPoints = new List<Point>();
      for (int i = 0; i<t1s.length; i++ ) {
@@ -635,6 +640,14 @@ void drawStatus(CanvasRenderingContext2D ctx) {
   ctx.font = bigCanvasFont;
   ctx.textAlign = 'center';
   if (((MODE == 1 || MODE == 2) && draggedUnits != 0) || (MODE == 3 && hasCut)) {
+    if (wasInCavalieri) { 
+      num denom = hSubTicks * vSubTicks;
+      String fracString = " ";
+      if (denom != 1) {
+        fracString = "/" + denom.toString() + " ";
+      }
+      areaToDisplay = cavalieriArea.toString() + fracString + getAreaUnitsString(); 
+    }
     currentToolsText = "Area swept: " + areaToDisplay;
   } else if (MODE == 4 && cavalieriHeight > 0) {
     num denom = hSubTicks * vSubTicks;
