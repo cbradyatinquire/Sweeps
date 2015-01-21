@@ -26,7 +26,7 @@ void clickLogicCUT(Point pt) {
     if (!hasCut) {
       hasCut = true;
       doCut();
-      if (wasInCavalieri) { doCut(); }
+      //if (wasInCavalieri) { doCut(); }
       drawCUT();
     } else {
       drawCUT();
@@ -41,7 +41,7 @@ void clickLogicCUT(Point pt) {
       if (draggingPiece != null) {
         CanvasRenderingContext2D ctx = canv.context2D;
         draggingPiece.drawAsDragging(ctx);
-      }
+      } 
     }
   } else {
     if (sqPixelDistance(pt, vcuts) < dragThreshold) {
@@ -59,16 +59,32 @@ void clickLogicCUT(Point pt) {
       drawCUT();
       for (int i = 0; i < pieces.length; i++) {
         Piece test = pieces[i];
-        if (test.hitTest(pt)) {
+        
+       // if (test.hitTest(pt)) {
+       //   draggingPiece = test;
+       //   pieceDragOrigin = pt;
+       //   break;
+       // }
+        
+        num gridX = getGridCoordForPixelH(pt.x);
+        num gridY = getGridCoordForPixelV(pt.y);
+        if ( test.containsGridPoint( gridX, gridY ) ) {
           draggingPiece = test;
           pieceDragOrigin = pt;
           break;
         }
+        
       }
+      
       if (draggingPiece != null) {
+        print("hit piece " + draggingPiece.vertices.toString() );
         CanvasRenderingContext2D ctx = canv.context2D;
         draggingPiece.drawAsDragging(ctx);
+      } else {
+        print("miss");
       }
+      
+      
     }
   }
 }
@@ -91,14 +107,23 @@ void doCut() {
     pieces = newPcs;
   }
 
- // print(pieces.length.toString() + " PIECES. with vertices...");
- // pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
+  //print(pieces.length.toString() + " PIECES. with vertices...");
+  //pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
   } else {
     num cx = getSubTickCoordForPixelH(hcuts.x);
     num cy = getSubTickCoordForPixelV(vcuts.y);
     List<Piece> newPcs = new List<Piece>();
-    pieces.forEach( (piece) => newPcs.addAll(piece.cutVertical(cx)) );
+    if (wasInCavalieri) {
+      pieces.forEach( (piece) => newPcs.addAll(piece.cutVerticalCavalieriNew(cx)) );
+      print("*****END DEBUGGING****");
+      //pieces.forEach( (piece) => newPcs.addAll(piece.cutVerticalCavalieri(cx)) );
+    } else {
+      pieces.forEach( (piece) => newPcs.addAll(piece.cutVertical(cx)) );
+    }
     pieces = newPcs;
+    print("pieces after cut");
+    pieces.forEach( (piece) => print(piece.vertices) );   
+    
     List<Piece> newPcsH = new List<Piece>();
     pieces.forEach( (piece) => newPcsH.addAll(piece.cutHorizontal(cy)) );
     pieces = newPcsH;
@@ -134,6 +159,37 @@ void drawCUT() {
     else { drawSweeperSweptSWEEP(ctx); }
     drawTools();
   }
+  
+  //for testing
+  //print("Drawing Grid");
+  // drawPointGrid(ctx); 
+}
+
+void drawPointGrid(CanvasRenderingContext2D ctx) {
+  for (num x = 0; x<(hticks*hSubTicks); x=x+.2) {
+    for (num y = 0; y<(vticks*vSubTicks); y=y+.2) {
+      bool inside = false;
+      for (Piece p in pieces ) {
+        if (p.containsGridPoint(x+.1, y+.1)) {
+          inside = true;
+        }
+      }
+      if (inside) {
+        ctx.fillStyle="#F00";
+        ctx.strokeStyle ="#F00";
+      } else {
+        ctx.fillStyle="#00F";
+        ctx.strokeStyle="#00F";
+      }
+      ctx.beginPath();
+      ctx.arc(getXForHSubTick(x + .1), getYForVSubTick(y + .1), 2, 0, 2*PI);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+      
+    }
+  }
+  
 }
 
 
@@ -199,7 +255,7 @@ void draggingCUT(Point currentPt) {
     drawCUT();
     CanvasRenderingContext2D ctx = canv.context2D;
     draggingPiece.drawAsDragging(ctx);
-    
+   // draggingPiece.vertices.forEach((vertex) => print("  ]--> " + getXForHSubTick(vertex.x).toString() + ", " + getYForVSubTick(vertex.y).toString() ) );
   
 }
 
@@ -209,6 +265,7 @@ void stopDragCUT(MouseEvent event) {
   draggingPiece = null;
   if (cutGrabbed == "scissors") {
     doCut();
+    //if (wasInCavalieri) { doCut(); }
   }
   cutGrabbed = "none";
   drawCUT();

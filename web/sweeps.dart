@@ -663,7 +663,7 @@ void drawStatus(CanvasRenderingContext2D ctx) {
   ctx.fillText(currentToolsText, tools.width / 2, tools.height / 2); // 2 * tools.height / 3);
   ctx.drawImageScaled(cameraButton, screenCapIconCenter.x - 32, screenCapIconCenter.y - 32, 64, 64);
   
-  if (MODE == 1 ) { 
+  if (MODE == 1 && s1end.y == s2end.y) { 
     ctx.drawImageScaled(cavalieriButton, cavalieriCenter.x - 49, cavalieriCenter.y - 28, 98, 56);
   }
   /*if (MODE == 2 && grabbed == "done") {
@@ -821,6 +821,13 @@ bool inMiddle(Point mse) {
 }
 
 
+num getGridCoordForPixelH(int px) {
+  return (hSubTicks * (px - hoff) / (ticwid));
+}
+
+num getGridCoordForPixelV(int py) {
+  return (vSubTicks * (py - voff) / (ticht));
+}
 
 int getSubTickCoordForPixelH(int px) {
   return (hSubTicks * (px - hoff) / (ticwid)).round();

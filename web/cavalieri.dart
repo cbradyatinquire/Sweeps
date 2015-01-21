@@ -191,7 +191,7 @@ void drawCavalieri() {
   drawCavalieriPath(ctx);
   drawSweeperCurrentSWEEP(ctx);
 
-  print("drawCavalieri - " + fallCounter.toString() + " times to fallcounter " );
+ // print("drawCavalieri - " + fallCounter.toString() + " times to fallcounter " );
   if (numDeviceMotionEvents < 2 && fallCounter > 0) {
     if (mouseMoveSubscription == null || mouseMoveSubscription.isPaused ) {
       initializeMouseEventListening();
