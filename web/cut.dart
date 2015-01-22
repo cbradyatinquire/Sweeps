@@ -32,11 +32,19 @@ void clickLogicCUT(Point pt) {
       drawCUT();
       for (int i = 0; i < pieces.length; i++) {
         Piece test = pieces[i];
-        if (test.hitTest(pt)) {
+        /*if (test.hitTest(pt)) {
+          draggingPiece = test;
+          pieceDragOrigin = pt;
+          break;
+        }*/
+        num gridX = getGridCoordForPixelH(pt.x);
+        num gridY = getGridCoordForPixelV(pt.y);
+        if ( test.containsGridPoint( gridX, gridY ) ) {
           draggingPiece = test;
           pieceDragOrigin = pt;
           break;
         }
+        
       }
       if (draggingPiece != null) {
         CanvasRenderingContext2D ctx = canv.context2D;
@@ -77,11 +85,11 @@ void clickLogicCUT(Point pt) {
       }
       
       if (draggingPiece != null) {
-        print("hit piece " + draggingPiece.vertices.toString() );
+     //   print("hit piece " + draggingPiece.vertices.toString() );
         CanvasRenderingContext2D ctx = canv.context2D;
         draggingPiece.drawAsDragging(ctx);
       } else {
-        print("miss");
+      //  print("miss");
       }
       
       
@@ -115,14 +123,14 @@ void doCut() {
     List<Piece> newPcs = new List<Piece>();
     if (wasInCavalieri) {
       pieces.forEach( (piece) => newPcs.addAll(piece.cutVerticalCavalieriNew(cx)) );
-      print("*****END DEBUGGING****");
+      //print("*****END DEBUGGING****");
       //pieces.forEach( (piece) => newPcs.addAll(piece.cutVerticalCavalieri(cx)) );
     } else {
       pieces.forEach( (piece) => newPcs.addAll(piece.cutVertical(cx)) );
     }
     pieces = newPcs;
-    print("pieces after cut");
-    pieces.forEach( (piece) => print(piece.vertices) );   
+    //print("pieces after cut");
+    //pieces.forEach( (piece) => print(piece.vertices) );   
     
     List<Piece> newPcsH = new List<Piece>();
     pieces.forEach( (piece) => newPcsH.addAll(piece.cutHorizontal(cy)) );
