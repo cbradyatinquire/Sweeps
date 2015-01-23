@@ -120,15 +120,16 @@ void testVerticalCutting() {
  /*     [new Point(3, 1), new Point(4, 2), new Point(5, 3), new Point(4, 4), new Point(3, 5), new Point(3, 6), 
        new Point(4, 7), new Point(9, 7), new Point(8, 6), new Point(8, 5), new Point(9, 4), new Point(10, 3), new Point(9, 2), new Point(8, 1)];
 */
-      
+  /*    
       [new Point(2, 1), new Point(3, 2), new Point(2, 3), new Point(2, 4), new Point(3, 5), new Point(2, 6), 
        new Point(3, 7), new Point(3, 8), new Point(7, 8), new Point(7, 7), new Point(6, 6), new Point(7, 5), 
        new Point(6, 4), new Point(6, 3), new Point(7, 2), new Point(6, 1)];
-  
-  
+  */
+  [new Point(2, 1), new Point(3, 2), new Point(2, 3), new Point(3, 4), new Point(3, 5), new Point(2, 6), 
+   new Point(7, 6), new Point(8, 5), new Point(8, 4), new Point(7, 3), new Point(8, 2), new Point(7, 1)];
   
   Piece testPiece = new Piece(pointsForTestPiece);
-  List<Piece> returns = testPiece.cutVerticalCavalieriNew(6.0);
+  List<Piece> returns = testPiece.cutVerticalCavalieriNew(3.0);
   print("*************");
   returns.forEach( (piece) => print(piece.vertices.toString() ));
   print("*************");
@@ -137,7 +138,7 @@ void testVerticalCutting() {
 void main() {
   //print(myUID.toString());
   
- // testVerticalCutting();
+  //testVerticalCutting();
   
   rightButton = new ImageElement()..src = "images/rightImage.jpg";
   leftButton = new ImageElement()..src = "images/leftImage.jpg";

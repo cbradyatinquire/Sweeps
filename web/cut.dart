@@ -122,7 +122,7 @@ void doCut() {
     num cy = getSubTickCoordForPixelV(vcuts.y);
     List<Piece> newPcs = new List<Piece>();
     if (wasInCavalieri) {
-      pieces.forEach( (piece) => newPcs.addAll(piece.cutVerticalCavalieriNew(cx)) );
+      pieces.forEach( (piece) => newPcs.addAll(piece.cutVerticalCavalieri(cx)) );
       //print("*****END DEBUGGING****");
       //pieces.forEach( (piece) => newPcs.addAll(piece.cutVerticalCavalieri(cx)) );
     } else {

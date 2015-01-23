@@ -215,7 +215,8 @@ class Piece {
   int findGoodCutIndex( List<int> cutList, List<int> totalList ) {
     if (cutList.length == 0) { return null; }
     int indexShift = cutList.first;
-    int lastIndex = indexShift;
+    int lastIndex = totalList.indexOf( indexShift );
+    //int lastIndex = indexShift;
     print("in findgoodcutindex.  cutlist = " + cutList.toString() + " and totalList = " + totalList.toString() );
     print("indexShift =  " + indexShift.toString() );
     for (int i = 1; i<totalList.length; i++) {
@@ -226,10 +227,156 @@ class Piece {
       }
       lastIndex = index;
     }
+    print("FINDGOODCUTINDEX -->  lists were the same -- returning null");
     return null;
   }
   
-  List<Piece>cutVerticalCavalieriNew( num xcor ) {
+  
+  List<Piece>cutVerticalCavalieri( num xcor ) {
+
+    List<Piece> myPieces = [this];
+    
+    for (int yc = 0; yc < vticks * vSubTicks; yc++) {
+      List<Piece> newPcs = new List<Piece>();
+      myPieces.forEach((piece) => newPcs.addAll(piece.cutHorizontal(yc)));
+      myPieces = newPcs;
+    }
+    
+   // for (int xc = 0; xc < hticks * hSubTicks; xc++) {
+      List<Piece> newPcs = new List<Piece>();
+      myPieces.forEach((piece) => newPcs.addAll(piece.cutVertical(xcor)));
+      myPieces = newPcs;
+   // }
+    
+    List<Piece>realPieces = new List<Piece>();
+    realPieces.addAll(myPieces.where( (piece) => (piece.vertices.length > 2) ) );
+    
+    realPieces.sort( (a, b) => (a.minimumY()).compareTo(b.minimumY()) );
+    
+    List<Piece>leftPieces = new List<Piece>();
+    leftPieces.addAll( realPieces.where( (piece) => (piece.maximumX() <= xcor) ) );
+    List<Piece>rightPieces = new List<Piece>();
+    rightPieces.addAll(  realPieces.where( (piece) => (piece.minimumX() >= xcor) ) );
+    
+    List<Piece> endPieces = new List<Piece>();
+    endPieces.addAll( coalesce(leftPieces) );
+    endPieces.addAll( coalesce(rightPieces) );
+    
+    return endPieces;
+  }
+  
+  List<Piece>coalesce( List<Piece> inputPieces ) {
+    if ( inputPieces.isEmpty ) { return inputPieces; }
+    List<Piece> inputCopy = new List<Piece>();
+    inputCopy.addAll( inputPieces );
+    List<Piece> coalesced = new List<Piece>();
+    while ( !inputCopy.isEmpty ) {
+      Piece aggregator = inputCopy.first;
+      List<int>usedIndices = [0];
+      for (int index = 1; index < inputCopy.length; index++ ) {
+        Piece candidate = inputCopy[index];
+        if ( aggregator.sharesSideWith( candidate ) ) {
+          aggregator = aggregate( aggregator, candidate );
+          usedIndices.add(index);
+        }
+      }
+      List<Piece>cache = new List<Piece>();
+      for (int i = 0; i<inputCopy.length; i++ ) {
+        if ( !usedIndices.contains(i) ) {
+          cache.add(inputCopy[i]);
+        }
+      }
+      coalesced.add( aggregator );
+      inputCopy.clear();
+      inputCopy.addAll(cache);
+    }
+    return coalesced;
+  }
+  
+  bool sharesSideWith( Piece another ) {
+    for (List<Point> side in sides) {
+      List<List<Point>> asides = another.sides;
+      for (List<Point> aside in asides ) {
+        if ( side.contains(aside.first) && side.contains(aside.last) )
+          return true;
+      }
+    }
+    return false;
+  }
+  
+  Piece aggregate( Piece one, Piece another) {
+    int oneindex, anotherindex;
+    bool reversed = null;
+    for (int osnum = 0; osnum<one.sides.length; osnum++) {
+      List<Point>oneside = one.sides[osnum];
+      for (int asnum = 0; asnum<another.sides.length; asnum++ ) {
+        List<Point>anotherside = another.sides[asnum];
+        if (anotherside.contains( oneside.first )  && anotherside.contains( oneside.last ) ) {
+          oneindex = osnum;
+          anotherindex = asnum;
+          if ( anotherside.first == oneside.first) {
+            reversed = false;
+          } else {
+            reversed = true;
+          }
+          break;
+        }
+      }
+      if (reversed != null) { break; }
+    }
+    
+    
+    int step = -1;
+    if (reversed) { step = 1;} 
+    List<Point> agvertices = new List<Point>();
+    int oi = 0;
+    while (oi < oneindex) {
+      List<Point> oside = one.sides[oi];
+      agvertices.add(oside.first);
+      oi++;
+    }
+    int ai = anotherindex + step;
+    while ( ai % another.sides.length != anotherindex) {
+      List<Point> aside = another.sides[ai % another.sides.length];
+      if (reversed) { agvertices.add(aside.first); }
+      else { agvertices.add(aside.last); }
+      ai = ai + step;
+    }
+    oi = oneindex + 1;
+    while (oi < one.sides.length) {
+      List<Point> oside = one.sides[oi];
+      agvertices.add(oside.first);
+      oi++;
+    }
+    Piece aggregate = new Piece(agvertices);
+    return aggregate;
+  }
+  
+  num minimumY() {
+    num miny = vticks*vSubTicks;
+    for ( Point v in vertices ) {
+      if ( v.y < miny ) { miny = v.y; }
+    }
+    return miny;
+  }
+  
+  num minimumX() {
+    num minx = hticks*hSubTicks;
+    for ( Point v in vertices ) {
+      if ( v.x < minx ) { minx = v.x; }
+    }
+    return minx;
+  }
+  
+  num maximumX() {
+    num maxx = 0;
+    for (Point v in vertices) {
+      if (v.x > maxx) { maxx = v.x; }
+    }
+    return maxx;
+  }
+  
+  List<Piece>cutVerticalCavalieriDiscardedNew( num xcor ) {
     print("BEGIN -- cut with xcor = " + xcor.toString() );
     print("Piece's vertices = " + vertices.toString() );
     List<Piece> newPieces = new List<Piece>();
@@ -278,6 +425,7 @@ class Piece {
               adjustedI = j;
               print("Shifting the compare point to " + test.toString() + " which would adjust i to " + j.toString() );
               if (adjustedI < i) { print("OOPS should not have a case where adjusted i goes down! Here i = " + i.toString() + " and adjusted i = " + adjustedI.toString() ); }
+              if (adjustedI == 1) { keepGoing = false; }
             }
           }
           
@@ -287,9 +435,10 @@ class Piece {
           if ( this.containsGridPoint(checkInsidePoint.x, checkInsidePoint.y) ) {
             //if inside original shape, move i to skip the intervening vertices.
             print("WAS inside.  so...");
-            if (adjustedI <= i ) { print( "ERROR SIGN - i should not be adjusted down "); }
+            if (adjustedI < i ) { print( "ERROR SIGN - i should not be adjusted down "); }
+            if (adjustedI == i) { print("WARNING -- i adjusted to itself. adding one"); adjustedI = i + 1; }
             else {
-              print("skipping our index i ahead to " + adjustedI.toString() ); 
+              print("skipping our index i 'ahead' to " + adjustedI.toString() ); 
               i = adjustedI; 
               //and add the new compare cut point
               accumulatingShapePoints.add( movingCompareCutPoint );
