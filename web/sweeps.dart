@@ -266,6 +266,7 @@ void testSwitchMode(MouseEvent e) {
       if (wasInCavalieri) { 
         MODE = 1;
         wasInCavalieri = false;
+        hasCut = false;
       }
       readyToGoOn = false;
       draggedUnits = 0;
