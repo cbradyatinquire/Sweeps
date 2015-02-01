@@ -129,7 +129,7 @@ void testVerticalCutting() {
    new Point(7, 6), new Point(8, 5), new Point(8, 4), new Point(7, 3), new Point(8, 2), new Point(7, 1)];
   
   Piece testPiece = new Piece(pointsForTestPiece);
-  List<Piece> returns = testPiece.cutVerticalCavalieriNew(3.0);
+  List<Piece> returns = testPiece.cutVerticalCavalieri(3.0);
   print("*************");
   returns.forEach( (piece) => print(piece.vertices.toString() ));
   print("*************");
@@ -253,7 +253,7 @@ void testSwitchMode(MouseEvent e) {
   } else if (e.offset.x > rbound && MODE == 4 ) {
     MODE = 3; 
     animLoopTimer.cancel();
-    goOnFromCavalieri();
+    goOnFromCavalieri(e.offset.y);
   } else if (e.offset.x < lbound) { //we're in the left arrow
     if (MODE == 4) {
       MODE = 1;
@@ -282,7 +282,7 @@ void testSwitchMode(MouseEvent e) {
 
 
 
-void goOnFromCavalieri() {
+void goOnFromCavalieri(int yclickvalue) {
   wasInCavalieri = true;
 
   if (mouseDownSubscription != null && !mouseDownSubscription.isPaused ) {
@@ -318,10 +318,16 @@ void goOnFromCavalieri() {
        CUTTouchEnd.resume();
      }
      
-     //FOR CUTTING CAVALIERI MANUALLY.
-     cutFlavor = "selected";
-     hasCut = true;
+     //FOR CUTTING CAVALIERI WITH GRID POINTS MANUALLY.
+     if (yclickvalue < (tools.height / 2)) {
+       cutFlavor = "all";
+       hasCut = false;
+     } else {
+       cutFlavor = "selected";
+       hasCut = true;
+     }
      setCutPoints();
+    
 
      List<Point> gridPoints = new List<Point>();
      for (int i = 0; i<t1s.length; i++ ) {
@@ -715,10 +721,11 @@ void drawTools() {
   if (MODE > 0) {
     ctx.drawImageScaled(leftButton, 0, 0, imwid, imht);
   }
-  if (MODE == 2 && readyToGoOn) {
+  if ( (MODE == 2 && readyToGoOn) || (MODE==4 && cavalieriHeight > 0 ) ){
     ctx.drawImageScaled(forkedRightButton, tools.width - imwid, 0, imwid, imht);
   }
-  if ((MODE < 2 && readyToGoOn) || (MODE==4 && cavalieriHeight > 0 )) {
+  
+  if (MODE < 2 && readyToGoOn) {
     ctx.drawImageScaled(rightButton, tools.width - imwid, 0, imwid, imht);
   }
   drawStatus(ctx);

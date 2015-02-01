@@ -25,8 +25,10 @@ void clickLogicCUT(Point pt) {
   if ( cutFlavor == "all" ) {
     if (!hasCut) {
       hasCut = true;
-      doCut();
-      //if (wasInCavalieri) { doCut(); }
+      
+      if (wasInCavalieri) { doCut(); } 
+      else {doCut();}
+      
       drawCUT();
     } else {
       drawCUT();
@@ -100,21 +102,36 @@ void clickLogicCUT(Point pt) {
 void doCut() {
   
   if (cutFlavor == "all") {
-  for (int xc = 0; xc < hticks * hSubTicks; xc++) {
-    List<Piece> newPcs = new List<Piece>();
-    pieces.forEach((piece) => newPcs.addAll(piece.cutVertical(xc)));
-    pieces = newPcs;
-  }
-
- //print(pieces.length.toString() + " PIECES. with vertices...");
- //pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
-
-  for (int yc = 0; yc < vticks * vSubTicks; yc++) {
-    List<Piece> newPcs = new List<Piece>();
-    pieces.forEach((piece) => newPcs.addAll(piece.cutHorizontal(yc)));
-    pieces = newPcs;
-  }
-
+    if (wasInCavalieri) {
+      
+      for (int yc = 0; yc < vticks * vSubTicks; yc++) {
+        List<Piece> newPcs = new List<Piece>();
+        pieces.forEach((piece) => newPcs.addAll(piece.cutHorizontal(yc)));
+        pieces = newPcs;
+      }
+      for (int xc = 0; xc < hticks * hSubTicks; xc++) {
+        List<Piece> newPcs = new List<Piece>();
+        pieces.forEach((piece) => newPcs.addAll(piece.cutVerticalCavalieri(xc)));
+        pieces = newPcs;
+      }
+      
+      
+    } else {
+      for (int xc = 0; xc < hticks * hSubTicks; xc++) {
+        List<Piece> newPcs = new List<Piece>();
+        pieces.forEach((piece) => newPcs.addAll(piece.cutVertical(xc)));
+        pieces = newPcs;
+      }
+    
+     //print(pieces.length.toString() + " PIECES. with vertices...");
+     //pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
+    
+      for (int yc = 0; yc < vticks * vSubTicks; yc++) {
+        List<Piece> newPcs = new List<Piece>();
+        pieces.forEach((piece) => newPcs.addAll(piece.cutHorizontal(yc)));
+        pieces = newPcs;
+      }
+    }
   //print(pieces.length.toString() + " PIECES. with vertices...");
   //pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
   } else {
