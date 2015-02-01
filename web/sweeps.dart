@@ -263,6 +263,10 @@ void testSwitchMode(MouseEvent e) {
       doModeSpecificLogic();
     } else if (MODE > 1) {
       MODE--;
+      if (wasInCavalieri) { 
+        MODE = 1;
+        wasInCavalieri = false;
+      }
       readyToGoOn = false;
       draggedUnits = 0;
       doModeSpecificLogic();
