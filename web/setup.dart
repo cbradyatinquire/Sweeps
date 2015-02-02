@@ -329,7 +329,11 @@ Point updateEndSETUPOLD(Point endpt, Point mspt) {
 }
 
 Point updateEndSETUP(Point endpt, Point mspt) {
-  return new Point(getSubTickCoordForPixelH(mspt.x), getSubTickCoordForPixelV(mspt.y));
+  num newSubTickH = getSubTickCoordForPixelH(mspt.x);
+  num newSubTickV = getSubTickCoordForPixelV(mspt.y);
+  if (newSubTickH < 0  || newSubTickH > hticks * hSubTicks) { newSubTickH = endpt.x; }
+  if (newSubTickV < 0  || newSubTickV > vticks * vSubTicks) { newSubTickV = endpt.y; }
+  return new Point(newSubTickH, newSubTickV);
 }
 
 
