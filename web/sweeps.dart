@@ -32,10 +32,10 @@ String overrideHTMLPromptFont = "26pt sans-serif";
 bool unitsLocked = false;
 
 //changing and displaying units
-String hunits_abbreviated = "hsu";
+String hunits_abbreviated = "in";
 //String hunits_full = "horizontal sweep units";
 
-String vunits_abbreviated = "vsu";
+String vunits_abbreviated = "in";
 //String vunits_full = "vertical sweep units";
 
 String areaToDisplay = "";
@@ -50,8 +50,8 @@ bool readyToGoOn = true;
 
 //relevant to the SETUP mode
 var SETUPMouseDown, SETUPTouchStart, SETUPMouseMove, SETUPTouchMove, SETUPMouseUp, SETUPTouchEnd;
-num hticks = 12;
-num vticks = 9;
+num hticks = 20;
+num vticks = 15;
 int hSubTicks = 1;
 int vSubTicks = 1;
 int hSubTicksBefore = 1;
@@ -64,7 +64,7 @@ int minvticks = 2; //6;
 double ticwid;
 double ticht;
 Point s1end = new Point(2, 3);
-Point s2end = new Point(4, 6);
+Point s2end = new Point(5, 7);
 Point olds1, olds2, oldpx1, oldpx2;
 num oldvtix;
 num oldhtix;
@@ -154,7 +154,6 @@ void main() {
   submitUnitsButton = document.querySelector("#submitUnit");
   splash.onClick.listen(startUp);
 
-  
 }
 
 void doEventSetup() {
@@ -440,7 +439,9 @@ void openScreenCapsWindow() {
   sc.width = scpop.clientWidth;
   sc.height = scpop.clientHeight - topstuff.clientHeight - botstuff.clientHeight;
   loadScreen(sc);
+  screenPointer = screens.length - 1;
   pauseEventsForScreenCapsWindow();
+  changeScreen(0);
 }
 
 
@@ -668,8 +669,15 @@ void startUp(MouseEvent event) {
   navigationEvents = tools.onMouseDown.listen(testSwitchMode);
   splash.style.opacity = "0.0";
   splash.style.zIndex = "-1";
+
   drawSETUP();
   drawTools();
+  
+   makeVEqualToH();
+   unitsLocked = true;
+   
+   drawSETUP();
+   drawTools();
 }
 
 void drawStatus(CanvasRenderingContext2D ctx) {
