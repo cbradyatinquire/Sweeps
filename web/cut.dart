@@ -261,6 +261,17 @@ void draggingCUT(Point currentPt) {
   
     num delx = wantToDragUnitsX; //need to prevent dragging off screen
     num dely = wantToDragUnitsY; //need to prevent dragging off screen
+    
+    //prevent dragging offscreen
+    if (draggingPiece.minimumX() + delx < 0) { 
+      delx = 0; }
+    if (draggingPiece.maximumX() + delx > hticks * hSubTicks) {
+      delx = 0;}
+    if (draggingPiece.minimumY() + dely < 0 ) {
+      dely = 0; }
+    if (draggingPiece.maximumY() + dely > vticks * vSubTicks) {
+      dely = 0;}
+    
     //print("DelX=" + delx.toString() + "; DelY=" + dely.toString() );
     num neworiginx = pieceDragOrigin.x;
     num neworiginy = pieceDragOrigin.y;

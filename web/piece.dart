@@ -361,6 +361,14 @@ class Piece {
     return miny;
   }
   
+  num maximumY() {
+      num maxy = 0;
+      for ( Point v in vertices ) {
+        if ( v.y > maxy ) { maxy = v.y; }
+      }
+      return maxy;
+    }
+  
   num minimumX() {
     num minx = hticks*hSubTicks;
     for ( Point v in vertices ) {
