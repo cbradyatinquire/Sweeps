@@ -921,7 +921,8 @@ int getYForVSubTick(num j) {
 }
 
 void drawGrid(CanvasRenderingContext2D ctxt) {
-  ctxt.strokeStyle = "#555";
+  //ctxt.strokeStyle = "#555";
+  ctxt.strokeStyle = "#222";
 
   ctxt.beginPath();
   ctxt.setLineDash([2]);
@@ -943,9 +944,9 @@ void drawGrid(CanvasRenderingContext2D ctxt) {
   ctxt.stroke();
 
   ctxt.beginPath();
-  ctxt.strokeStyle = "#30F";
+  ctxt.strokeStyle = "#000";  //#30F
   ctxt.setLineDash([]);
-  ctxt.lineWidth = 0.1;
+  ctxt.lineWidth = 0.2;  //.1
   for (num i = 0; i <= hticks; i++) {
     for (num j = 1; j < hSubTicks; j++) {
       int x1 = getXForHTick(i + j / hSubTicks);
