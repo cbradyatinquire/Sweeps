@@ -31,6 +31,8 @@ String overrideHTMLPromptFont = "26pt sans-serif";
 
 bool unitsLocked = false;
 
+bool showArea = false;
+
 //changing and displaying units
 String hunits_abbreviated = "in";
 //String hunits_full = "horizontal sweep units";
@@ -280,6 +282,11 @@ void testSwitchMode(MouseEvent e) {
     if (  (e.offset.x - cavalieriCenter.x < cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
       MODE = 4;
       doModeSpecificLogic();
+    }
+  } else if (MODE==2) {
+    if (  (e.offset.x - cavalieriCenter.x < cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
+      showArea = !showArea;
+      drawSWEEP();
     }
   }
 }
@@ -694,14 +701,21 @@ void drawStatus(CanvasRenderingContext2D ctx) {
       }
       areaToDisplay = cavalieriArea.toString() + fracString + getAreaUnitsString(); 
     }
-    currentToolsText = "Area swept: " + areaToDisplay;
+    currentToolsText = "Area swept";
+    if (showArea) {
+      currentToolsText += ": " + areaToDisplay;
+    }
   } else if (MODE == 4 && cavalieriHeight > 0) {
     num denom = hSubTicks * vSubTicks;
     String fracString = " ";
     if (denom != 1) {
       fracString = "/" + denom.toString() + " ";
     }
-    currentToolsText = "Area swept: " + cavalieriArea.toString() + fracString + getAreaUnitsString();
+    
+    currentToolsText = "Area swept";
+    if (showArea) {
+      currentToolsText += ": " + cavalieriArea.toString() + fracString + getAreaUnitsString();
+    }
   } else {
     currentToolsText = captions[MODE];
   }
