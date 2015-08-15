@@ -286,7 +286,8 @@ void testSwitchMode(MouseEvent e) {
   } else if (MODE==2) {
     if (  (e.offset.x - cavalieriCenter.x < cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
       showArea = !showArea;
-      drawSWEEP();
+      //drawSWEEP();
+      drawTools();
     }
   }
 }
