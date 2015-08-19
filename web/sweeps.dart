@@ -283,7 +283,7 @@ void testSwitchMode(MouseEvent e) {
       MODE = 4;
       doModeSpecificLogic();
     }
-  } else if (MODE==2) {
+  } else if (MODE==2 || MODE==4) {
     if (  (e.offset.x - cavalieriCenter.x < cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
       showArea = !showArea;
       //drawSWEEP();
@@ -527,6 +527,7 @@ void doModeSpecificLogic() {
       SETUPTouchMove.resume();
       SETUPMouseUp.resume();
       SETUPTouchEnd.resume();
+      showArea = false;
     }
 
     if (!SWEEPMouseDown.isPaused) {
