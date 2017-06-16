@@ -48,6 +48,7 @@ void ensureAllPointsAreOnscreen() {
 }
 
 void getHorizUnits(MouseEvent me) {
+  String oldAbbrev = hunits_abbreviated;
 //TextInputElement tie = document.querySelector("#unitname");
   TextInputElement tie2 = document.querySelector("#unitshort");
 //String proposedUnits = tie.value;
@@ -62,17 +63,25 @@ void getHorizUnits(MouseEvent me) {
   
   CheckboxInputElement ce = document.querySelector("#sameUnit");
   if (ce.checked) {
-    makeHEqualToV();
-    if (s1end.x >= hticks * hSubTicks ) { s1end = new Point((hticks * hSubTicks), s1end.y); }
-    if (s2end.x >= hticks * hSubTicks  ) { s2end = new Point((hticks * hSubTicks), s2end.y); }
-    hunits_abbreviated = vunits_abbreviated;
-    unitsLocked = true;
-    ensureAllPointsAreOnscreen();
+    if (!unitsLocked) {
+      makeHEqualToV();
+      if (s1end.x >= hticks * hSubTicks ) { s1end = new Point((hticks * hSubTicks), s1end.y); }
+      if (s2end.x >= hticks * hSubTicks  ) { s2end = new Point((hticks * hSubTicks), s2end.y); }
+      hunits_abbreviated = vunits_abbreviated;
+      unitsLocked = true;
+      ensureAllPointsAreOnscreen();
+    } else {
+      if (oldAbbrev != proposedAbbrev) {
+        unitsLocked = false;
+      }
+    }
   } else {
     if ( unitsLocked == true ) {
       unitsLocked = false;
-      hunits_abbreviated = "hsu";
-      vunits_abbreviated = "vsu";
+      if (oldAbbrev == proposedAbbrev) {
+        hunits_abbreviated = "hsu";
+        vunits_abbreviated = "vsu";
+      }
     }
   }
   /*
@@ -101,6 +110,7 @@ void getHorizUnits(MouseEvent me) {
 
 
 void getVerticalUnits(MouseEvent me) {
+  String oldAbbrev = vunits_abbreviated;
   //TextInputElement tie = document.querySelector("#unitname");
   TextInputElement tie2 = document.querySelector("#unitshort");
   //String proposedUnits = tie.value;
@@ -122,16 +132,25 @@ void getVerticalUnits(MouseEvent me) {
   
   CheckboxInputElement ce = document.querySelector("#sameUnit");
     if (ce.checked) {
-      makeVEqualToH();
-      if (s1end.y >= vticks * vSubTicks ) { s1end = new Point(s1end.x, (vticks * vSubTicks)); }
-      if (s2end.y >= vticks * vSubTicks ) { s2end = new Point(s2end.x, (vticks * vSubTicks)); }
-      vunits_abbreviated = hunits_abbreviated;
-      unitsLocked = true;
+      if (!unitsLocked) {
+        makeVEqualToH();
+        if (s1end.y >= vticks * vSubTicks ) { s1end = new Point(s1end.x, (vticks * vSubTicks)); }
+        if (s2end.y >= vticks * vSubTicks ) { s2end = new Point(s2end.x, (vticks * vSubTicks)); }
+        vunits_abbreviated = hunits_abbreviated;
+        unitsLocked = true;
+        ensureAllPointsAreOnscreen();
+      } else {
+        if (oldAbbrev != proposedAbbrev) {
+          unitsLocked = false;
+        }
+      }
     } else {
       if ( unitsLocked == true ) {
         unitsLocked = false;
-        hunits_abbreviated = "hsu";
-        vunits_abbreviated = "vsu";
+        if (oldAbbrev == proposedAbbrev) {
+            hunits_abbreviated = "hsu";
+            vunits_abbreviated = "vsu";
+        }
       }
     }
   

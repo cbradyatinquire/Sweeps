@@ -278,13 +278,14 @@ void testSwitchMode(MouseEvent e) {
   } else if (e.offset.distanceTo(screenCapIconCenter) < screenCapIconTolerance) {
     addScreenCap();
     openScreenCapsWindow();
-  } else if (MODE==1) {
-    if (  (e.offset.x - cavalieriCenter.x < cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
+  } else if (MODE==1 && s1end.y == s2end.y) {  //THIS is where i block accidental cavalieri
+    if (  ((e.offset.x - cavalieriCenter.x).abs() < 2 * cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
       MODE = 4;
       doModeSpecificLogic();
     }
-  } else if (MODE==2 || MODE==4) {
-    if (  (e.offset.x - cavalieriCenter.x < cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
+  } else if (MODE==2 || MODE==4 || (MODE == 3 && hasCut)) {
+    //not sure that 2 or 4 is the right set.  adding MODE == 3 && hasCut
+    if (  ((e.offset.x - tools.width / 2).abs()  < 2  * cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
       showArea = !showArea;
       //drawSWEEP();
       drawTools();
