@@ -183,6 +183,7 @@ void drawCavalieri() {
 //  ticwid = canv.width / hticks;
 //   ticht = canv.height / vticks;
 
+
   CanvasRenderingContext2D ctx = canv.context2D;
   ctx.clearRect(0, 0, canv.width, canv.height);
 
