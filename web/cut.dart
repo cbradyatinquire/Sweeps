@@ -2,13 +2,13 @@ part of sweeps;
 
 
 var cutFlavor = "all";
-Point vcuts = new Point(hoff - 10, voff);
+Point vcuts = null; //new Point(hoff - 10, voff); // TODO why assign a value here? (null doesn't break anything obvious)
 Point hcuts = new Point(hoff, voff - 10);
 var cutGrabbed = "none";
 
 void setCutPoints() {
-  vcuts = new Point( hoff-20, getYForVSubTick( -1 + vticks * vSubTicks ) );
-  hcuts = new Point( getXForHSubTick( -1 + hticks * hSubTicks ), voff-20 );
+  vcuts = new Point(hoff - 20, getYForVSubTick(-1 + vticks * vSubTicks));
+  hcuts = new Point(getXForHSubTick(-1 + hticks * hSubTicks), voff - 20);
 }
 
 //CUT MODE HAS AN IMMEDIATE RESPONSE TO THE CLICK.
@@ -21,137 +21,102 @@ void startTouchCUT(TouchEvent evt) {
   clickLogicCUT(initPoint);
 }
 
-void clickLogicCUT(Point pt) {
-  if ( cutFlavor == "all" ) {
-    if (!hasCut) {
-      hasCut = true;
-      
-      if (wasInCavalieri) { doCut(); } 
-      else {doCut();}
-      
-      drawCUT();
-    } else {
-      drawCUT();
-      for (int i = 0; i < pieces.length; i++) {
-        Piece test = pieces[i];
-        /*if (test.hitTest(pt)) {
-          draggingPiece = test;
-          pieceDragOrigin = pt;
-          break;
-        }*/
-        num gridX = getGridCoordForPixelH(pt.x);
-        num gridY = getGridCoordForPixelV(pt.y);
-        if ( test.containsGridPoint( gridX, gridY ) ) {
-          draggingPiece = test;
-          pieceDragOrigin = pt;
-          break;
-        }
-        
-      }
-      if (draggingPiece != null) {
-        CanvasRenderingContext2D ctx = canv.context2D;
-        draggingPiece.drawAsDragging(ctx);
-      } 
+
+void cutAlongX(int xc)
+{
+  List<Piece> newPcs = new List<Piece>();
+
+  if (wasInCavalieri) // both have the same idea Cavalieri code is different TODO discover precise differences
+  {
+    pieces.forEach((piece) => newPcs.addAll(piece.cutVerticalCavalieri(xc)));
+  }
+  else
+  {
+    pieces.forEach((piece) => newPcs.addAll(piece.cutVertical(xc)));
+  }
+
+  pieces = newPcs;
+}
+
+void cutAlongY(int yc)
+{
+  List<Piece> newPcs = new List<Piece>();
+  pieces.forEach((piece) => newPcs.addAll(piece.cutHorizontal(yc)));
+  pieces = newPcs;
+}
+
+void dragFirstPieceClickedOn(Point pt)
+{
+  for (Piece test in pieces)
+  {
+    num gridX = getGridCoordForPixelH(pt.x);
+    num gridY = getGridCoordForPixelV(pt.y);
+
+    if (test.containsGridPoint(gridX, gridY)) // if test is the piece clicked on
+        {
+      draggingPiece = test;
+      pieceDragOrigin = pt;
+      break;
     }
-  } else {
+  }
+
+  if (draggingPiece != null) {
+    CanvasRenderingContext2D ctx = canv.context2D;
+    draggingPiece.drawAsDragging(ctx);
+  }
+}
+
+
+void clickLogicCUT(Point pt) { // inputted point is where the mouse clicked; logic for mouse DOWN only
+  if (cutFlavor == "all") {
+    if (!hasCut) { // logic for the first click only
+      hasCut = true;
+      doCut();
+      drawCUT();
+    }
+    else { // logic for all times pieces are moving
+      drawCUT();
+      dragFirstPieceClickedOn(pt);
+    }
+  }
+  else { // logic for cutting a piece yourself, when cutFlavor == "select" (dragThreshold is the error tolerance for a click)
     if (sqPixelDistance(pt, vcuts) < dragThreshold) {
       cutGrabbed = "vertical";
       drawCUT();
     } else if (sqPixelDistance(pt, hcuts) < dragThreshold) {
       cutGrabbed = "horizontal";
       drawCUT();
-    } else if (pt.y < 50 && pt.x < 50 ) {
-      //doCut();
+    } else if (pt.y < 50 && pt.x < 50) { // this does not trigger cut yet, only makes screen change color to show it is cutting, cut happens when mouse lifts UP, in either stopTouchCUT or stopDragCUT
       cutGrabbed = "scissors";
       drawCUT();
-      //hasCut = true;  //TODO: make sure that this was needed
     } else {
       drawCUT();
-      for (int i = 0; i < pieces.length; i++) {
-        Piece test = pieces[i];
-        
-       // if (test.hitTest(pt)) {
-       //   draggingPiece = test;
-       //   pieceDragOrigin = pt;
-       //   break;
-       // }
-        
-        num gridX = getGridCoordForPixelH(pt.x);
-        num gridY = getGridCoordForPixelV(pt.y);
-        if ( test.containsGridPoint( gridX, gridY ) ) {
-          draggingPiece = test;
-          pieceDragOrigin = pt;
-          break;
-        }
-        
-      }
-      
-      if (draggingPiece != null) {
-     //   print("hit piece " + draggingPiece.vertices.toString() );
-        CanvasRenderingContext2D ctx = canv.context2D;
-        draggingPiece.drawAsDragging(ctx);
-      } else {
-      //  print("miss");
-      }
-      
-      
+      dragFirstPieceClickedOn(pt);
     }
   }
 }
 
+
+
 void doCut() {
-  
-  if (cutFlavor == "all") {
-    if (wasInCavalieri) {
-      
-      for (int yc = 0; yc < vticks * vSubTicks; yc++) {
-        List<Piece> newPcs = new List<Piece>();
-        pieces.forEach((piece) => newPcs.addAll(piece.cutHorizontal(yc)));
-        pieces = newPcs;
-      }
-      for (int xc = 0; xc < hticks * hSubTicks; xc++) {
-        List<Piece> newPcs = new List<Piece>();
-        pieces.forEach((piece) => newPcs.addAll(piece.cutVerticalCavalieri(xc)));
-        pieces = newPcs;
-      }
-      
-      
-    } else {
-      for (int xc = 0; xc < hticks * hSubTicks; xc++) {
-        List<Piece> newPcs = new List<Piece>();
-        pieces.forEach((piece) => newPcs.addAll(piece.cutVertical(xc)));
-        pieces = newPcs;
-      }
-    
-     //print(pieces.length.toString() + " PIECES. with vertices...");
-     //pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
-    
-      for (int yc = 0; yc < vticks * vSubTicks; yc++) {
-        List<Piece> newPcs = new List<Piece>();
-        pieces.forEach((piece) => newPcs.addAll(piece.cutHorizontal(yc)));
-        pieces = newPcs;
-      }
+  if (cutFlavor == "all") // called only at the beginning for "all"
+  {
+    for (int yc = 0; yc < vticks * vSubTicks; yc++)
+    {
+      cutAlongY(yc);
     }
-  //print(pieces.length.toString() + " PIECES. with vertices...");
-  //pieces.forEach( (piece) => print( piece.vertices.length.toString() + piece.verticesAsString() ) );
-  } else {
+    for (int xc = 0; xc < hticks * hSubTicks; xc++)
+    {
+      cutAlongX(xc);
+    }
+  }
+  else // if cutting along selected lines
+  {
     num cx = getSubTickCoordForPixelH(hcuts.x);
     num cy = getSubTickCoordForPixelV(vcuts.y);
-    List<Piece> newPcs = new List<Piece>();
-    if (wasInCavalieri) {
-      pieces.forEach( (piece) => newPcs.addAll(piece.cutVerticalCavalieri(cx)) );
-      //print("*****END DEBUGGING****");
-      //pieces.forEach( (piece) => newPcs.addAll(piece.cutVerticalCavalieri(cx)) );
-    } else {
-      pieces.forEach( (piece) => newPcs.addAll(piece.cutVertical(cx)) );
-    }
-    pieces = newPcs;
-    //print("pieces after cut");
-    //pieces.forEach( (piece) => print(piece.vertices) );   
-    
-    List<Piece> newPcsH = new List<Piece>();
-    pieces.forEach( (piece) => newPcsH.addAll(piece.cutHorizontal(cy)) );
-    pieces = newPcsH;
+
+    cutAlongX(cx);
+    cutAlongY(cy);
   }
 }
 
@@ -160,7 +125,6 @@ void drawCUT() {
   CanvasRenderingContext2D ctx = canv.context2D;
   ctx.clearRect(0, 0, canv.width, canv.height);
   if (cutFlavor == "selected") {
-    
     if (cutGrabbed == "scissors" ) {
       ctx.drawImageScaled(cutSelectedClosedButton, 0, 0, 58, 58);
       canv.style.backgroundColor = "#aaaacc";
@@ -170,21 +134,29 @@ void drawCUT() {
     }
     
   }
-  if (hasCut) {
-    drawRulers(ctx);
+
+  drawRulers(ctx);
+  drawGrid(ctx);
+
+  if (wasInCavalieri) { drawCavalieriPath(ctx); }
+  else { drawSweeperSweptSWEEP(ctx); }
+
+  if (hasCut) { pieces.forEach((piece) => piece.draw(ctx)); }
+
+/* TODO does this order matter? (doesn't seem to; removed what already was the same order from loop)
+ if (hasCut) {
     if (wasInCavalieri) { drawCavalieriPath(ctx); }
     else { drawSweeperSweptSWEEP(ctx); }
     pieces.forEach((piece) => piece.draw(ctx));
     drawGrid(ctx);
-    drawTools();
   } else {
-    drawRulers(ctx);
     drawGrid(ctx);
     if (wasInCavalieri) { drawCavalieriPath(ctx); }
     else { drawSweeperSweptSWEEP(ctx); }
-    drawTools();
   }
-  
+*/
+  drawTools();
+
   //for testing
   //print("Drawing Grid");
   // drawPointGrid(ctx); 
@@ -247,8 +219,8 @@ void dragCutHotSpots( Point currentPt ) {
 }
 
 void draggingCUT(Point currentPt) {
-  
-      
+
+
     if (draggingPiece == null) {
       print("null dragging piece?!");
       return;
@@ -300,18 +272,17 @@ void draggingCUT(Point currentPt) {
 void stopDragCUT(MouseEvent event) {
   draggingPiece = null;
   if (cutGrabbed == "scissors") {
-    doCut();
-    //if (wasInCavalieri) { doCut(); }
+    doCut(); // triggers cut when cutFlavor == "select"
   }
-  cutGrabbed = "none";
+  cutGrabbed = "none";  // resets cutGrabbed (from where it was set in clickLogicCut)
   drawCUT();
 }
 
 void stopTouchCUT(TouchEvent evt) {
   draggingPiece = null;
   if (cutGrabbed == "scissors") {
-    doCut();
+    doCut(); // triggers cut when cutFlavor == "select"
   }
-  cutGrabbed = "none";
+  cutGrabbed = "none"; // resets cutGrabbed (from where it was set in clickLogicCut)
   drawCUT();
 }

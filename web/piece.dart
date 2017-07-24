@@ -48,6 +48,7 @@ class Piece {
     return rtn;
   }
 
+  //gets the Y-value of the point on the line between a and b with Y-coordinate xval
   num interpolatedY(Point a, Point b, num xval) {
     if (b.x == a.x) {
       return a.y;
@@ -58,7 +59,7 @@ class Piece {
     }
   }
 
-
+//gets the X-value of the point on the line between a and b with Y-coordinate yval
   num interpolatedX(Point a, Point b, num yval) {
     if (b.y == a.y) {
       return a.x;
@@ -81,7 +82,7 @@ class Piece {
   
   
   bool hitParityOdd( num x, num y ) {
-    Point startPoint = new Point(xmin - 1.02, (ymax - ymin) / 2);
+    Point startPoint = new Point(xmin - 1.02, (ymax - ymin) / 2); //TODO What?!
     //Point startPoint = new Point(0, 5);
         
     int hits = 0;
@@ -218,7 +219,7 @@ class Piece {
     int lastIndex = totalList.indexOf( indexShift );
     //int lastIndex = indexShift;
     print("in findgoodcutindex.  cutlist = " + cutList.toString() + " and totalList = " + totalList.toString() );
-    print("indexShift =  " + indexShift.toString() );
+    print("indexShift =  " + indexShift.toString() ); // TODO see if can eliminate thes prints
     for (int i = 1; i<totalList.length; i++) {
       int index = ( indexShift + i ) % totalList.length;
       if ( !cutList.contains( totalList[ index ] ) ) {
@@ -713,7 +714,7 @@ class Piece {
   
   
   List<Piece> cutVertical(num xcor) {
-    if ( xcor < xmin || xcor > xmax ) { return [ this ]; }
+    if ( xcor < xmin || xcor > xmax ) { return [ this ]; } // if cut is obviously outside, return original list
     
     List<Point> hitPoints = new List<Point>();
     List<int> hits = new List<int>();

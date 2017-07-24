@@ -19,8 +19,8 @@ ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClo
 CanvasElement canv, tools;
 DivElement splash;
 DivElement sCapBook;
-int voff = 60;
-int hoff = 60;
+int voff = 60; // controls placement of dark orange vertical margin
+int hoff = 60; // controls placement of dark orrange horizontal margin
 int vrulerheight, hrulerwidth;
 
 String littleCanvasFont = 'italic 20pt Calibri';
@@ -56,17 +56,24 @@ num hticks = 20;
 num vticks = 15;
 int hSubTicks = 1;
 int vSubTicks = 1;
-int hSubTicksBefore = 1;
-int vSubTicksBefore = 1;
+// TODO Find out what these commented variables should do
+// (No instances of any of them & commenting does not break anything visible)
+// int hSubTicksBefore = 1;
+//int vSubTicksBefore = 1;
 int maxhticks = 24;
 int maxvticks = 15;
 int minhticks = 2; //9;
 int minvticks = 2; //6;
 
+//tick width and height (for displaying the grid)
 double ticwid;
 double ticht;
+
+// setup of the endpoints for the initial state of the squeegee
 Point s1end = new Point(2, 3);
 Point s2end = new Point(5, 7);
+
+//variables for remembering the state of the system used in the method rememberPresentSETUPSWEEP()
 Point olds1, olds2, oldpx1, oldpx2;
 num oldvtix;
 num oldhtix;
@@ -80,8 +87,8 @@ Point dragOrigin;
 
 //relevant to the SWEEP mode
 var SWEEPMouseDown, SWEEPTouchStart, SWEEPMouseMove, SWEEPTouchMove, SWEEPMouseUp, SWEEPTouchEnd;
-bool dragIsVertical = true;
-int draggedUnits = 0;
+bool dragIsVertical = true; //false => that the drag is horizontal (logic for this in sweep.dart)
+int draggedUnits = 0; // also used in sweep.dart
 
 //relevant to the CUT mode
 var CUTMouseDown, CUTTouchStart, CUTMouseMove, CUTTouchMove, CUTMouseUp, CUTTouchEnd;
@@ -364,9 +371,9 @@ void addScreenCap() {
   String base64Cap = canv.toDataUrl("image/png");
   
   //screencaps.add(imageData);
-  screens.add(base64Cap);
-  toolsText.add(currentToolsText);
-  postImageData(canv, currentToolsText);
+  screens.add(base64Cap);// Two lists, one of screenshots & one of captions
+  toolsText.add(currentToolsText);  // adding data to both
+  postImageData(canv, currentToolsText); // posting newest addition to webpage
 }
 
 void closeScreenCapWindow(var event) {
@@ -858,7 +865,7 @@ void setupDragOriginMemorySETUPSWEEP(Point initPoint) {
   rememberPresentSETUPSWEEP();
 }
 
-//TODO:  check it worked
+//TODO:  check it worked (What is this supposed to do?)
 void rememberPresentSETUPSWEEP() {
   olds1 = new Point(s1end.x, s1end.y);
   olds2 = new Point(s2end.x, s2end.y);
