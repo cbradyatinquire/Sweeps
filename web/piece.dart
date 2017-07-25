@@ -47,9 +47,9 @@ class Piece {
     }
   }
 
-  // useful method for debugging? (not used)
+  // useful method for debugging
   String verticesAsString() {
-    String rtn = "";
+    String rtn = "Piece with vertices: ";
     vertices.forEach((vertex) => rtn += "\nVertex: (" + vertex.x.toString() + "," + vertex.y.toString() + ")");
     return rtn;
   }
@@ -130,93 +130,12 @@ class Piece {
     if ( ( (a1 * b2) - (a2 * b1) ).abs() < epsilon   ) { return 0; } // that is, if the lines are practically parallel, and hence on top of each other
     else { return 1;}
   }
-  
-  
-  bool correctedHitTest(Point gridPoint) {
-    return containsGridPoint( gridPoint.x, gridPoint.y );
-  }
 
 
   Point vectr(Point one, Point two ) {
     return new Point( one.x-two.x, one.y-two.y );
   }
 
-num magXProduct(Point a, Point b) {
-    return ( a.x*b.y - a.y*b.x );
-  }
-  
-  String sideOfSegment( Point segment, Point pt) {
-    num xp = magXProduct(segment, pt);
-    if (xp < 0) { return "Left"; }
-    else if (xp > 0) { return "Right"; }
-    else { return "NONE"; }
-  }
-  
-
-  Point intersect( num xcor, Point e1, Point e2 ) {
-    num epsilon = .0001;
-    num dist = (e1.x - e2.x).abs();
-    if (dist < epsilon) { //print("dist < epsilon"); 
-      return null; }
-    num d1 = (e1.x - xcor).abs();
-    num d2 = (e2.x - xcor).abs();
-    if ( dist == d1 + d2) {
-      if (d1 == 0) { //print("hit endpoint 1" + e1.toString()); 
-        return e1; }
-      if (d2 == 0) { //print("hit endpoint 2" + e2.toString()); 
-        return e2; }
-      num perc1 = 1 - (d1 / dist);
-      num perc2 = 1 - (d2 / dist);
-      return new Point( perc1 * e1.x + perc2 * e2.x,  perc1 * e1.y + perc2 * e2.y );
-    } else {
-      return null;
-    }
-  }
-  
-  List<int> createOrderedPointsWithCutVertices(num xcor ) {
-    orderedPointsWithCutVertices = new List<Point>();
-    List<int> cutVertexIndices = new List<int>();
-    
-    for (List<Point> side in sides ) {
-      Point vfirst = side[0];
-      Point vsecond = side[1];
-      Point intersection = intersect(xcor, vfirst, vsecond);
-      if (intersection == null && !(vfirst.x == xcor) ) {
-        orderedPointsWithCutVertices.add(vfirst);
-      } else {
-        if ( intersection == vfirst || vfirst.x == xcor ) {
-          cutVertexIndices.add( orderedPointsWithCutVertices.length );
-          orderedPointsWithCutVertices.add(vfirst);
-        } else {
-          orderedPointsWithCutVertices.add(vfirst);
-          if (! ( intersection == vsecond ) ) {
-            cutVertexIndices.add( orderedPointsWithCutVertices.length );
-            orderedPointsWithCutVertices.add(intersection);
-          }
-        }
-      }
-    }
-    return cutVertexIndices;
-  }
-
-  int findGoodCutIndex( List<int> cutList, List<int> totalList ) {
-    if (cutList.length == 0) { return null; }
-    int indexShift = cutList.first;
-    int lastIndex = totalList.indexOf( indexShift );
-    //int lastIndex = indexShift;
-    print("in findgoodcutindex.  cutlist = " + cutList.toString() + " and totalList = " + totalList.toString() );
-    print("indexShift =  " + indexShift.toString() ); // TODO see if can eliminate thes prints
-    for (int i = 1; i<totalList.length; i++) {
-      int index = ( indexShift + i ) % totalList.length;
-      if ( !cutList.contains( totalList[ index ] ) ) {
-        print("found that index = " + index.toString() + " we were not in the cutlist, so returning " + lastIndex.toString() );
-        return lastIndex;
-      }
-      lastIndex = index;
-    }
-    print("FINDGOODCUTINDEX -->  lists were the same -- returning null");
-    return null;
-  } //TODO see if something breaks when this is removed
 
   // allows concavity on the vertical sides, but requires convexity on the horizontal sides.
   List<Piece> cutVerticalCavalieri( num xcor ) {
@@ -347,38 +266,7 @@ num magXProduct(Point a, Point b) {
     return aggregate;
   }
 
- 
-  List<Point>orderPoints( List<Point>inPts ) {
-    //find first appearance of the lowest y-coord.
-    if (inPts.length == 0) { return inPts; }
-    
-    List<Point> ordered = new List<Point>();
-    num lowx = inPts.first.x;
-    num lowcor = inPts.first.y;
-    int index = 0;
-    
-    for (int j = 0; j< inPts.length; j++ ) {
-      Point p = inPts[j];
-      if (p.y < lowcor) {lowcor = p.y; lowx = p.x; index = j;}
-      else if ( p.y == lowcor && p.x < lowx) {
-        lowx = p.x;
-        index = j;
-      }
-    }
-    
-    for (int i = 0; i<inPts.length; i++) {
-      ordered.add( inPts[ (index + i) % inPts.length ] );
-    }
-    
-//    print("pre-ordering");
-//    print(inPts.toString());
-//    print("post-ordering");
-//    print(ordered.toString());
-    
-    return ordered;
-  }
-  
-  // requires convexity of the shape
+  // requires convexity of the piece
   List<Piece> cutVertical(num xcor) {
     if ( xcor < xmin || xcor > xmax ) { return [ this ]; } // if cut is obviously outside, return original list
     
@@ -451,7 +339,7 @@ num magXProduct(Point a, Point b) {
     }
   }
 
-  // requires convexity of the shape
+  // requires convexity of the piece
   List<Piece> cutHorizontal(num ycor) {
     
     if ( ycor < ymin || ycor > ymax ) { return [ this ]; }
