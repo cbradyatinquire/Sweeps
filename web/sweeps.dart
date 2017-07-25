@@ -527,7 +527,7 @@ void resumeEventsForScreenCapsWindow() {
 //response to forward back buttons, once the MODE value has been switched.
 void doModeSpecificLogic() {
   //print("MODE = " + MODE.toString());
-  if (MODE == 1) {
+  if (MODE == 1) { // TODO: finish comments for these modes This mode sets up the placement of the squeegee
     if (SETUPMouseDown.isPaused) {
       SETUPMouseDown.resume();
       SETUPTouchStart.resume();
@@ -561,7 +561,7 @@ void doModeSpecificLogic() {
     drawSETUP();
     drawTools();
   }
-  if (MODE == 2) {
+  if (MODE == 2) { // This mode
     if (!SETUPMouseDown.isPaused) {
       SETUPMouseDown.pause();
       SETUPTouchStart.pause();
@@ -594,7 +594,7 @@ void doModeSpecificLogic() {
     drawSWEEP();
     drawTools();
   }
-  if (MODE == 3) {
+  if (MODE == 3) { // This
     if (!SETUPMouseDown.isPaused) {
       SETUPMouseDown.pause();
       SETUPTouchStart.pause();

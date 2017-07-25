@@ -143,18 +143,6 @@ void drawCUT() {
 
   if (hasCut) { pieces.forEach((piece) => piece.draw(ctx)); }
 
-/* TODO does this order matter? (doesn't seem to; removed what already was the same order from loop)
- if (hasCut) {
-    if (wasInCavalieri) { drawCavalieriPath(ctx); }
-    else { drawSweeperSweptSWEEP(ctx); }
-    pieces.forEach((piece) => piece.draw(ctx));
-    drawGrid(ctx);
-  } else {
-    drawGrid(ctx);
-    if (wasInCavalieri) { drawCavalieriPath(ctx); }
-    else { drawSweeperSweptSWEEP(ctx); }
-  }
-*/
   drawTools();
 
   //for testing
@@ -235,13 +223,17 @@ void draggingCUT(Point currentPt) {
     num dely = wantToDragUnitsY; //need to prevent dragging off screen
     
     //prevent dragging offscreen
-    if (draggingPiece.minimumX() + delx < 0) { 
+    if (draggingPiece.xmin + delx < 0) {
+      print(draggingPiece.xmin);
       delx = 0; }
-    if (draggingPiece.maximumX() + delx > hticks * hSubTicks) {
+    if (draggingPiece.xmax + delx > hticks * hSubTicks) {
+      print(draggingPiece.xmax);
       delx = 0;}
-    if (draggingPiece.minimumY() + dely < 0 ) {
+    if (draggingPiece.ymin + dely < 0 ) {
+      print(draggingPiece.ymin);
       dely = 0; }
-    if (draggingPiece.maximumY() + dely > vticks * vSubTicks) {
+    if (draggingPiece.ymax + dely > vticks * vSubTicks) {
+      print(draggingPiece.ymax);
       dely = 0;}
     
     //print("DelX=" + delx.toString() + "; DelY=" + dely.toString() );
