@@ -6,6 +6,13 @@ Point vcuts = null; //new Point(hoff - 10, voff); // TODO why assign a value her
 Point hcuts = new Point(hoff, voff - 10);
 var cutGrabbed = "none";
 
+// for rotation animations
+int numSubdivisions = 30;
+int numIterations = 0;
+Point currentCenter = null;
+int currentIndex = null;
+Piece rotatedPiece = null;
+
 void setCutPoints() {
   vcuts = new Point(hoff - 20, getYForVSubTick(-1 + vticks * vSubTicks));
   hcuts = new Point(getXForHSubTick(-1 + hticks * hSubTicks), voff - 20);
@@ -223,18 +230,10 @@ void draggingCUT(Point currentPt) {
     num dely = wantToDragUnitsY; //need to prevent dragging off screen
     
     //prevent dragging offscreen
-    if (draggingPiece.xmin + delx < 0) {
-      print(draggingPiece.xmin);
-      delx = 0; }
-    if (draggingPiece.xmax + delx > hticks * hSubTicks) {
-      print(draggingPiece.xmax);
-      delx = 0;}
-    if (draggingPiece.ymin + dely < 0 ) {
-      print(draggingPiece.ymin);
-      dely = 0; }
-    if (draggingPiece.ymax + dely > vticks * vSubTicks) {
-      print(draggingPiece.ymax);
-      dely = 0;}
+    if (draggingPiece.xmin + delx < 0) { delx = 0; }
+    if (draggingPiece.xmax + delx > hticks * hSubTicks) { delx = 0; }
+    if (draggingPiece.ymin + dely < 0 ) { dely = 0; }
+    if (draggingPiece.ymax + dely > vticks * vSubTicks) { dely = 0; }
     
     //print("DelX=" + delx.toString() + "; DelY=" + dely.toString() );
     num neworiginx = pieceDragOrigin.x;
@@ -277,4 +276,84 @@ void stopTouchCUT(TouchEvent evt) {
   }
   cutGrabbed = "none"; // resets cutGrabbed (from where it was set in clickLogicCut)
   drawCUT();
+}
+
+void drawRotateCUT() {
+  CanvasRenderingContext2D ctx = canv.context2D;
+  ctx.clearRect(0, 0, canv.width, canv.height);
+
+  drawRulers(ctx);
+  drawGrid(ctx);
+
+  if (wasInCavalieri) { drawCavalieriPath(ctx); }
+  else { drawSweeperSweptSWEEP(ctx); }
+
+  pieces.forEach((piece) => piece.draw(ctx));
+
+
+  drawTools();
+  // TODO: draw the center of the rotation
+}
+
+void rotationAnimation(Timer t){
+  numIterations++;
+  pieces[currentIndex].rotateCounterclockwiseBy(PI * 1 / numSubdivisions, currentCenter);
+
+  drawRotateCUT();
+  if (numIterations >= numSubdivisions)
+    {
+      t.cancel();
+      pieces[currentIndex] = rotatedPiece;
+      drawCUT();
+
+      numIterations = 0;
+      rotatedPiece = null;
+      currentCenter = null;
+      currentIndex = null;
+    }
+}
+
+startRotationAnimation(int msec){
+  return new Timer.periodic( new Duration(milliseconds: msec), rotationAnimation);
+}
+
+void rotatePiece(int index) {
+  Point center = getRotationCenter(pieces[index]);
+
+  if (center != null) {
+    currentCenter = center;
+    currentIndex = index;
+    rotatedPiece = pieces[index].rotate180Degrees(currentCenter);
+    // TODO: figure out what went wrong before; letting piece = pieces[index] and changing piece was changing the list pieces.
+
+    startRotationAnimation(10);
+  }
+  else {
+    print("change shape");
+  }
+}
+
+// TODO: get a better center point system later
+Point getRotationCenter(Piece p)
+{
+  num worldX = hticks * hSubTicks;
+  num worldY = vticks * vSubTicks;
+
+  Point v = new Point(p.xmin, p.ymin);
+  if (p.possibleCenter(v, worldY, worldX))
+    return v;
+
+  v = new Point(p.xmin, p.ymax);
+  if (p.possibleCenter(v, worldY, worldX))
+    return v;
+
+  v = new Point(p.xmax, p.ymin);
+  if (p.possibleCenter(v, worldY, worldX))
+    return v;
+
+  v = new Point(p.xmax, p.ymax);
+  if (p.possibleCenter(v, worldY, worldX))
+    return v;
+
+  return null;
 }

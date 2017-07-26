@@ -1,6 +1,7 @@
 part of sweeps;
 
 
+
 class Piece {
 
   List<Point> vertices;
@@ -54,6 +55,7 @@ class Piece {
     return rtn;
   }
 
+  //Cutting Methods
   //gets the Y-value of the point on the line between a and b with Y-coordinate xval
   num interpolatedY(Point a, Point b, num xval) {
     if (b.x == a.x) {
@@ -88,7 +90,6 @@ class Piece {
       // outside the piece to inside. Therefore, if this is odd, the point must be inside.
     }
   }
-  
   
   bool hitParityOdd( num x, num y ) { // for explanation of what is being calculated and why, see comment in method "containsGridPoint"
     Point startPoint = new Point(xmin - 1.02, (ymax - ymin) / 2); // This is just chosen as point outside the piece
@@ -129,11 +130,6 @@ class Piece {
 
     if ( ( (a1 * b2) - (a2 * b1) ).abs() < epsilon   ) { return 0; } // that is, if the lines are practically parallel, and hence on top of each other
     else { return 1;}
-  }
-
-
-  Point vectr(Point one, Point two ) {
-    return new Point( one.x-two.x, one.y-two.y );
   }
 
 
@@ -414,6 +410,71 @@ class Piece {
 
   }
 
+
+  // Rotation Methods
+  Point vectr(Point one, Point two ) {
+    return new Point( one.x-two.x, one.y-two.y );
+  }
+
+  void rotateCounterclockwiseBy(double angle, Point center) {
+    List<Point> relativePlaces = new List<Point>();
+    vertices.forEach( (vertex) => relativePlaces.add(vectr(vertex, center)) );
+
+    List<Point> rotatedPlaces = new List<Point>();
+    relativePlaces.forEach( (vector) => rotatedPlaces.add(rotateVectorBy(angle, vector)));
+
+    vertices.clear();
+    rotatedPlaces.forEach( (x) => vertices.add(x + center) );
+    establishBoundingBox();
+    setupSides();
+
+  }
+
+  Point rotateVectorBy(double angle, Point v ) {
+    num x = v.x;
+    num y = v.y;
+    num newx = x * cos(angle) - y * sin(angle);
+    num newy = x * sin(angle) + y * cos(angle);
+
+    return new Point(newx, newy);
+  }
+
+  // to avoid cumulative rounding errors
+  Point rotateVectorBy180Degrees(Point v) {
+    return new Point((-1.0) * v.x, (-1.0) * v.y);
+  }
+
+  // constructed to avoid any rounding errors associated with sin(pi), ext.
+  Piece rotate180Degrees( Point center ) {
+    List<Point> relativePlaces = new List<Point>();
+    vertices.forEach( (vertex) => relativePlaces.add(vectr(vertex, center)) );
+
+    List<Point> rotatedPlaces = new List<Point>();
+    relativePlaces.forEach( (vector) => rotatedPlaces.add(rotateVectorBy180Degrees(vector)));
+
+    List<Point> newVertices = new List<Point>();
+    rotatedPlaces.forEach( (x) => newVertices.add(x + center) );
+
+    return new Piece(newVertices);
+  }
+
+  bool possibleCenter(Point center, num worldY, num worldX) {
+    num xleft = center.x - xmin; // distance currently from center to left side, ext.
+    num xright = xmax - center.x;
+    num yup = ymax - center.y;
+    num ydown = center.y - ymin;
+
+    bool right = center.x + xleft <= worldX; // will rotated piece fit on the world on the left, ext.
+    bool left = center.x - xright >= 0;
+    bool up = center.y + ydown <= worldY;
+    bool down = center.y - yup >= 0;
+
+    return (right && left && up && down);
+  }
+
+  //Drawing and Dragging Methods
+
+  //snaps to grid by moving only by integer amounts (TODO: does not snap vertices to grid, is this desirable?)
   void shiftBy(int delx, int dely) {
     for (int i = 0; i<vertices.length; i++) {
       vertices[i]=new Point(vertices[i].x + delx, vertices[i].y + dely);
