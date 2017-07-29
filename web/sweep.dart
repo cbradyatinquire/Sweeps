@@ -40,8 +40,7 @@ void draggingSWEEP(Point currentPt) {
   } else {
     dragIsVertical = true;
   }
-  
-  //TODO:
+
   //exceptional logic ---> if the sweeper is vertical, all sweeps should be horizontal; 
   //and if the sweeper is horizontal, all sweeps should be vertical.
   if (olds1.x == olds2.x) {

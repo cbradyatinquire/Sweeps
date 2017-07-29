@@ -13,6 +13,7 @@ part "sweep.dart";
 part "cut.dart";
 part "cavalieri.dart";
 part "post.dart";
+part "tests.dart";
 
 ImageElement forkedRightButton, rightButton, leftButton;
 ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton, cavalieriButton;

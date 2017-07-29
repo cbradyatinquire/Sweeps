@@ -2,7 +2,7 @@ part of sweeps;
 
 
 var cutFlavor = "all";
-Point vcuts = null; //new Point(hoff - 10, voff); // TODO why assign a value here? (null doesn't break anything obvious)
+Point vcuts = new Point(hoff - 10, voff);
 Point hcuts = new Point(hoff, voff - 10);
 var cutGrabbed = "none";
 
@@ -33,7 +33,7 @@ void cutAlongX(int xc)
 {
   List<Piece> newPcs = new List<Piece>();
 
-  if (wasInCavalieri) // both have the same idea Cavalieri code is different TODO discover precise differences
+  if (wasInCavalieri) // Cavalieri allows for convexity on the vertical sides, but is more complex
   {
     pieces.forEach((piece) => newPcs.addAll(piece.cutVerticalCavalieri(xc)));
   }
@@ -215,7 +215,6 @@ void dragCutHotSpots( Point currentPt ) {
 
 void draggingCUT(Point currentPt) {
 
-
     if (draggingPiece == null) {
       print("null dragging piece?!");
       return;
@@ -234,16 +233,7 @@ void draggingCUT(Point currentPt) {
     if (draggingPiece.xmax + delx > hticks * hSubTicks) { delx = 0; }
     if (draggingPiece.ymin + dely < 0 ) { dely = 0; }
     if (draggingPiece.ymax + dely > vticks * vSubTicks) { dely = 0; }
-    
-    //print("DelX=" + delx.toString() + "; DelY=" + dely.toString() );
-    num neworiginx = pieceDragOrigin.x;
-    num neworiginy = pieceDragOrigin.y;
-    if (delx.abs() > 0) {
-      neworiginx = currentPt.x;
-    }
-    if (dely.abs() > 0) {
-      neworiginy = currentPt.y;
-    }
+
     if (delx.abs() + dely.abs() > 0) {
       pieceDragOrigin = new Point(pieceDragOrigin.x + (delx * ticwid / hSubTicks), pieceDragOrigin.y + (dely * ticht / vSubTicks));
       //print("before shift by " + delx.toString() + ","  + dely.toString() + "--" + draggingPiece.vertices[0].x.toString()+","+draggingPiece.vertices[0].y.toString());
@@ -327,9 +317,6 @@ void rotatePiece(int index) {
     // TODO: figure out what went wrong before; letting piece = pieces[index] and changing piece was changing the list pieces.
 
     startRotationAnimation(10);
-  }
-  else {
-    print("change shape");
   }
 }
 

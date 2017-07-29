@@ -6,13 +6,13 @@ class Piece {
 
   List<Point> vertices;
   List<List<Point>> sides;
-  
+
   List<Point> orderedPointsWithCutVertices;
-  
+
   String strokesty = "#000";
   String fillsty = "rgba(0, 0, 255, 0.3)";
   num xmin, xmax, ymin, ymax;
-  
+
   Piece(List<Point> vs) {
     vertices = new List<Point>();
     for (Point p in vs) {
@@ -23,7 +23,7 @@ class Piece {
     establishBoundingBox();
     setupSides();
   }
-  
+
   void establishBoundingBox() {
     xmin = null; // these are for when the method is called when
     ymin = null; // the piece is dragged, so that the previous
@@ -37,7 +37,7 @@ class Piece {
       if (ymax == null || p.y > ymax) { ymax = p.y; }
     }
   }
-  
+
   void setupSides() {
     sides = new List<List<Point>>();
     Point vlast = vertices.last;
@@ -78,9 +78,9 @@ class Piece {
     }
   }
 
-  
+
   bool containsGridPoint(num x, num y) {
-    if (x <= xmin || y <= ymin || x >= xmax || y >= ymax) { 
+    if (x <= xmin || y <= ymin || x >= xmax || y >= ymax) {
       return false;
     }
     else {
@@ -90,38 +90,45 @@ class Piece {
       // outside the piece to inside. Therefore, if this is odd, the point must be inside.
     }
   }
-  
+
   bool hitParityOdd( num x, num y ) { // for explanation of what is being calculated and why, see comment in method "containsGridPoint"
     Point startPoint = new Point(xmin - 1.02, (ymax - ymin) / 2); // This is just chosen as point outside the piece
-        
-    int hits = 0;
-    for (List<Point>side in sides) {
-      hits += numIntersections(startPoint, new Point(x, y), side[0], side[1]);
-    }
+
+    num hits = getHitNumber(startPoint, new Point(x, y));
 
     return ( hits % 2 != 0 );
   }
-  
+
+  int getHitNumber( Point startPoint, Point endPoint ) {
+
+    int hits = 0;
+    for (List<Point>side in sides) {
+      hits += numIntersections(startPoint, endPoint, side[0], side[1]);
+    }
+
+    return hits;
+  }
+
   int numIntersections( Point s1p1, Point s1p2, Point s2p1, Point s2p2 ) {
     num a1, a2, b1, b2, c1, c2, d1, d2;
     num epsilon = .0000001;
-    
+
     //get coefficients of line for side 1 in standard Ax + By + C = 0 form
     a1 = s1p2.y - s1p1.y;
     b1 = s1p1.x - s1p2.x;
     c1 = (s1p2.x * s1p1.y) - (s1p1.x * s1p2.y);
-    
+
     //determine whether endpoints of side 2 are on same side or diff side of line.
     d1 = (a1 * s2p1.x) + (b1 * s2p1.y) + c1;
     d2 = (a1 * s2p2.x) + (b1 * s2p2.y) + c1;
 
     if ( d1 * d2 > 0 ) { return 0; }  //this means that side 2 is entirely above or below side 1 extended
-  
+
     //now similarly for side 2 as the extended one...
     a2 = s2p2.y - s2p1.y;
     b2 = s2p1.x - s2p2.x;
     c2 = (s2p2.x * s2p1.y) - (s2p1.x * s2p2.y);
-    
+
     //determine whether endpoints of side 1 are on same side or diff side of line.
     d1 = (a2 * s1p1.x) + (b2 * s1p1.y) + c2;
     d2 = (a2 * s1p2.x) + (b2 * s1p2.y) + c2;
@@ -134,7 +141,7 @@ class Piece {
 
 
   // allows concavity on the vertical sides, but requires convexity on the horizontal sides.
-  List<Piece> cutVerticalCavalieri( num xcor ) {
+  /*List<Piece> cutVerticalCavalieri( num xcor ) {
     
     List<Piece> myPieces = [this];
     if ( xcor < xmin || xcor > xmax ) { return myPieces; }
@@ -169,9 +176,14 @@ class Piece {
     endPieces.addAll( coalesce(rightPieces) );
     
     return endPieces;
+  }*/
+
+  List<Piece> cutVerticalCavalieri( num xcor ) {
+    return cutGeneral(new Point(xcor, 0), new Point(xcor, 1));
   }
 
-  // reeturns a list of pieces where the common sides of the original list are glued together (no restrictions)
+
+  // returns a list of pieces where the common sides of the original list are glued together (no restrictions)
   List<Piece> coalesce( List<Piece> inputPieces ) {
     if ( inputPieces.isEmpty ) { return inputPieces; }
     List<Piece> inputCopy = new List<Piece>();
@@ -234,10 +246,10 @@ class Piece {
       }
       if (reversed != null) { break; }
     }
-    
+
     // going around the first piece, then the second piece, then back around the first piece
     int step = -1;
-    if (reversed) { step = 1;} 
+    if (reversed) { step = 1;}
     List<Point> agvertices = new List<Point>();
     int oi = 0;
     while (oi < oneindex) {
@@ -265,7 +277,7 @@ class Piece {
   // requires convexity of the piece
   List<Piece> cutVertical(num xcor) {
     if ( xcor < xmin || xcor > xmax ) { return [ this ]; } // if cut is obviously outside, return original list
-    
+
     List<Point> hitPoints = new List<Point>();
     List<int> hits = new List<int>();
     List<bool> pointIsNewToPiece = new List<bool>();
@@ -288,7 +300,7 @@ class Piece {
     if (hits.length > 0) {
       if (hits.length == 1) {
         return [this];
-      } //only one vertex touched (outer bounary)
+      } //only one vertex touched (outer boundary)
       if (!pointIsNewToPiece.first && !pointIsNewToPiece.last && (hits.first - hits.last).abs() == 1) {
         return [this];
       }
@@ -337,9 +349,9 @@ class Piece {
 
   // requires convexity of the piece
   List<Piece> cutHorizontal(num ycor) {
-    
+
     if ( ycor < ymin || ycor > ymax ) { return [ this ]; }
-    
+
     List<Point> hitPoints = new List<Point>();
     List<int> hits = new List<int>();
     List<bool> pointIsNewToPiece = new List<bool>();
@@ -409,6 +421,362 @@ class Piece {
     }
 
   }
+
+ // cut along the line formed by one and two; need the points not to be the same, but piece need not be convex
+  List<Piece> cutGeneral(Point one, Point two) {
+    List<Object> important = getIntersectionsWithLine(one, two);
+
+    List<Point> verticesWithCuts = important[0]; // list of vertices of the new pieces, including the ones formed by the new cut
+    List<num> cutIndices = important[1]; // indices of the vertices formed by the new cut
+
+
+    List<Piece> cutPieces = new List<Piece>(); // list which will contain the newly formed pieces
+
+
+    //variables for the while loop below
+    int index; // index of point in consideration (always starts at 0)
+
+    List<bool> indexUnused = new List<bool>();
+    verticesWithCuts.forEach( (v) => indexUnused.add(true) );
+
+    //int secondaryIndex; // index which will be used in setting up the lists below (which will be updated for every piece)
+    //List<int> cutIndicesToRemove; // to remove from the list of vertices that need to be considered cut indices
+    //List<int> verticesToRemove; // used vertices to remove from vertices with cuts
+    List<int> currentPiece; // the cut-out piece to be added
+    //List<Point> newVerticesWithCuts; // will be verticesWithCuts minus the ones to remove
+    //List<int> newCutIndices; // will be updated labels for cutIndices that have not been used
+    //int numPointsPassed; // will help relabel the cutIndices
+    bool justJumped;
+
+    print("vertices:");
+    verticesWithCuts.forEach((x) => (print("(" + x.x.toString() + ", " + x.y.toString() + ")" )));
+    print("that's all");
+
+    print("cuts:");
+    cutIndices.forEach((x) => (print("(" + verticesWithCuts[x].x.toString() + ", " + verticesWithCuts[x].y.toString() + ")" )));
+    print("that's all");
+
+
+    while (indexUnused.contains(true)) {
+      // initializing / re-initializing variables for next loop
+      index = indexUnused.indexOf(true);
+      //cutIndicesToRemove = new List<int>();
+      //verticesToRemove = new List<int>();
+      //newVerticesWithCuts = new List<Point>();
+      //newCutIndices = new List<int>();
+      currentPiece = new List<int>();
+      //secondaryIndex = 0;
+      //numPointsPassed = 0;
+      justJumped = false;
+
+      while (!currentPiece.contains(index)) {
+         // verticesWithCuts.forEach( (point) => print("(" + point.x.toString() + ", " + point.y.toString() + ")"));
+
+         indexUnused[index] = false;
+        if (cutIndices.contains(index)) {
+          //print("got here");
+          currentPiece.add(index); // point is still in piece
+          //cutIndicesToRemove.add(index); // it no longer needs to be treated like a cut point
+          if (justJumped) {
+            justJumped = false;
+            index++;
+          }
+          else {
+            justJumped = true;
+            index = getNextIndex(index, cutIndices); // jumping to the next indexed cut point going along the cut line
+          }
+        }
+        else {
+          //print("normal vertex");
+          currentPiece.add(index);
+          //verticesToRemove.add(index);
+          index++;
+          // print(index.toString());
+        }
+
+        if (index == verticesWithCuts.length)
+          index = 0;
+      }
+
+      List<Point> vertexList = new List<Point>();
+      currentPiece.forEach((i) => vertexList.add(verticesWithCuts[i]));
+
+      cutPieces.add(new Piece(vertexList));
+
+//      print("cuts hit:");
+//      cutIndicesToRemove.forEach((x) => (print("(" + verticesWithCuts[x].x.toString() + ", " + verticesWithCuts[x].y.toString() + ")" )));
+//      print("that's all");
+
+
+      /*// sets up the lists so that they are current with the
+      while (secondaryIndex < verticesWithCuts.length) {
+        if (cutIndices.contains(secondaryIndex)) {
+          newVerticesWithCuts.add(verticesWithCuts[secondaryIndex]);
+          if (!cutIndicesToRemove.contains(secondaryIndex)) {
+            newCutIndices.add(secondaryIndex - numPointsPassed);
+          }
+        }
+
+        if (verticesToRemove.contains(secondaryIndex))
+          numPointsPassed++;
+        else
+          newVerticesWithCuts.add(verticesWithCuts[secondaryIndex]);
+
+        secondaryIndex++;
+      }
+
+      verticesWithCuts = newVerticesWithCuts;
+      cutIndices = newCutIndices;
+      */
+
+    }
+    // now there are no more vertices that are part of two pieces
+    // so the remaining vertices form the last piece
+
+    //cutPieces.add(new Piece(verticesWithCuts));
+
+
+    return cutPieces;
+  }
+
+  // This method returns a two-element list containing:
+  // 0) a list of vertices obtained when the piece is cut on a line through the two points,
+  // and
+  // 1) a list of indices of the points which are vertices
+  // (if the line passes through a vertex, its index will be in this second list)
+  // IMPORTANT: The method does assume that the shape has no self-intersections
+  List<Object> getIntersectionsWithLine(Point one, Point two) {
+    if (vertices.length == 0)
+      return [new List<Point>(), new List<num>()]; // edge case that I don't want to throw an error
+
+    // getting a vertex list which has no repeated vertices or 180 degree angles
+    // this is mostly important for getting rid of sides that intersect with the
+    // cut line and have multiple vertices (which happens often in Cavalieri mode)
+    List<Point> verticesWithoutRepeats = new List<Point>();
+
+    num index = 0;
+    while (index < vertices.length) {
+      num next = (index + 1) % vertices.length;
+      int previous = (index - 1 + vertices.length) % vertices.length;
+
+      bool repeated = (vertices[previous].distanceTo(vertices[index]) <
+          .000001); // for catching rounding errors
+
+
+      if (repeated)
+        index++;
+      else {
+        bool inLine = colinear(vertices[previous], vertices[index], vertices[next]);
+
+        if (inLine)
+          index++;
+        else {
+          verticesWithoutRepeats.add(vertices[index]);
+          index++;
+        }
+      }
+    }
+
+    //now, adding the cut points to the new list
+    num checkingIndex = 0;
+    List<int> cutIndices = new List<int>();
+
+    List<Point> verticesTotal = new List<Point>();
+
+    verticesTotal.add(verticesWithoutRepeats[0]);
+    Point possiblePoint = null;
+
+    List<num> abc = getLineEq(one, two); // [a, b, c] where aX + bY + c = 0 is the equation of the line
+
+
+    while (checkingIndex < verticesWithoutRepeats.length) {
+      verticesTotal.add(verticesWithoutRepeats[checkingIndex]); // adding the point at the index, and checking the next side for intersections
+
+      possiblePoint = isIntersection(checkingIndex, verticesWithoutRepeats, abc); // will consider side starting at the point indexed by checkingIndex
+      if (possiblePoint != null) {
+        if (possiblePoint.distanceTo(verticesWithoutRepeats[checkingIndex]) > .0001) // rounding errors
+          verticesTotal.add(possiblePoint);
+        cutIndices.add(verticesTotal.length - 1); // index of the last element added
+      }
+      checkingIndex++;
+    }
+
+    print("cuts:");
+    cutIndices.forEach((x) => (print("(" + verticesTotal[x].x.toString() + ", " + verticesTotal[x].y.toString() + ")" )));
+    print("that's all");
+
+    // now need to get the sorted list of cut points
+
+    List<Object> toReturn = new List<Object>();
+
+    Point outsidePoint; // just a point on the line outside the shape
+
+    num a, b, c;
+    a = abc[0];
+    b = abc[1];
+    c = abc[2];
+
+    if (b != 0)
+      outsidePoint = new Point(-1, (a - c) / b);
+    else
+      outsidePoint = new Point((0 - c) / a, -1);
+
+    cutIndices.sort((a, b) =>
+        (((outsidePoint.distanceTo(verticesTotal[a]) * 1000).round()).compareTo(
+            (outsidePoint.distanceTo(verticesTotal[b]) * 1000).round())));
+    // as these are lattice points, no loss of information should come from this rounding
+
+    return([verticesTotal, cutIndices]);
+
+    // now need to remove points that are just tips brushing against the line
+    // and add duplicates of points that are
+
+    num secondaryIndex = 0;
+    List<num> cutIndicesFinal = new List<num>();
+    List<Point> verticesToReturn = new List<Point>();
+
+    while (secondaryIndex < verticesTotal.length) {
+      verticesToReturn.add(verticesTotal[secondaryIndex]);
+
+      if (cutIndices.contains(secondaryIndex)) {
+        Point next = verticesTotal[(secondaryIndex + 1) % verticesTotal.length];
+        Point previous = verticesTotal[(secondaryIndex - 1 + verticesTotal.length) % verticesTotal.length];
+
+        bool isTip = onSameSide(previous, next, abc);
+
+        if (isTip) {
+          if (cutIndicesFinal.length % 2 == 1) {
+            cutIndicesFinal.add(verticesTotal.length - 1);
+            cutIndicesFinal.add(verticesTotal.length);
+            verticesTotal.add(verticesTotal[secondaryIndex]);
+          }
+        }
+        else {
+          print("got here");
+          cutIndicesFinal.add(verticesTotal.length - 1);
+        }
+      }
+      secondaryIndex++;
+    }
+
+
+    toReturn.add(verticesToReturn);
+    toReturn.add(cutIndicesFinal);
+    return toReturn;
+  }
+
+
+  bool colinear (Point one, Point two, Point three) {
+    List<num> abc = getLineEq(one, two);
+
+    num a = abc[0];
+    num b = abc[1];
+    num c = abc[2];
+
+    return ((a * three.x + b * three.y + c).abs() < .000001); // for rounding errors
+  }
+
+  // takes a list and a cut index, then returns the next cut index
+  int getNextIndex(int element, List<num> cutIndices) {
+    int x = cutIndices.indexOf(element);
+
+    int previous = (x + cutIndices.length - 1) % cutIndices.length;
+    int next = (x + 1) % cutIndices.length;
+
+    if (x % 2 == 0)
+      return cutIndices[next];
+    else
+      return cutIndices[previous];
+  }
+
+
+
+
+
+
+  // returns the intersection point on the segment
+  // [ vertices[checkingIndex], vertices[(checkingIndex + 1) % vertices.length])
+  // (where the second endpoint is not included)
+  // unless that intersection point does not contribute to the cut
+  Point isIntersection(int checkingIndex, List<Point> verticesWithoutRepeats, List<num> abc) {
+    num a, b, c;
+    num epsilon = 0.000001; // to deal with rounding errors
+
+    a = abc[0];
+    b = abc[1];
+    c = abc[2];
+
+    Point end1 = verticesWithoutRepeats[checkingIndex];
+    Point end2 = verticesWithoutRepeats[((checkingIndex + 1) % verticesWithoutRepeats.length)];
+
+    //determine whether endpoints of the side are on same side or diff side of line.
+    num d1 = (a * end1.x) + (b * end1.y) + c;
+    num d2 = (a * end2.x) + (b * end2.y) + c;
+
+    if (d1 * d2 > 0)
+      return null; // in this case, the points are on the same side of the line
+
+    if (d1.abs() < epsilon)
+      return end1;
+    // in this case, the first point is on the line up to rounding errors
+    // thus, it needs to be included in the list
+
+    if (d2.abs() < epsilon)
+      return null;
+    // as the next vertex to be checked will be the vertex at checkingIndex + 1,
+    // if only one point is on the line, we don't want to add it twice, so we will
+    // not act in this case
+
+
+    num a2, b2, c2;
+
+    a2 = end2.y - end1.y;
+    b2 = end1.x - end2.x;
+    c2 = (end2.x * end1.y) - (end1.x * end2.y);
+
+    num returnX = (c2 * b - c * b2) / (a * b2 - a2 * b);
+    num returnY = (c * a2 - c2 * a) / (a * b2 - a2 * b);
+
+    return new Point(returnX, returnY);
+  }
+
+
+  // returns true if points are on the same side of
+  // the line given by the equationAx + By + C, where abc = [A, B, C]
+  bool onSameSide(Point one, Point two, List<num> abc) {
+    num a = abc[0];
+    num b = abc[1];
+    num c = abc[2];
+
+    num d1 = a * one.x + b * one.y + c;
+    num d2 = a * two.x + b * two.y + c;
+
+    return ((d1 * d2) > 0);
+  }
+
+
+  List<num> getLineEq(Point line1, Point line2) {
+    // getting the line in the form aX + bY + c = 0
+    num a, b, c;
+    a = line2.y - line1.y;
+    b = line1.x - line2.x;
+    c = (line2.x * line1.y) - (line1.x * line2.y);
+
+    List<num> toReturn = new List<num>();
+    toReturn.add(a);
+    toReturn.add(b);
+    toReturn.add(c);
+    return toReturn;
+  }
+
+  bool isInteriorCord(Point one, Point two){
+    if (getHitNumber(one, two) != 0)
+      return false;
+
+    return containsGridPoint((one.x + two.x) * 1/2, (one.y + two.y) * 1/2);
+  }
+
+
 
 
   // Rotation Methods
