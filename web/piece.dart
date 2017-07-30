@@ -276,6 +276,7 @@ class Piece {
 
   // requires convexity of the piece
   List<Piece> cutVertical(num xcor) {
+    return cutGeneral(new Point (xcor, 0), new Point (xcor, 1));
     if ( xcor < xmin || xcor > xmax ) { return [ this ]; } // if cut is obviously outside, return original list
 
     List<Point> hitPoints = new List<Point>();
@@ -425,116 +426,74 @@ class Piece {
  // cut along the line formed by one and two; need the points not to be the same, but piece need not be convex
   List<Piece> cutGeneral(Point one, Point two) {
     List<Object> important = getIntersectionsWithLine(one, two);
-
     List<Point> verticesWithCuts = important[0]; // list of vertices of the new pieces, including the ones formed by the new cut
     List<num> cutIndices = important[1]; // indices of the vertices formed by the new cut
 
-
     List<Piece> cutPieces = new List<Piece>(); // list which will contain the newly formed pieces
 
-
     //variables for the while loop below
-    int index; // index of point in consideration (always starts at 0)
+    int index; // index of point in consideration
 
     List<bool> indexUnused = new List<bool>();
     verticesWithCuts.forEach( (v) => indexUnused.add(true) );
 
-    //int secondaryIndex; // index which will be used in setting up the lists below (which will be updated for every piece)
-    //List<int> cutIndicesToRemove; // to remove from the list of vertices that need to be considered cut indices
-    //List<int> verticesToRemove; // used vertices to remove from vertices with cuts
-    List<int> currentPiece; // the cut-out piece to be added
-    //List<Point> newVerticesWithCuts; // will be verticesWithCuts minus the ones to remove
-    //List<int> newCutIndices; // will be updated labels for cutIndices that have not been used
-    //int numPointsPassed; // will help relabel the cutIndices
+    List<int> currentPiece;
     bool justJumped;
 
     print("vertices:");
-    verticesWithCuts.forEach((x) => (print("(" + x.x.toString() + ", " + x.y.toString() + ")" )));
+    num j = 0;
+    while (j < verticesWithCuts.length){
+      print(j.toString() + ": (" + verticesWithCuts[j].x.toString() + ", " + verticesWithCuts[j].y.toString() + ")" );
+      j++;
+    }
     print("that's all");
 
     print("cuts:");
-    cutIndices.forEach((x) => (print("(" + verticesWithCuts[x].x.toString() + ", " + verticesWithCuts[x].y.toString() + ")" )));
+    cutIndices.forEach((x) => (print(x.toString() + ": (" + verticesWithCuts[x].x.toString() + ", " + verticesWithCuts[x].y.toString() + ")" )));
     print("that's all");
 
 
     while (indexUnused.contains(true)) {
       // initializing / re-initializing variables for next loop
       index = indexUnused.indexOf(true);
-      //cutIndicesToRemove = new List<int>();
-      //verticesToRemove = new List<int>();
-      //newVerticesWithCuts = new List<Point>();
-      //newCutIndices = new List<int>();
       currentPiece = new List<int>();
-      //secondaryIndex = 0;
-      //numPointsPassed = 0;
       justJumped = false;
 
       while (!currentPiece.contains(index)) {
-         // verticesWithCuts.forEach( (point) => print("(" + point.x.toString() + ", " + point.y.toString() + ")"));
+        indexUnused[index] = false;
 
-         indexUnused[index] = false;
         if (cutIndices.contains(index)) {
-          //print("got here");
-          currentPiece.add(index); // point is still in piece
-          //cutIndicesToRemove.add(index); // it no longer needs to be treated like a cut point
+          currentPiece.add(index);
+
           if (justJumped) {
+            print(index.toString() + " and stepping");
             justJumped = false;
             index++;
           }
           else {
+            print(index.toString() + " and jumping");
             justJumped = true;
             index = getNextIndex(index, cutIndices); // jumping to the next indexed cut point going along the cut line
           }
         }
         else {
-          //print("normal vertex");
+          print(index.toString() + " and stepping");
           currentPiece.add(index);
-          //verticesToRemove.add(index);
           index++;
-          // print(index.toString());
         }
 
         if (index == verticesWithCuts.length)
           index = 0;
       }
 
-      List<Point> vertexList = new List<Point>();
-      currentPiece.forEach((i) => vertexList.add(verticesWithCuts[i]));
 
-      cutPieces.add(new Piece(vertexList));
-
-//      print("cuts hit:");
-//      cutIndicesToRemove.forEach((x) => (print("(" + verticesWithCuts[x].x.toString() + ", " + verticesWithCuts[x].y.toString() + ")" )));
-//      print("that's all");
-
-
-      /*// sets up the lists so that they are current with the
-      while (secondaryIndex < verticesWithCuts.length) {
-        if (cutIndices.contains(secondaryIndex)) {
-          newVerticesWithCuts.add(verticesWithCuts[secondaryIndex]);
-          if (!cutIndicesToRemove.contains(secondaryIndex)) {
-            newCutIndices.add(secondaryIndex - numPointsPassed);
-          }
-        }
-
-        if (verticesToRemove.contains(secondaryIndex))
-          numPointsPassed++;
-        else
-          newVerticesWithCuts.add(verticesWithCuts[secondaryIndex]);
-
-        secondaryIndex++;
+      if (currentPiece.length > 2) {
+        List<Point> vertexList = new List<Point>();
+        currentPiece.forEach((i) => vertexList.add(verticesWithCuts[i]));
+        cutPieces.add(new Piece(vertexList));
       }
-
-      verticesWithCuts = newVerticesWithCuts;
-      cutIndices = newCutIndices;
-      */
-
     }
-    // now there are no more vertices that are part of two pieces
-    // so the remaining vertices form the last piece
-
-    //cutPieces.add(new Piece(verticesWithCuts));
-
+    print("done with piece");
 
     return cutPieces;
   }
@@ -583,7 +542,6 @@ class Piece {
 
     List<Point> verticesTotal = new List<Point>();
 
-    verticesTotal.add(verticesWithoutRepeats[0]);
     Point possiblePoint = null;
 
     List<num> abc = getLineEq(one, two); // [a, b, c] where aX + bY + c = 0 is the equation of the line
@@ -601,11 +559,7 @@ class Piece {
       checkingIndex++;
     }
 
-    print("cuts:");
-    cutIndices.forEach((x) => (print("(" + verticesTotal[x].x.toString() + ", " + verticesTotal[x].y.toString() + ")" )));
-    print("that's all");
-
-    // now need to get the sorted list of cut points
+    // now need to get the sorted list of possible cut points
 
     List<Object> toReturn = new List<Object>();
 
@@ -626,43 +580,181 @@ class Piece {
             (outsidePoint.distanceTo(verticesTotal[b]) * 1000).round())));
     // as these are lattice points, no loss of information should come from this rounding
 
-    return([verticesTotal, cutIndices]);
 
-    // now need to remove points that are just tips brushing against the line
-    // and add duplicates of points that are
+
+    // now need to either remove or duplicate points that are just tips brushing
+    // against the line, depending on weather or not the cut line is exiting or
+    // entering the shape
 
     num secondaryIndex = 0;
     List<num> cutIndicesFinal = new List<num>();
     List<Point> verticesToReturn = new List<Point>();
 
+
+    // figure out which cut points to remove or delete (among those on the tips of the piece)
+    List<bool> duplicate = new List<bool>();
+    List<bool> duplicateOrRemove = new List<bool>();
+    List<bool> notACut = new List<bool>();
+    cutIndices.forEach((x) => duplicate.add(false));
+    cutIndices.forEach((x) => duplicateOrRemove.add(false));
+    cutIndices.forEach((x) => notACut.add(false));
+
+    num n = 0;
+    num pointsSkipped = 0;
+
+    while (n < cutIndices.length) {
+      Point next = verticesTotal[(cutIndices[n] + 1) % verticesTotal.length];
+      Point previous = verticesTotal[(cutIndices[n] - 1 +
+          verticesTotal.length) % verticesTotal.length];
+
+      if (onSameSide(previous, next, abc)) {
+        duplicateOrRemove[n] = true;
+        if ((n - pointsSkipped) % 2 == 1) {
+          duplicate[n] = true;
+          pointsSkipped++;
+        }
+        //print( "on tip: " + verticesTotal[cutIndices[n]].x.toString() + ", " + verticesTotal[cutIndices[n]].y.toString() + ", will duplicate " + duplicate[n].toString() + " at index: " + cutIndices[n].toString());
+      }
+      else { // checking now for sides on the cut line
+        if (n < (cutIndices.length - 1)) { // the last cannot be on the side
+          num d = cutIndices[n] - cutIndices[n + 1];
+          if (d.abs() == 1) { // if they form a side
+            bool wantToSkipBoth = true;
+            if (d == -1) {
+              Point twoAhead = verticesTotal[(cutIndices[n] + 2) %
+                  verticesTotal.length];
+              wantToSkipBoth = onSameSide(previous, twoAhead, abc);
+            }
+            else {
+              Point twoBehind = verticesTotal[(cutIndices[n] - 2 +
+                  verticesTotal.length) % verticesTotal.length];
+              wantToSkipBoth = onSameSide(twoBehind, next, abc);
+            }
+
+            if (wantToSkipBoth) {
+              if ((n - pointsSkipped) % 2 == 0) {
+                duplicateOrRemove[n] = true;
+                duplicateOrRemove[n + 1] = true;
+                pointsSkipped++;
+                pointsSkipped++;
+              }
+              n++;
+            }
+            else {
+              if ((n - pointsSkipped) % 2 == 0) {
+                duplicateOrRemove[n] = true;
+                pointsSkipped++;
+                n++;
+              }
+              else {
+                duplicateOrRemove[n + 1] = true;
+                pointsSkipped++;
+                n++;
+              }
+            }
+          }
+        }
+      }
+      n++;
+    }
+
+
+    // go through these to get the final list of vertices and final collection of cut indices
     while (secondaryIndex < verticesTotal.length) {
       verticesToReturn.add(verticesTotal[secondaryIndex]);
 
-      if (cutIndices.contains(secondaryIndex)) {
-        Point next = verticesTotal[(secondaryIndex + 1) % verticesTotal.length];
-        Point previous = verticesTotal[(secondaryIndex - 1 + verticesTotal.length) % verticesTotal.length];
+      num x = cutIndices.indexOf(secondaryIndex);
 
-        bool isTip = onSameSide(previous, next, abc);
-
-        if (isTip) {
-          if (cutIndicesFinal.length % 2 == 1) {
-            cutIndicesFinal.add(verticesTotal.length - 1);
-            cutIndicesFinal.add(verticesTotal.length);
-            verticesTotal.add(verticesTotal[secondaryIndex]);
+      if (x != -1) {
+        if (duplicateOrRemove[x]) {
+          if (duplicate[x]) {
+            cutIndicesFinal.add(verticesToReturn.length - 1);
+            verticesToReturn.add(verticesTotal[secondaryIndex]);
+            cutIndicesFinal.add(verticesToReturn.length - 1);
           }
         }
         else {
-          print("got here");
-          cutIndicesFinal.add(verticesTotal.length - 1);
+          cutIndicesFinal.add(verticesToReturn.length - 1);
         }
       }
       secondaryIndex++;
     }
 
+    // sort the cut indices which need to be returned
+    cutIndicesFinal.sort((a, b) => (((outsidePoint.distanceTo(verticesToReturn[a]) * 1000).round()).compareTo((outsidePoint.distanceTo(verticesToReturn[b]) * 1000).round())));
+
+    // This is now all sorted, except for the cases where there are repeated indices
+    // In these cases, need to ensure that you are going to jump to the closer index
+
+    num j = 1; // first vertex will not be duplicated, so do not need to check
+    while (j < cutIndicesFinal.length - 1) {
+      if (verticesToReturn[cutIndicesFinal[j]].distanceTo(verticesToReturn[cutIndicesFinal[j]]) < .00001) {
+
+        // now need to order them
+        num g = max( cutIndicesFinal[j], cutIndicesFinal[j + 1]);
+        num h = min( cutIndicesFinal[j], cutIndicesFinal[j + 1]);
+
+        num previous = cutIndicesFinal[j - 1];
+        num next = cutIndicesFinal[(j + 2) % cutIndicesFinal.length];
+
+
+        num s = (g + 1) % verticesToReturn.length;
+        while (!cutIndicesFinal.contains(s))
+          s = (s + 1) % verticesToReturn.length;
+
+        num t = (h - 1 + verticesToReturn.length) % verticesToReturn.length;
+        while (!cutIndicesFinal.contains(t))
+          t = (t - 1 + verticesToReturn.length) % verticesToReturn.length;
+
+//        print("for j = " + j.toString());
+//        print("s is: " + s.toString() + " and t is :" + t.toString());
+//        print("g is: " + g.toString() + " and h is: " + h.toString());
+//        print("previous is: " + previous.toString() + " and next is: " + next.toString());
+
+        if (s == next || t == previous) {
+          cutIndicesFinal[j + 1] = g;
+          cutIndicesFinal[j] = h;
+        }
+        else {
+          if (s == previous || t == next) {
+            cutIndicesFinal[j + 1] = h;
+            cutIndicesFinal[j] = g;
+          }
+          else {
+            // only assumption now is that the next is also a tip and is unorderd
+            // (as previous would have been ordered
+            next = cutIndicesFinal[(j + 3) % cutIndicesFinal.length];
+            if (s == next) {
+            cutIndicesFinal[j + 1] = g;
+            cutIndicesFinal[j] = h;
+            }
+            else {
+              if (t == next) {
+                cutIndicesFinal[j + 1] = h;
+                cutIndicesFinal[j] = g;
+              }
+              else {
+                print(
+                    "logical falacy in this reasoning for j = " + j.toString());
+              }
+            }
+          }
+        }
+
+        j++;
+      }
+      j++;
+    }
 
     toReturn.add(verticesToReturn);
     toReturn.add(cutIndicesFinal);
     return toReturn;
+  }
+
+  num distanceTo(num a, num b, num length) {
+    num d1 = (a - b).abs();
+    num d2 = (a + (length - b)).abs();
+    return min(d1, d2);
   }
 
 
