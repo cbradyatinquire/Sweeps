@@ -140,49 +140,6 @@ class Piece {
   }
 
 
-  // allows concavity on the vertical sides, but requires convexity on the horizontal sides.
-  /*List<Piece> cutVerticalCavalieri( num xcor ) {
-    
-    List<Piece> myPieces = [this];
-    if ( xcor < xmin || xcor > xmax ) { return myPieces; }
-
-    // break up the piece along all horizontal lines
-    for (int yc = 0; yc < vticks * vSubTicks; yc++) {
-      List<Piece> newPcs = new List<Piece>();
-      myPieces.forEach((piece) => newPcs.addAll(piece.cutHorizontal(yc)));
-      myPieces = newPcs;
-    }
-
-    // cut the new pieces along the vertical line to be cut along
-    List<Piece> newPcs = new List<Piece>();
-    myPieces.forEach((piece) => newPcs.addAll(piece.cutVertical(xcor)));
-    myPieces = newPcs;
-
-    // eliminate "pieces" that have no area from the list
-    List<Piece>realPieces = new List<Piece>();
-    realPieces.addAll(myPieces.where( (piece) => (piece.vertices.length > 2) ) );
-
-    // gather pieces into two lists, one on the left and one on the right
-    realPieces.sort( (a, b) => (a.ymin).compareTo(b.ymin) );
-    
-    List<Piece>leftPieces = new List<Piece>();
-    leftPieces.addAll( realPieces.where( (piece) => (piece.xmax <= xcor) ) );
-    List<Piece>rightPieces = new List<Piece>();
-    rightPieces.addAll(  realPieces.where( (piece) => (piece.xmin >= xcor) ) );
-
-    // reconstruct the pieces that should be displayed
-    List<Piece> endPieces = new List<Piece>();
-    endPieces.addAll( coalesce(leftPieces) );
-    endPieces.addAll( coalesce(rightPieces) );
-    
-    return endPieces;
-  }*/
-
-  List<Piece> cutVerticalCavalieri( num xcor ) {
-    return cutGeneral(new Point(xcor, 0), new Point(xcor, 1));
-  }
-
-
   // returns a list of pieces where the common sides of the original list are glued together (no restrictions)
   List<Piece> coalesce( List<Piece> inputPieces ) {
     if ( inputPieces.isEmpty ) { return inputPieces; }
@@ -274,153 +231,12 @@ class Piece {
     return aggregate;
   }
 
-  // requires convexity of the piece
   List<Piece> cutVertical(num xcor) {
     return cutGeneral(new Point (xcor, 0), new Point (xcor, 1));
-    if ( xcor < xmin || xcor > xmax ) { return [ this ]; } // if cut is obviously outside, return original list
-
-    List<Point> hitPoints = new List<Point>();
-    List<int> hits = new List<int>();
-    List<bool> pointIsNewToPiece = new List<bool>();
-    Point init = vertices.last;
-    for (int i = 0; i < vertices.length; i++) {
-      Point fin = vertices[i];
-      num di = xcor - init.x;
-      num df = xcor - fin.x;
-      if (di * df < 0) {
-        hits.add(i);
-        hitPoints.add(new Point(xcor, interpolatedY(init, fin, xcor)));
-        pointIsNewToPiece.add(true);
-      } else if (df == 0) {
-        hits.add(i);
-        hitPoints.add(new Point(xcor, interpolatedY(init, fin, xcor)));
-        pointIsNewToPiece.add(false);
-      }
-      init = fin;
-    }
-    if (hits.length > 0) {
-      if (hits.length == 1) {
-        return [this];
-      } //only one vertex touched (outer boundary)
-      if (!pointIsNewToPiece.first && !pointIsNewToPiece.last && (hits.first - hits.last).abs() == 1) {
-        return [this];
-      }
-      if (hits.length != 2) {
-        print("UNEXPECTED LENGTH: " + hits.length.toString());
-        print("with xcor = " + xcor.toString());
-        print("  Piece = " + this.verticesAsString());
-        return [this];
-      }
-      List<Piece> toreturn = new List<Piece>();
-
-      List<Point> lp1 = new List<Point>();
-      int i1 = hits.first;
-      int i2 = hits.last;
-      if (pointIsNewToPiece.first) {
-        lp1.add(hitPoints.first);
-      }
-      for (int i = i1; i < i2; i++) {
-        lp1.add(vertices[i]);
-      }
-      lp1.add(hitPoints.last);
-
-      List<Point> lp2 = new List<Point>();
-      if (pointIsNewToPiece.last) {
-        lp2.add(hitPoints.last);
-      }
-      for (int i = i2; i < vertices.length; i++) {
-        lp2.add(vertices[i]);
-      }
-      for (int j = 0; j < i1; j++) {
-        lp2.add(vertices[j]);
-      }
-      lp2.add(hitPoints.first);
-
-
-
-      toreturn.add(new Piece(lp1));
-      toreturn.add(new Piece(lp2));
-
-      return toreturn;
-
-    } else {
-      return [this];
-    }
   }
 
-  // requires convexity of the piece
   List<Piece> cutHorizontal(num ycor) {
-
-    if ( ycor < ymin || ycor > ymax ) { return [ this ]; }
-
-    List<Point> hitPoints = new List<Point>();
-    List<int> hits = new List<int>();
-    List<bool> pointIsNewToPiece = new List<bool>();
-    Point init = vertices.last;
-    for (int i = 0; i < vertices.length; i++) {
-      Point fin = vertices[i];
-      num di = ycor - init.y;
-      num df = ycor - fin.y;
-      if (di * df < 0) {
-        hits.add(i);
-        hitPoints.add(new Point(interpolatedX(init, fin, ycor), ycor));
-        pointIsNewToPiece.add(true);
-      } else if (df == 0) {
-        hits.add(i);
-        hitPoints.add(new Point(interpolatedX(init, fin, ycor), ycor));
-        pointIsNewToPiece.add(false);
-      }
-      init = fin;
-    }
-    if (hits.length > 0) {
-      if (hits.length == 1) {
-        return [this];
-      } //only one vertex touched (outer bounary)
-      if (!pointIsNewToPiece.first && !pointIsNewToPiece.last && (hits.first - hits.last).abs() == 1) {
-        return [this];
-      }
-      if (hits.length != 2) {
-        print("UNEXPECTED LENGTH: " + hits.length.toString());
-        print("with ycor = " + ycor.toString());
-        print("  Piece = " + this.verticesAsString());
-        return [this];
-      }
-      List<Piece> toreturn = new List<Piece>();
-
-      List<Point> lp1 = new List<Point>();
-      int i1 = hits.first;
-      int i2 = hits.last;
-      if (pointIsNewToPiece.first) {
-        lp1.add(hitPoints.first);
-      }
-      for (int i = i1; i < i2; i++) {
-        lp1.add(vertices[i]);
-      }
-      lp1.add(hitPoints.last);
-
-      List<Point> lp2 = new List<Point>();
-      if (pointIsNewToPiece.last) {
-        lp2.add(hitPoints.last);
-      }
-      for (int i = i2; i < vertices.length; i++) {
-        lp2.add(vertices[i]);
-      }
-      for (int j = 0; j < i1; j++) {
-        lp2.add(vertices[j]);
-      }
-      lp2.add(hitPoints.first);
-
-
-
-      toreturn.add(new Piece(lp1));
-      toreturn.add(new Piece(lp2));
-
-      return toreturn;
-
-    } else {
-      return [this];
-    }
-
+    return cutGeneral(new Point (0, ycor), new Point(1, ycor));
   }
 
  // cut along the line formed by one and two; need the points not to be the same, but piece need not be convex
@@ -439,7 +255,7 @@ class Piece {
 
     List<int> currentPiece;
     bool justJumped;
-
+/*
     print("vertices:");
     num j = 0;
     while (j < verticesWithCuts.length){
@@ -451,6 +267,7 @@ class Piece {
     print("cuts:");
     cutIndices.forEach((x) => (print(x.toString() + ": (" + verticesWithCuts[x].x.toString() + ", " + verticesWithCuts[x].y.toString() + ")" )));
     print("that's all");
+    */
 
 
     while (indexUnused.contains(true)) {
@@ -466,34 +283,34 @@ class Piece {
           currentPiece.add(index);
 
           if (justJumped) {
-            print(index.toString() + " and stepping");
+            //print(index.toString() + " and stepping");
             justJumped = false;
             index++;
           }
           else {
-            print(index.toString() + " and jumping");
+            //print(index.toString() + " and jumping");
             justJumped = true;
             index = getNextIndex(index, cutIndices); // jumping to the next indexed cut point going along the cut line
           }
         }
         else {
-          print(index.toString() + " and stepping");
+          //print(index.toString() + " and stepping");
           currentPiece.add(index);
           index++;
         }
 
         if (index == verticesWithCuts.length)
-          index = 0;
+          index = 0; // so that the index wraps around
       }
 
 
-      if (currentPiece.length > 2) {
+      if (currentPiece.length > 2) { // want to only consider pieces with area
         List<Point> vertexList = new List<Point>();
         currentPiece.forEach((i) => vertexList.add(verticesWithCuts[i]));
         cutPieces.add(new Piece(vertexList));
       }
     }
-    print("done with piece");
+    //print("done with piece");
 
     return cutPieces;
   }
@@ -508,9 +325,9 @@ class Piece {
     if (vertices.length == 0)
       return [new List<Point>(), new List<num>()]; // edge case that I don't want to throw an error
 
-    // getting a vertex list which has no repeated vertices or 180 degree angles
+    // first: get a vertex list which has no repeated vertices or 180 degree angles
     // this is mostly important for getting rid of sides that intersect with the
-    // cut line and have multiple vertices (which happens often in Cavalieri mode)
+    // cut line and have multiple vertices (which happens initially in Cavalieri mode)
     List<Point> verticesWithoutRepeats = new List<Point>();
 
     num index = 0;
@@ -520,7 +337,6 @@ class Piece {
 
       bool repeated = (vertices[previous].distanceTo(vertices[index]) <
           .000001); // for catching rounding errors
-
 
       if (repeated)
         index++;
@@ -536,7 +352,7 @@ class Piece {
       }
     }
 
-    //now, adding the cut points to the new list
+    //now, adding the cut points to the new list of vertices
     num checkingIndex = 0;
     List<int> cutIndices = new List<int>();
 
@@ -552,7 +368,7 @@ class Piece {
 
       possiblePoint = isIntersection(checkingIndex, verticesWithoutRepeats, abc); // will consider side starting at the point indexed by checkingIndex
       if (possiblePoint != null) {
-        if (possiblePoint.distanceTo(verticesWithoutRepeats[checkingIndex]) > .0001) // rounding errors
+        if (possiblePoint.distanceTo(verticesWithoutRepeats[checkingIndex]) > .0001) // accounting for rounding errors
           verticesTotal.add(possiblePoint);
         cutIndices.add(verticesTotal.length - 1); // index of the last element added
       }
@@ -607,32 +423,31 @@ class Piece {
       Point previous = verticesTotal[(cutIndices[n] - 1 +
           verticesTotal.length) % verticesTotal.length];
 
-      if (onSameSide(previous, next, abc)) {
+      if (onSameSide(previous, next, abc)) { // checking to see if it is on the tip
         duplicateOrRemove[n] = true;
-        if ((n - pointsSkipped) % 2 == 1) {
+        if ((n - pointsSkipped) % 2 == 1) { // checking to see if the cut line is exiting or entering the shape
           duplicate[n] = true;
           pointsSkipped++;
         }
-        //print( "on tip: " + verticesTotal[cutIndices[n]].x.toString() + ", " + verticesTotal[cutIndices[n]].y.toString() + ", will duplicate " + duplicate[n].toString() + " at index: " + cutIndices[n].toString());
       }
-      else { // checking now for sides on the cut line
-        if (n < (cutIndices.length - 1)) { // the last cannot be on the side
+      else { // checking now for sides lying on the cut line
+        if (n < (cutIndices.length - 1)) { // the last cannot be on the side if the previous is not
           num d = cutIndices[n] - cutIndices[n + 1];
-          if (d.abs() == 1) { // if they form a side
-            bool wantToSkipBoth = true;
+          if (d.abs() == 1) { // if the adjacent cut indices also form a side
+            bool considerBothTogether = true;
             if (d == -1) {
               Point twoAhead = verticesTotal[(cutIndices[n] + 2) %
                   verticesTotal.length];
-              wantToSkipBoth = onSameSide(previous, twoAhead, abc);
+              considerBothTogether = onSameSide(previous, twoAhead, abc);
             }
             else {
               Point twoBehind = verticesTotal[(cutIndices[n] - 2 +
                   verticesTotal.length) % verticesTotal.length];
-              wantToSkipBoth = onSameSide(twoBehind, next, abc);
+              considerBothTogether = onSameSide(twoBehind, next, abc);
             }
 
-            if (wantToSkipBoth) {
-              if ((n - pointsSkipped) % 2 == 0) {
+            if (considerBothTogether) {
+              if ((n - pointsSkipped) % 2 == 0) { // otherwise the cut is exiting at the first point and entering at the next, in which case they should be left as cutindices
                 duplicateOrRemove[n] = true;
                 duplicateOrRemove[n + 1] = true;
                 pointsSkipped++;
@@ -672,6 +487,7 @@ class Piece {
             verticesToReturn.add(verticesTotal[secondaryIndex]);
             cutIndicesFinal.add(verticesToReturn.length - 1);
           }
+          // else condition is to do nothing; this stops the vertex from being considered a cut
         }
         else {
           cutIndicesFinal.add(verticesToReturn.length - 1);
@@ -683,14 +499,15 @@ class Piece {
     // sort the cut indices which need to be returned
     cutIndicesFinal.sort((a, b) => (((outsidePoint.distanceTo(verticesToReturn[a]) * 1000).round()).compareTo((outsidePoint.distanceTo(verticesToReturn[b]) * 1000).round())));
 
-    // This is now all sorted, except for the cases where there are repeated indices
-    // In these cases, need to ensure that you are going to jump to the closer index
+    // This is now all sorted, except for the cases where there are indices of repeated points
+    // In these cases, need to ensure that you are going to jump to the right index
 
-    num j = 1; // first vertex will not be duplicated, so do not need to check
+    num j = 1; // first vertex will not be duplicated, as duplicated vertices only occur on tips that contribute to the cut, so do not need to check j = 0 for duplication
     while (j < cutIndicesFinal.length - 1) {
-      if (verticesToReturn[cutIndicesFinal[j]].distanceTo(verticesToReturn[cutIndicesFinal[j]]) < .00001) {
+      if (verticesToReturn[cutIndicesFinal[j]].distanceTo(verticesToReturn[cutIndicesFinal[j + 1]]) < .00001) {
+        // (if duplicated)
 
-        // now need to order them
+        // now need to order them (ignore their current order)
         num g = max( cutIndicesFinal[j], cutIndicesFinal[j + 1]);
         num h = min( cutIndicesFinal[j], cutIndicesFinal[j + 1]);
 
@@ -701,15 +518,14 @@ class Piece {
         num s = (g + 1) % verticesToReturn.length;
         while (!cutIndicesFinal.contains(s))
           s = (s + 1) % verticesToReturn.length;
+        // gets the next cut index as you go around the piece
+        // want to match this with g
 
         num t = (h - 1 + verticesToReturn.length) % verticesToReturn.length;
         while (!cutIndicesFinal.contains(t))
           t = (t - 1 + verticesToReturn.length) % verticesToReturn.length;
-
-//        print("for j = " + j.toString());
-//        print("s is: " + s.toString() + " and t is :" + t.toString());
-//        print("g is: " + g.toString() + " and h is: " + h.toString());
-//        print("previous is: " + previous.toString() + " and next is: " + next.toString());
+        // gets the previous cut index as you go around the piece
+        // want to match this with h
 
         if (s == next || t == previous) {
           cutIndicesFinal[j + 1] = g;
@@ -721,8 +537,9 @@ class Piece {
             cutIndicesFinal[j] = g;
           }
           else {
-            // only assumption now is that the next is also a tip and is unorderd
-            // (as previous would have been ordered
+            // only assumption now is that the next is also a tip and is unordered
+            // as previous tip would have been ordered, so should have been caught
+            // by the logic above
             next = cutIndicesFinal[(j + 3) % cutIndicesFinal.length];
             if (s == next) {
             cutIndicesFinal[j + 1] = g;
@@ -734,13 +551,14 @@ class Piece {
                 cutIndicesFinal[j] = g;
               }
               else {
-                print(
-                    "logical falacy in this reasoning for j = " + j.toString());
+                print( "logical falacy in this reasoning for j = " + j.toString());
               }
             }
           }
         }
 
+        // can increment the index twice if this was a tip, as the indices
+        // at j and j + 1 are ordered now.
         j++;
       }
       j++;
@@ -751,13 +569,8 @@ class Piece {
     return toReturn;
   }
 
-  num distanceTo(num a, num b, num length) {
-    num d1 = (a - b).abs();
-    num d2 = (a + (length - b)).abs();
-    return min(d1, d2);
-  }
 
-
+  // returns true if all three points are on the same line
   bool colinear (Point one, Point two, Point three) {
     List<num> abc = getLineEq(one, two);
 
@@ -768,7 +581,7 @@ class Piece {
     return ((a * three.x + b * three.y + c).abs() < .000001); // for rounding errors
   }
 
-  // takes a list and a cut index, then returns the next cut index
+  // takes a list and a cut index (as specified by the method above), then returns the next cut index
   int getNextIndex(int element, List<num> cutIndices) {
     int x = cutIndices.indexOf(element);
 
@@ -781,15 +594,9 @@ class Piece {
       return cutIndices[previous];
   }
 
-
-
-
-
-
   // returns the intersection point on the segment
   // [ vertices[checkingIndex], vertices[(checkingIndex + 1) % vertices.length])
-  // (where the second endpoint is not included)
-  // unless that intersection point does not contribute to the cut
+  // where the second endpoint is not included (as it will be checked later in the method that calls this)
   Point isIntersection(int checkingIndex, List<Point> verticesWithoutRepeats, List<num> abc) {
     num a, b, c;
     num epsilon = 0.000001; // to deal with rounding errors
@@ -846,7 +653,7 @@ class Piece {
     return ((d1 * d2) > 0);
   }
 
-
+  // returns list [A, B, C] where Ax + By + C = 0 is the equation of the line through the two input points
   List<num> getLineEq(Point line1, Point line2) {
     // getting the line in the form aX + bY + c = 0
     num a, b, c;
@@ -861,7 +668,7 @@ class Piece {
     return toReturn;
   }
 
-  bool isInteriorCord(Point one, Point two){
+  bool isInteriorCord(Point one, Point two) {
     if (getHitNumber(one, two) != 0)
       return false;
 

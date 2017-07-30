@@ -121,30 +121,6 @@ var uuid = new Uuid();
 var myUID = uuid.v4();
 
 
-void testVerticalCutting() {
-  /*
-   * [Point(3, 1), Point(4, 2), Point(5, 3), Point(4, 4), Point(3, 5), Point(3, 6), Point(4, 7), Point(9, 7), Point(8, 6), Point(8, 5), Point(9, 4), Point(10, 3), Point(9, 2), Point(8, 1)]
-   * 
-       */
-  List<Point> pointsForTestPiece = 
- /*     [new Point(3, 1), new Point(4, 2), new Point(5, 3), new Point(4, 4), new Point(3, 5), new Point(3, 6), 
-       new Point(4, 7), new Point(9, 7), new Point(8, 6), new Point(8, 5), new Point(9, 4), new Point(10, 3), new Point(9, 2), new Point(8, 1)];
-*/
-  /*    
-      [new Point(2, 1), new Point(3, 2), new Point(2, 3), new Point(2, 4), new Point(3, 5), new Point(2, 6), 
-       new Point(3, 7), new Point(3, 8), new Point(7, 8), new Point(7, 7), new Point(6, 6), new Point(7, 5), 
-       new Point(6, 4), new Point(6, 3), new Point(7, 2), new Point(6, 1)];
-  */
-  [new Point(2, 1), new Point(3, 2), new Point(2, 3), new Point(3, 4), new Point(3, 5), new Point(2, 6), 
-   new Point(7, 6), new Point(8, 5), new Point(8, 4), new Point(7, 3), new Point(8, 2), new Point(7, 1)];
-  
-  Piece testPiece = new Piece(pointsForTestPiece);
-  List<Piece> returns = testPiece.cutVerticalCavalieri(3.0);
-  print("*************");
-  returns.forEach( (piece) => print(piece.vertices.toString() ));
-  print("*************");
-}
-
 void main() {
   //print(myUID.toString());
   

@@ -32,16 +32,7 @@ void startTouchCUT(TouchEvent evt) {
 void cutAlongX(int xc)
 {
   List<Piece> newPcs = new List<Piece>();
-
-  if (wasInCavalieri) // Cavalieri allows for convexity on the vertical sides, but is more complex
-  {
-    pieces.forEach((piece) => newPcs.addAll(piece.cutVerticalCavalieri(xc)));
-  }
-  else
-  {
-    pieces.forEach((piece) => newPcs.addAll(piece.cutVertical(xc)));
-  }
-
+  pieces.forEach((piece) => newPcs.addAll(piece.cutVertical(xc)));
   pieces = newPcs;
 }
 
