@@ -24,6 +24,28 @@ class Piece {
     setupSides();
   }
 
+  void setColor(List<num> c){
+    while (c.length < 4) {
+      c.add(0);
+    }
+
+    String s = "rgba(" + c[0].toString();
+    num i = 1;
+    while (i < 4) {
+      s = s + ", ";
+      s = s + c[i].toString();
+      i++;
+    }
+    s = s + ")";
+
+    fillsty = s;
+  }
+
+  // requires the string to be precisely right (less foolproof)
+  void setColorString(s) {
+    fillsty = s;
+  }
+
   void establishBoundingBox() {
     xmin = null; // these are for when the method is called when
     ymin = null; // the piece is dragged, so that the previous
@@ -311,6 +333,8 @@ class Piece {
       }
     }
     //print("done with piece");
+
+    cutPieces.forEach((piece) => piece.setColorString(fillsty));
 
     return cutPieces;
   }
@@ -722,7 +746,9 @@ class Piece {
     List<Point> newVertices = new List<Point>();
     rotatedPlaces.forEach( (x) => newVertices.add(x + center) );
 
-    return new Piece(newVertices);
+    Piece toReturn = new Piece(newVertices);
+    toReturn.setColorString(fillsty);
+    return toReturn;
   }
 
   bool possibleCenter(Point center, num worldY, num worldX) {

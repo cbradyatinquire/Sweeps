@@ -193,7 +193,7 @@ void drawCavalieri() {
   drawSweeperCurrentSWEEP(ctx);
 
  // print("drawCavalieri - " + fallCounter.toString() + " times to fallcounter " );
-  if (numDeviceMotionEvents < 200000 && fallCounter >= 0) {  // TODO figure out why my computer always hits this part (Workaround, to test: Replace with < 20000 and >= 0)
+  if (numDeviceMotionEvents < 2 && fallCounter > 0) {  // TODO figure out why my computer always hits this part (Workaround, to test this mode: Replace with < 20000 and >= 0)
     if (mouseMoveSubscription == null || mouseMoveSubscription.isPaused ) {
       initializeMouseEventListening();
     }

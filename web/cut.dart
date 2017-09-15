@@ -73,25 +73,65 @@ void clickLogicCUT(Point pt) { // inputted point is where the mouse clicked; log
       drawCUT();
     }
     else { // logic for all times pieces are moving
-      drawCUT();
-      dragFirstPieceClickedOn(pt);
+      if (!doingRotation) {
+        drawCUT();
+        dragFirstPieceClickedOn(pt);
+      }
     }
   }
   else { // logic for cutting a piece yourself, when cutFlavor == "select" (dragThreshold is the error tolerance for a click)
-    if (sqPixelDistance(pt, vcuts) < dragThreshold) {
-      cutGrabbed = "vertical";
-      drawCUT();
-    } else if (sqPixelDistance(pt, hcuts) < dragThreshold) {
-      cutGrabbed = "horizontal";
-      drawCUT();
-    } else if (pt.y < 50 && pt.x < 50) { // this does not trigger cut yet, only makes screen change color to show it is cutting, cut happens when mouse lifts UP, in either stopTouchCUT or stopDragCUT
-      cutGrabbed = "scissors";
-      drawCUT();
-    } else {
-      drawCUT();
-      dragFirstPieceClickedOn(pt);
+    if (!doingRotation) {
+      if (sqPixelDistance(pt, vcuts) < dragThreshold) {
+        cutGrabbed = "vertical";
+        drawCUT();
+      } else if (sqPixelDistance(pt, hcuts) < dragThreshold) {
+        cutGrabbed = "horizontal";
+        drawCUT();
+      } else if (pt.y < 50 && pt.x < 50) { // this does not trigger cut yet, only makes screen change color to show it is cutting, cut happens when mouse lifts UP, in either stopTouchCUT or stopDragCUT
+        cutGrabbed = "scissors";
+        drawCUT();
+      } else {
+        drawCUT();
+        dragFirstPieceClickedOn(pt);
+      }
     }
   }
+
+  if (doingRotation) {
+    if (indexSelectedForRotation == -1) {
+      num i = getFirstIndex(pt);
+      if (i == -1) {
+        doingRotation = false;
+      }
+      else {
+        indexSelectedForRotation = i;
+      }
+    }
+    else {
+      Point p = new Point( 0.5 * (2.0 * getGridCoordForPixelH(pt.x)).round(), 0.5 * (2.0 * getGridCoordForPixelV(pt.y)).round());
+      rotatePiece(indexSelectedForRotation, p);
+      doingRotation = false;
+      indexSelectedForRotation = -1;
+    }
+  }
+
+
+}
+
+num getFirstIndex(Point pt) {
+  num i = 0;
+
+  while (i < pieces.length) {
+    num gridX = getGridCoordForPixelH(pt.x);
+    num gridY = getGridCoordForPixelV(pt.y);
+
+    if (pieces[i].containsGridPoint(gridX, gridY))
+      return i;
+
+    i++;
+  }
+
+  return -1; // if has clicked on no piece
 }
 
 
@@ -136,8 +176,9 @@ void drawCUT() {
   drawRulers(ctx);
   drawGrid(ctx);
 
-  if (wasInCavalieri) { drawCavalieriPath(ctx); }
-  else { drawSweeperSweptSWEEP(ctx); }
+  drawOriginalPieceCUT(ctx);
+  /*if (wasInCavalieri) { drawCavalieriPath(ctx); }
+  else { drawSweeperSweptSWEEP(ctx); }*/
 
   if (hasCut) { pieces.forEach((piece) => piece.draw(ctx)); }
 
@@ -259,6 +300,36 @@ void stopTouchCUT(TouchEvent evt) {
   drawCUT();
 }
 
+
+void drawOutlineCUT(CanvasRenderingContext2D ctxt, Piece piece) {
+  ctxt.strokeStyle = "#555";
+  ctxt.fillStyle = "#88F";
+  ctxt.beginPath();
+
+  List<Point> vertices = piece.vertices;
+
+  Point init = new Point(getXForHSubTick(vertices.first.x), getYForVSubTick(vertices.first.y));
+  ctxt.moveTo(init.x, init.y);
+  for (int i = 1; i < vertices.length; i++) {
+    Point p = new Point(getXForHSubTick(vertices[i].x), getYForVSubTick(vertices[i].y));
+    ctxt.lineTo(p.x, p.y);
+  }
+  ctxt.lineTo(init.x, init.y);
+  ctxt.closePath();
+  if (!hasCut) {
+    ctxt.fill();
+  }
+  ctxt.stroke();
+}
+
+drawOriginalPieceCUT(CanvasRenderingContext2D ctxt) {
+    ctxt.strokeStyle = "#555";
+    ctxt.fillStyle = "#88F";
+    ctxt.beginPath();
+    originalPieces.forEach((piece) => drawOutlineCUT(ctxt, piece));
+}
+
+
 void drawRotateCUT() {
   CanvasRenderingContext2D ctx = canv.context2D;
   ctx.clearRect(0, 0, canv.width, canv.height);
@@ -266,11 +337,9 @@ void drawRotateCUT() {
   drawRulers(ctx);
   drawGrid(ctx);
 
-  if (wasInCavalieri) { drawCavalieriPath(ctx); }
-  else { drawSweeperSweptSWEEP(ctx); }
+  drawOriginalPieceCUT(ctx);
 
   pieces.forEach((piece) => piece.draw(ctx));
-
 
   drawTools();
   // TODO: draw the center of the rotation
@@ -298,20 +367,19 @@ startRotationAnimation(int msec){
   return new Timer.periodic( new Duration(milliseconds: msec), rotationAnimation);
 }
 
-void rotatePiece(int index) {
-  Point center = getRotationCenter(pieces[index]);
-
-  if (center != null) {
-    currentCenter = center;
-    currentIndex = index;
-    rotatedPiece = pieces[index].rotate180Degrees(currentCenter);
-    // TODO: figure out what went wrong before; letting piece = pieces[index] and changing piece was changing the list pieces.
-
-    startRotationAnimation(10);
-  }
+void rotatePiece(int index, Point center) {
+  if (pieces[index].possibleCenter(center, vticks * vSubTicks, hticks * hSubTicks))
+    {
+      currentCenter = center;
+      currentIndex = index;
+      rotatedPiece = pieces[index].rotate180Degrees(currentCenter);
+      startRotationAnimation(10);
+    }
 }
 
-// TODO: get a better center point system later
+//(old method for finding a good-enough rotation center
+// need a point that is on the lattice grid; otherwise it will make
+// lattice points stop being lattice points, which is confusing/frustrating
 Point getRotationCenter(Piece p)
 {
   num worldX = hticks * hSubTicks;

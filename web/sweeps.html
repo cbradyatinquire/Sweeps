@@ -11,6 +11,26 @@
     
     <link rel="stylesheet" href="sweeps.css">
     <script type="text/javascript">
+
+        var arguments = {
+            vertices : "(1,1), (4, 1), (5, 3), (2, 3) | (5, 6), (6, 6), (5, 2)",
+            colors : [[0, 0, 255, 0.3], [255, 255, 0, 0.3]],
+            //vertices and colors are used to form shapes if the input mode is 3
+            //they are used to get a starting position for the slider of the input mode is 2 or 4
+            // (mode 4 uses vertices which must be horizontally or vertically in line, however)
+            // not used at all if inputMode is anything else
+            rotationsAllowed : true,
+            inputMode : 3
+            // (proceeds normally if inputMode is 0 or 1)
+        };
+
+        // Modes Index:
+        // 0: initial state
+        // 1: Setup
+        // 2: Sweeping
+        // 3: Cutting
+        // 4: Cavalieri
+
       function doWidths() {
         var w = document.getElementById("construction").offsetWidth;
         var h = document.getElementById("construction").offsetHeight;

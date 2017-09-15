@@ -7,6 +7,8 @@ import 'dart:async';
 
 import 'package:uuid/uuid.dart';
 
+import 'dart:js';
+
 part "piece.dart";
 part "setup.dart";
 part "sweep.dart";
@@ -14,6 +16,9 @@ part "cut.dart";
 part "cavalieri.dart";
 part "post.dart";
 part "tests.dart";
+part "parsingInput.dart";
+
+
 
 ImageElement forkedRightButton, rightButton, leftButton;
 ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton, cavalieriButton;
@@ -32,7 +37,7 @@ String overrideHTMLPromptFont = "26pt sans-serif";
 
 bool unitsLocked = false;
 
-bool showArea = false;
+bool showArea = false; // (in the text below the sweeping environment)
 
 //changing and displaying units
 String hunits_abbreviated = "in";
@@ -48,8 +53,25 @@ ButtonInputElement submitUnitsButton;
 
 
 int MODE = 0;
-var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Tilt to Sweep Down"];
+var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Tilt to Sweep Down", "Click to Choose Vertices", "Click to Rotate; Drag to Arrange"];
 bool readyToGoOn = true;
+// MODES:
+// 0: initial state
+// 1: Setup
+// 2: Sweeping
+// 3: Cutting
+// 4: Cavalieri
+
+int MODEAfterSetup;
+
+JsObject input = context['arguments'];
+bool rotationsAllowed = input['rotationsAllowed'];
+String inputVertices = input['vertices'];
+
+Point inputPoint1, inputPoint2;
+List<Piece> inputPieces;
+List<List<num>> colorsOfPieces;
+
 
 //relevant to the SETUP mode
 var SETUPMouseDown, SETUPTouchStart, SETUPMouseMove, SETUPTouchMove, SETUPMouseUp, SETUPTouchEnd;
@@ -57,10 +79,6 @@ num hticks = 20;
 num vticks = 15;
 int hSubTicks = 1;
 int vSubTicks = 1;
-// TODO Find out what these commented variables should do
-// (No instances of any of them & commenting does not break anything visible)
-// int hSubTicksBefore = 1;
-//int vSubTicksBefore = 1;
 int maxhticks = 24;
 int maxvticks = 15;
 int minhticks = 2; //9;
@@ -93,12 +111,16 @@ int draggedUnits = 0; // also used in sweep.dart
 
 //relevant to the CUT mode
 var CUTMouseDown, CUTTouchStart, CUTMouseMove, CUTTouchMove, CUTMouseUp, CUTTouchEnd;
+List<Piece> originalPieces;
 //for forward/back navigation.
 var navigationEvents;
 bool hasCut = false;
 List<Piece> pieces = new List<Piece>();
 Piece draggingPiece = null;
 Point pieceDragOrigin;
+
+bool doingRotation = false;
+num indexSelectedForRotation = -1;
 
 //Screen captures
 List<ImageData> screencaps = new List<ImageData>();
@@ -120,12 +142,12 @@ int compareRulerFrame = 0;
 var uuid = new Uuid();
 var myUID = uuid.v4();
 
+void modePrint() {
+  print(MODE.toString());
+}
+
 
 void main() {
-  //print(myUID.toString());
-  
-  //testVerticalCutting();
-  
   rightButton = new ImageElement()..src = "images/rightImage.jpg";
   leftButton = new ImageElement()..src = "images/leftImage.jpg";
   forkedRightButton = new ImageElement()..src = "images/forkedRightImage.jpg";
@@ -138,8 +160,8 @@ void main() {
   tools = querySelector("#tcanvas");
   splash = querySelector("#splashdiv");
   submitUnitsButton = document.querySelector("#submitUnit");
+  manageInputs();
   splash.onClick.listen(startUp);
-
 }
 
 void doEventSetup() {
@@ -216,6 +238,19 @@ void testSwitchMode(MouseEvent e) {
 
   int screenCapIconTolerance = 40;
   int cavalieriButtonTolerance = 64;
+
+  if (e.offset.x > rbound && MODE == 3 && rotationsAllowed && hasCut) { // want to do a rotation
+    if (doingRotation) {
+      doingRotation = false;
+      indexSelectedForRotation = -1;
+    }
+    else {
+      doingRotation = true;
+    }
+    drawCUT();
+    drawTools();
+  }
+
   if (e.offset.x > rbound && MODE < 3) { //we're in the right arrow
     if (readyToGoOn) {
       MODE++;
@@ -240,24 +275,38 @@ void testSwitchMode(MouseEvent e) {
     animLoopTimer.cancel();
     goOnFromCavalieri(e.offset.y);
   } else if (e.offset.x < lbound) { //we're in the left arrow
-    if (MODE == 4) {
-      MODE = 1;
-      readyToGoOn = false;
-      draggedUnits = 0;
-      animLoopTimer.cancel();
-      doModeSpecificLogic();
-    } else if (MODE > 1) {
-      MODE--;
-      if (wasInCavalieri) { 
+    if (MODE != MODEAfterSetup) {
+      if (MODE == 4) {
         MODE = 1;
-        wasInCavalieri = false;
-        hasCut = false;
+        readyToGoOn = false;
+        draggedUnits = 0;
+        animLoopTimer.cancel();
+        doModeSpecificLogic();
+      } else if (MODE > 1) {
+        MODE--;
+        if (wasInCavalieri) {
+          MODE = 1;
+          wasInCavalieri = false;
+          hasCut = false;
+        }
+        readyToGoOn = false;
+        draggedUnits = 0;
+        doModeSpecificLogic();
+      } else if (MODE == 1) {
+        window.location.reload();
       }
-      readyToGoOn = false;
-      draggedUnits = 0;
-      doModeSpecificLogic();
-    } else if (MODE == 1) {
-      window.location.reload();
+    }
+    else {
+      if (MODE == 4 || MODE == 2) {
+        s1end = inputPoint1;
+        s2end = inputPoint2;
+        doModeSpecificLogic();
+      }
+      if (MODE == 3) {
+        pieces = inputPieces;
+        drawCUT();
+        drawTools();
+      }
     }
   } else if (e.offset.distanceTo(screenCapIconCenter) < screenCapIconTolerance) {
     addScreenCap();
@@ -338,6 +387,7 @@ void goOnFromCavalieri(int yclickvalue) {
      pieces.clear();
      Piece whole = new Piece(gridPoints);
      pieces.add(whole);
+     originalPieces = [whole];
      
      drawCUT();
      drawTools();
@@ -504,7 +554,7 @@ void resumeEventsForScreenCapsWindow() {
 //response to forward back buttons, once the MODE value has been switched.
 void doModeSpecificLogic() {
   //print("MODE = " + MODE.toString());
-  if (MODE == 1) { // TODO: finish comments for these modes This mode sets up the placement of the squeegee
+  if (MODE == 1) {
     if (SETUPMouseDown.isPaused) {
       SETUPMouseDown.resume();
       SETUPTouchStart.resume();
@@ -538,7 +588,7 @@ void doModeSpecificLogic() {
     drawSETUP();
     drawTools();
   }
-  if (MODE == 2) { // This mode
+  if (MODE == 2) {
     if (!SETUPMouseDown.isPaused) {
       SETUPMouseDown.pause();
       SETUPTouchStart.pause();
@@ -612,6 +662,7 @@ void doModeSpecificLogic() {
     pieces.clear();
     Piece whole = new Piece(gridPoints);
     pieces.add(whole);
+    originalPieces = [whole];
 
     drawCUT();
     drawTools();
@@ -664,14 +715,34 @@ void startUp(MouseEvent event) {
   splash.style.opacity = "0.0";
   splash.style.zIndex = "-1";
 
+  adjustDimensions(); // initializes several variables
+  makeVEqualToH();
+  unitsLocked = true;
+
   drawSETUP();
   drawTools();
-  
-   makeVEqualToH();
-   unitsLocked = true;
-   
-   drawSETUP();
-   drawTools();
+
+  if (MODEAfterSetup > 1) {
+    MODE = MODEAfterSetup;
+
+    if (MODEAfterSetup == 2 || MODEAfterSetup == 4) {
+      s1end = inputPoint1;
+      s2end = inputPoint2;
+      doModeSpecificLogic();
+    }
+
+    if (MODEAfterSetup == 3) {
+      cutFlavor = "selected";
+      hasCut = true;
+      setCutPoints();
+      doModeSpecificLogic();
+      pieces = inputPieces;
+      originalPieces = inputPieces;
+      drawCUT();
+      drawTools();
+    }
+
+  }
 }
 
 void drawStatus(CanvasRenderingContext2D ctx) {
@@ -723,7 +794,7 @@ void drawStatus(CanvasRenderingContext2D ctx) {
     ctx.fillText("Go Back", tools.height, 2 * tools.height / 3);
     ctx.strokeText("Go Back", tools.height, 2 * tools.height / 3);
   }
-  * */
+  */
 }
 
 
@@ -743,6 +814,20 @@ void drawTools() {
     ctx.drawImageScaled(rightButton, tools.width - imwid, 0, imwid, imht);
   }
   drawStatus(ctx);
+
+  if (MODE == 3 && rotationsAllowed) {
+    if (doingRotation){
+      ctx.drawImageScaled(new ImageElement()..src = "images/left.png", tools.width - imwid, 0, imwid, imht);
+    }
+    else {
+      ctx.drawImageScaled(new ImageElement()..src = "images/right.png", tools.width - imwid, 0, imwid, imht);
+    }
+    // TODO: get image(s) for rotation button
+
+  }
+
+
+
 }
 
 void adjustDimensions() {
@@ -806,6 +891,8 @@ void drawSWEEP() {
   drawTools();
 }
 
+
+// For Area computation
 num getSweeperLength() {
   if (dragIsVertical) {
     return (s1end.x - s2end.x).abs();
@@ -814,7 +901,6 @@ num getSweeperLength() {
   }
 }
 
-//TODO: check it worked
 String getAreaString() {
   num sweeperLen = getSweeperLength();
   num theArea = (sweeperLen * draggedUnits).abs();
@@ -842,12 +928,9 @@ void setupDragOriginMemorySETUPSWEEP(Point initPoint) {
   rememberPresentSETUPSWEEP();
 }
 
-//TODO:  check it worked (What is this supposed to do?)
 void rememberPresentSETUPSWEEP() {
   olds1 = new Point(s1end.x, s1end.y);
   olds2 = new Point(s2end.x, s2end.y);
-//  oldpx1 = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
-//  oldpx2 = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
   oldpx1 = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y));
   oldpx2 = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
   oldvtix = vticks;
@@ -857,8 +940,6 @@ void rememberPresentSETUPSWEEP() {
 
 
 bool inMiddle(Point mse) {
-  //Point one = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
-  //Point two = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
   Point one = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y));
   Point two = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
   Point mid = new Point(((one.x + two.x) / 2).round(), ((one.y + two.y) / 2).round());
@@ -867,6 +948,7 @@ bool inMiddle(Point mse) {
   }
   return false;
 }
+
 
 
 num getGridCoordForPixelH(int px) {
@@ -921,6 +1003,8 @@ int getYForVSubTick(num j) {
   return voff + (j * ticht / vSubTicks).round();
 }
 
+
+//Drawing Grids/Rulers, Axes
 void drawGrid(CanvasRenderingContext2D ctxt) {
   //ctxt.strokeStyle = "#555";
   ctxt.strokeStyle = "#222";
@@ -1049,7 +1133,6 @@ void drawHorizontalAxis(CanvasRenderingContext2D ctxt, int bott) {
   ctxt.textAlign = 'right';
   ctxt.fillText(hunits_abbreviated, hrulerwidth + hoff / 2, 25);
 }
-
 
 void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
   int tsize = 30;

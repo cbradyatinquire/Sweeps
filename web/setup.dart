@@ -1,7 +1,6 @@
 part of sweeps;
 
 
-
 //dialog contents & logic for the measurement changing dialog.
 void displayUnitDialogH() {
 //TextInputElement tie = document.querySelector("#unitname");
