@@ -1,8 +1,20 @@
 part of sweeps;
 
 
+List<String> getUserInput() {
+  List<String> toReturn = new List<String>();
+
+  document.querySelector("#popupDivToPost").style.visibility = "visible";
+
+
+
+  document.querySelector("#popupDivToPost").style.visibility = "hidden";
+}
+
+
+
 //requires classes from dart:html
-void postImageData(CanvasElement canv, String annotation) {
+void postImageData(CanvasElement canv, List<String> annotation) {
  
   //HttpRequest request = new HttpRequest(); 
 
@@ -21,7 +33,7 @@ void postImageData(CanvasElement canv, String annotation) {
   FormData fdata = new FormData(); 
 
   fdata.append('app_id', myUID.toString());
-  fdata.append('app_annotation', annotation);
+  fdata.append('app_annotation', annotation[0]);
   fdata.append('app_imagedata', idata);
 
    

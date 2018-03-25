@@ -1,6 +1,6 @@
 part of sweeps;
 
-
+bool rotationInProgress = false;
 var cutFlavor = "all";
 Point vcuts = new Point(hoff - 10, voff);
 Point hcuts = new Point(hoff, voff - 10);
@@ -10,7 +10,8 @@ var cutGrabbed = "none";
 int numSubdivisions = 30;
 int numIterations = 0;
 Point currentCenter = null;
-int currentIndex = null;
+Point currentPossibleCenter = null;
+int radiusOfRotationPoints = 5;
 Piece rotatedPiece = null;
 
 void setCutPoints() {
@@ -105,13 +106,18 @@ void clickLogicCUT(Point pt) { // inputted point is where the mouse clicked; log
       }
       else {
         indexSelectedForRotation = i;
+        currentPossibleCenter = pt;
+        drawRotationCenter(canv.context2D);
+        CUTMouseGetRotationPoint.resume();
+        CUTTouchGetRotationPoint.resume();
       }
     }
-    else {
+    else if (!rotationInProgress) {
       Point p = new Point( 0.5 * (2.0 * getGridCoordForPixelH(pt.x)).round(), 0.5 * (2.0 * getGridCoordForPixelV(pt.y)).round());
-      rotatePiece(indexSelectedForRotation, p);
-      doingRotation = false;
-      indexSelectedForRotation = -1;
+      rotationInProgress = true;
+      rotatePiece(p);
+      CUTMouseGetRotationPoint.pause();
+      CUTTouchGetRotationPoint.pause();
     }
   }
 
@@ -182,11 +188,57 @@ void drawCUT() {
 
   if (hasCut) { pieces.forEach((piece) => piece.draw(ctx)); }
 
+  if (doingRotation && indexSelectedForRotation != -1) {
+    pieces[indexSelectedForRotation].drawAsDragging(ctx);
+    drawRotationCenter(ctx);
+  }
+
   drawTools();
 
   //for testing
   //print("Drawing Grid");
   // drawPointGrid(ctx); 
+}
+
+void touchGetRotationPoint(TouchEvent e) {
+  if (e.touches.length > 0) {
+    Point pt = e.touches[e.touches.length - 1].client;
+
+    currentPossibleCenter = new Point(
+        0.5 * (2.0 * getGridCoordForPixelH(pt.x)).round(),
+        0.5 * (2.0 * getGridCoordForPixelV(pt.y)).round());
+
+    CanvasRenderingContext2D ctx = canv.context2D;
+
+    drawCUT();
+    pieces[indexSelectedForRotation].drawAsDragging(ctx);
+
+    drawRotationCenter(ctx);
+  }
+}
+
+void mouseGetRotationPoint(MouseEvent e) {
+  Point pt = e.client;
+  currentPossibleCenter = new Point(
+      0.5 * (2.0 * getGridCoordForPixelH(pt.x)).round(),
+      0.5 * (2.0 * getGridCoordForPixelV(pt.y)).round());
+
+  CanvasRenderingContext2D ctx = canv.context2D;
+
+  drawCUT();
+  pieces[indexSelectedForRotation].drawAsDragging(ctx);
+
+  drawRotationCenter(ctx);
+}
+
+void drawRotationCenter(CanvasRenderingContext2D ctx) {
+  Point p = new Point(getXForHSubTick(currentPossibleCenter.x), getYForVSubTick(currentPossibleCenter.y));
+  if (pieces[indexSelectedForRotation].possibleCenter(currentPossibleCenter, vticks * vSubTicks, hticks * hSubTicks)) {
+    drawPoint(ctx, p, "#222", radiusOfRotationPoints);
+  }
+  else {
+    drawPoint(ctx, p, "#999", radiusOfRotationPoints);
+  }
 }
 
 void drawPointGrid(CanvasRenderingContext2D ctx) {
@@ -340,41 +392,46 @@ void drawRotateCUT() {
   drawOriginalPieceCUT(ctx);
 
   pieces.forEach((piece) => piece.draw(ctx));
+  pieces[indexSelectedForRotation].drawAsDragging(ctx);
 
   drawTools();
-  // TODO: draw the center of the rotation
+  drawPoint(ctx, new Point(getXForHSubTick(currentCenter.x), getYForVSubTick(currentCenter.y)), "#4C4", radiusOfRotationPoints);
 }
 
-void rotationAnimation(Timer t){
+void rotationAnimation(Timer t) {
   numIterations++;
-  pieces[currentIndex].rotateCounterclockwiseBy(PI * 1 / numSubdivisions, currentCenter);
-
+  pieces[indexSelectedForRotation].rotateCounterclockwiseBy(PI * 1 / numSubdivisions, currentCenter);
   drawRotateCUT();
-  if (numIterations >= numSubdivisions)
-    {
-      t.cancel();
-      pieces[currentIndex] = rotatedPiece;
-      drawCUT();
 
-      numIterations = 0;
-      rotatedPiece = null;
-      currentCenter = null;
-      currentIndex = null;
-    }
+  if (numIterations >= numSubdivisions) {
+    t.cancel();
+    pieces[indexSelectedForRotation] = rotatedPiece;
+    drawCUT();
+
+    numIterations = 0;
+    rotatedPiece = null;
+    currentCenter = null;
+    indexSelectedForRotation = -1;
+    doingRotation = false;
+    rotationInProgress = false;
+    drawCUT();
+  }
 }
+
 
 startRotationAnimation(int msec){
   return new Timer.periodic( new Duration(milliseconds: msec), rotationAnimation);
 }
 
-void rotatePiece(int index, Point center) {
-  if (pieces[index].possibleCenter(center, vticks * vSubTicks, hticks * hSubTicks))
-    {
-      currentCenter = center;
-      currentIndex = index;
-      rotatedPiece = pieces[index].rotate180Degrees(currentCenter);
-      startRotationAnimation(10);
-    }
+void rotatePiece(Point center) {
+  if (pieces[indexSelectedForRotation].possibleCenter(center, vticks * vSubTicks, hticks * hSubTicks)) {
+    currentCenter = center;
+    rotatedPiece = pieces[indexSelectedForRotation].rotate180Degrees(currentCenter);
+    startRotationAnimation(10);
+  }
+  else {
+    rotationInProgress = false;
+  }
 }
 
 //(old method for finding a good-enough rotation center
