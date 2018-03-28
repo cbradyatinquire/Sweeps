@@ -431,6 +431,10 @@ void rotatePiece(Point center) {
   }
   else {
     rotationInProgress = false;
+    doingRotation = false;
+    drawCUT();
+    indexSelectedForRotation = -1;
+    currentPossibleCenter = null;
   }
 }
 
