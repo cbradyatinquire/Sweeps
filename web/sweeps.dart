@@ -110,7 +110,7 @@ bool dragIsVertical = true; //false => that the drag is horizontal (logic for th
 int draggedUnits = 0; // also used in sweep.dart
 
 //relevant to the CUT mode
-var CUTMouseDown, CUTTouchStart, CUTMouseMove, CUTTouchMove, CUTMouseUp, CUTTouchEnd;
+var CUTMouseDown, CUTTouchStart, CUTMouseMove, CUTMouseGetRotationPoint, CUTTouchGetRotationPoint, CUTTouchMove, CUTMouseUp, CUTTouchEnd;
 List<Piece> originalPieces;
 //for forward/back navigation.
 var navigationEvents;
@@ -120,7 +120,7 @@ Piece draggingPiece = null;
 Point pieceDragOrigin;
 
 bool doingRotation = false;
-num indexSelectedForRotation = -1;
+int indexSelectedForRotation = -1;
 
 //Screen captures
 List<ImageData> screencaps = new List<ImageData>();
@@ -188,6 +188,8 @@ void doEventSetup() {
   CUTTouchStart = canv.onTouchStart.listen(startTouchCUT);
   CUTMouseMove = canv.onMouseMove.listen(mouseDragCUT);
   CUTTouchMove = canv.onTouchMove.listen(touchDragCUT);
+  CUTMouseGetRotationPoint = canv.onMouseMove.listen(mouseGetRotationPoint);
+  CUTTouchGetRotationPoint = canv.onTouchMove.listen(touchGetRotationPoint);
   CUTMouseUp = canv.onMouseUp.listen(stopDragCUT);
   CUTTouchEnd = canv.onTouchEnd.listen(stopTouchCUT);
 
@@ -211,6 +213,8 @@ void doEventSetup() {
   CUTTouchStart.pause();
   CUTMouseMove.pause();
   CUTTouchMove.pause();
+  CUTMouseGetRotationPoint.pause();
+  CUTTouchGetRotationPoint.pause();
   CUTMouseUp.pause();
   CUTTouchEnd.pause();
 
@@ -401,8 +405,12 @@ void addScreenCap() {
   
   //screencaps.add(imageData);
   screens.add(base64Cap);// Two lists, one of screenshots & one of captions
-  toolsText.add(currentToolsText);  // adding data to both
-  postImageData(canv, currentToolsText); // posting newest addition to webpage
+  List<String> userInput = getUserInput();
+  if (userInput != null) {
+    toolsText.add(userInput[0]);  // adding data to both
+    postImageData(canv, userInput); // posting newest addition to webpage
+  }
+
 }
 
 void closeScreenCapWindow(var event) {
@@ -583,6 +591,8 @@ void doModeSpecificLogic() {
       CUTTouchMove.pause();
       CUTMouseUp.pause();
       CUTTouchEnd.pause();
+      CUTMouseGetRotationPoint.pause();
+      CUTTouchGetRotationPoint.pause();
     }
 
     rememberPresentSETUPSWEEP();
@@ -614,11 +624,16 @@ void doModeSpecificLogic() {
       CUTTouchMove.pause();
       CUTMouseUp.pause();
       CUTTouchEnd.pause();
+      CUTMouseGetRotationPoint.pause();
+      CUTTouchGetRotationPoint.pause();
     }
 
     grabbed = "";
     draggedUnits = 0;
     hasCut = false;
+    doingRotation = false;
+    rotationInProgress = false;
+    indexSelectedForRotation = -1;
     rememberPresentSETUPSWEEP();
     drawSWEEP();
     drawTools();

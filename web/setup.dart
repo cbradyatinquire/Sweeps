@@ -94,6 +94,7 @@ void getHorizUnits(MouseEvent me) {
     hSubTicks = proposedSubDivs;
     updateSweeperHPoints(oldHSubTicks, hSubTicks);
     document.querySelector("#popupDiv").style.visibility = "hidden";
+    document.querySelector("#popupDivToPost").style.visibility = "hidden";
       
     drawSETUP();
   

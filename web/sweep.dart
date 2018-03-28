@@ -222,33 +222,25 @@ void drawSweeperCurrentSWEEP(CanvasRenderingContext2D ctxt) {
   ctxt.closePath();
   ctxt.stroke();
 
-  ctxt.lineWidth = 1;
-  ctxt.beginPath();
-  ctxt.arc(strt.x, strt.y, 10, 0, 2 * PI);
-  ctxt.closePath();
-  ctxt.stroke();
-  ctxt.fillStyle = "#222";
-  ctxt.fill();
-
-  ctxt.beginPath();
-  ctxt.arc(end.x, end.y, 10, 0, 2 * PI);
-  ctxt.closePath();
-  ctxt.stroke();
-  ctxt.fillStyle = "#222";
-  ctxt.fill();
+  drawPoint(ctxt, strt, "#222", 10);
+  drawPoint(ctxt, end, "#222", 10);
 
   Point mid = new Point(((strt.x + end.x) / 2).round(), ((strt.y + end.y) / 2).round());
+  if (grabbed == "body") {
+    drawPoint(ctxt, mid, "#4C4", 10);
+  } else {
+    drawPoint(ctxt, mid, "#999", 10);
+  }
+}
+
+void drawPoint(CanvasRenderingContext2D ctxt, Point point, String style, int radius) {
+  ctxt.lineWidth = 1;
   ctxt.beginPath();
-  ctxt.arc(mid.x, mid.y, 10, 0, 2 * PI);
+  ctxt.arc(point.x, point.y, radius, 0, 2 * PI);
   ctxt.closePath();
   ctxt.stroke();
-  if (grabbed == "body") {
-    ctxt.fillStyle = "#4C4";
-    ctxt.fill();
-  } else {
-    ctxt.fillStyle = "#999";
-    ctxt.fill();
-  }
+  ctxt.fillStyle = style;
+  ctxt.fill();
 }
 
 
