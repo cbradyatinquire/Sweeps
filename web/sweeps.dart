@@ -20,7 +20,7 @@ part "parsingInput.dart";
 
 
 
-ImageElement forkedRightButton, rightButton, leftButton;
+ImageElement forkedRightButton, rightButton, leftButton, rotateButtonUpState, rotateButtonDownState;
 ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton, cavalieriButton;
 CanvasElement canv, tools;
 DivElement splash;
@@ -156,6 +156,8 @@ void main() {
   rulerCompareButton = new ImageElement()..src = "images/rulerCompare.png";
   cutSelectedButton = new ImageElement()..src = "images/cutSelected.png";
   cutSelectedClosedButton = new ImageElement()..src = "images/cutSelectedClosed.png";
+  rotateButtonDownState = new ImageElement()..src = "images/rotateDown.png";
+  rotateButtonUpState = new ImageElement()..src = "images/rotateUp.png";
   canv = querySelector("#scanvas");
   tools = querySelector("#tcanvas");
   splash = querySelector("#splashdiv");
@@ -817,12 +819,12 @@ void drawTools() {
 
   if (MODE == 3 && rotationsAllowed) {
     if (doingRotation){
-      ctx.drawImageScaled(new ImageElement()..src = "images/left.png", tools.width - imwid, 0, imwid, imht);
+      ctx.drawImageScaled(rotateButtonDownState, tools.width - imwid, 0, imwid, imht);
     }
     else {
-      ctx.drawImageScaled(new ImageElement()..src = "images/right.png", tools.width - imwid, 0, imwid, imht);
+      ctx.drawImageScaled(rotateButtonUpState, tools.width - imwid, 0, imwid, imht);
     }
-    // TODO: get image(s) for rotation button
+    // TODO: confirm images work for rotation button
 
   }
 
