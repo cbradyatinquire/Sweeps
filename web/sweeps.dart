@@ -17,6 +17,7 @@ part "cavalieri.dart";
 part "post.dart";
 part "tests.dart";
 part "parsingInput.dart";
+part "Geoboard.dart";
 
 
 
@@ -122,6 +123,10 @@ Point pieceDragOrigin;
 bool doingRotation = false;
 int indexSelectedForRotation = -1;
 
+
+// relevant only to the geoboard
+var GEOMouseDown, GEOTouchStart, GEOMouseMove, GEOTouchMove, GEOMouseUp, GEOTouchEnd;
+
 //Screen captures
 List<ImageData> screencaps = new List<ImageData>();
 List<String> screens = new List<String>();
@@ -217,6 +222,21 @@ void doEventSetup() {
   CUTTouchGetRotationPoint.pause();
   CUTMouseUp.pause();
   CUTTouchEnd.pause();
+
+  //relevant only to Geoboard
+  GEOMouseDown = canv.onMouseDown.listen(startDragGEO);
+  GEOTouchStart = canv.onTouchStart.listen(startTouchGEO);
+  GEOMouseMove = canv.onMouseMove.listen(mouseDragGEO);
+  GEOTouchMove = canv.onTouchMove.listen(touchDragGEO);
+  GEOMouseUp = canv.onMouseUp.listen(stopDragGEO);
+  GEOTouchEnd = canv.onTouchEnd.listen(stopTouchGEO);
+
+  GEOMouseDown.pause();
+  GEOTouchStart.pause();
+  GEOMouseMove.pause();
+  GEOTouchMove.pause();
+  GEOMouseUp.pause();
+  GEOTouchEnd.pause();
 
 
 
@@ -525,7 +545,10 @@ void pauseEventsForScreenCapsWindow() {
       CUTMouseMove.pause();
       CUTTouchMove.pause();
       CUTMouseUp.pause();
-      CUTTouchEnd.pause();  
+      CUTTouchEnd.pause();
+
+      CUTMouseGetRotationPoint.pause();
+      CUTTouchGetRotationPoint.pause();
   }
 }
 
@@ -556,7 +579,12 @@ void resumeEventsForScreenCapsWindow() {
         CUTMouseMove.resume();
         CUTTouchMove.resume();
         CUTMouseUp.resume();
-        CUTTouchEnd.resume();  
+        CUTTouchEnd.resume();
+
+        if (rotationsAllowed) {
+          CUTMouseGetRotationPoint.resume();
+          CUTTouchGetRotationPoint.resume();
+        }
     }
 }
 
@@ -720,6 +748,44 @@ void doModeSpecificLogic() {
     drawCavalieri();
     drawTools();
   }
+
+  if (MODE == 5) {
+    pieces = inputPieces;
+
+    GEOMouseDown.resume();
+    GEOTouchStart.resume();
+    GEOMouseMove.resume();
+    GEOTouchMove.resume();
+    GEOMouseUp.resume();
+    GEOTouchEnd.resume();
+
+    if (!SETUPMouseDown.isPaused) {
+      SETUPMouseDown.pause();
+      SETUPTouchStart.pause();
+      SETUPMouseMove.pause();
+      SETUPTouchMove.pause();
+      SETUPMouseUp.pause();
+      SETUPTouchEnd.pause();
+    }
+
+    if (!SWEEPMouseDown.isPaused) {
+      SWEEPMouseDown.pause();
+      SWEEPTouchStart.pause();
+      SWEEPMouseMove.pause();
+      SWEEPTouchMove.pause();
+      SWEEPMouseUp.pause();
+      SWEEPTouchEnd.pause();
+    }
+
+    if (!CUTMouseDown.isPaused) {
+      CUTMouseDown.pause();
+      CUTTouchStart.pause();
+      CUTMouseMove.pause();
+      CUTTouchMove.pause();
+      CUTMouseUp.pause();
+      CUTTouchEnd.pause();
+    }
+  }
 }
 
 
@@ -757,6 +823,12 @@ void startUp(MouseEvent event) {
       originalPieces = inputPieces;
       drawCUT();
       drawTools();
+    }
+
+    if (MODEAfterSetup == 5) {
+      pieces = inputPieces;
+      doModeSpecificLogic();
+      drawGEO();
     }
 
   }
