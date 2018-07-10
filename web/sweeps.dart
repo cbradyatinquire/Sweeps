@@ -62,6 +62,7 @@ bool readyToGoOn = true;
 // 2: Sweeping
 // 3: Cutting
 // 4: Cavalieri
+// 5: Geoboard
 
 int MODEAfterSetup;
 
@@ -296,13 +297,25 @@ void testSwitchMode(MouseEvent e) {
         doModeSpecificLogic();
       }
     }
+  } else if (e.offset.x > rbound && MODE == 5) {
+    MODE = 3;
+    doModeSpecificLogic();
   } else if (e.offset.x > rbound && MODE == 4 ) {
     MODE = 3; 
     animLoopTimer.cancel();
     goOnFromCavalieri(e.offset.y);
   } else if (e.offset.x < lbound) { //we're in the left arrow
-    if (MODE != MODEAfterSetup) {
-      if (MODE == 4) {
+    if (MODEAfterSetup == 5) {
+      if (MODE == 5) {
+        MODE = 1;
+      }
+      else {
+        MODE == 5;
+      }
+      doModeSpecificLogic();
+    }
+    else if (MODE != MODEAfterSetup) {
+      if (MODE == 4 || MODE == 5) {
         MODE = 1;
         readyToGoOn = false;
         draggedUnits = 0;
@@ -685,6 +698,15 @@ void doModeSpecificLogic() {
       SWEEPTouchEnd.pause();
     }
 
+    if (!GEOMouseDown.isPaused) {
+      GEOMouseDown.pause();
+      GEOTouchStart.pause();
+      GEOMouseMove.pause();
+      GEOTouchMove.pause();
+      GEOMouseUp.pause();
+      GEOTouchEnd.pause();
+    }
+
     CUTMouseDown.resume();
     CUTTouchStart.resume();
     CUTMouseMove.resume();
@@ -692,22 +714,23 @@ void doModeSpecificLogic() {
     CUTMouseUp.resume();
     CUTTouchEnd.resume();
 
-    List<Point> gridPoints = new List<Point>();
-    gridPoints.add(s1end);
-    gridPoints.add(s2end);
+    if (MODEAfterSetup != 5) {
+      List<Point> gridPoints = new List<Point>();
+      gridPoints.add(s1end);
+      gridPoints.add(s2end);
 
-    if (dragIsVertical) {
-      gridPoints.add(new Point(s2end.x, s2end.y - draggedUnits));
-      gridPoints.add(new Point(s1end.x, s1end.y - draggedUnits));
-    } else {
-      gridPoints.add(new Point(s2end.x - draggedUnits, s2end.y));
-      gridPoints.add(new Point(s1end.x - draggedUnits, s1end.y));
-
+      if (dragIsVertical) {
+        gridPoints.add(new Point(s2end.x, s2end.y - draggedUnits));
+        gridPoints.add(new Point(s1end.x, s1end.y - draggedUnits));
+      } else {
+        gridPoints.add(new Point(s2end.x - draggedUnits, s2end.y));
+        gridPoints.add(new Point(s1end.x - draggedUnits, s1end.y));
+      }
+      pieces.clear();
+      Piece whole = new Piece(gridPoints);
+      pieces.add(whole);
+      originalPieces = [whole];
     }
-    pieces.clear();
-    Piece whole = new Piece(gridPoints);
-    pieces.add(whole);
-    originalPieces = [whole];
 
     drawCUT();
     drawTools();
@@ -750,7 +773,7 @@ void doModeSpecificLogic() {
   }
 
   if (MODE == 5) {
-    pieces = inputPieces;
+    pieces = originalPieces;
 
     GEOMouseDown.resume();
     GEOTouchStart.resume();
@@ -826,7 +849,8 @@ void startUp(MouseEvent event) {
     }
 
     if (MODEAfterSetup == 5) {
-      pieces = inputPieces;
+      originalPieces = inputPieces;
+      pieces = originalPieces;
       doModeSpecificLogic();
       drawGEO();
     }
@@ -897,6 +921,10 @@ void drawTools() {
   }
   if ( (MODE == 2 && readyToGoOn) || (MODE==4 && cavalieriHeight > 0 ) ){
     ctx.drawImageScaled(forkedRightButton, tools.width - imwid, 0, imwid, imht);
+  }
+
+  if ( MODE == 5 ){
+    ctx.drawImageScaled(rightButton, tools.width - imwid, 0, imwid, imht);
   }
   
   if (MODE < 2 && readyToGoOn) {
