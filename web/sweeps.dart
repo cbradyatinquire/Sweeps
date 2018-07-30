@@ -300,6 +300,7 @@ void testSwitchMode(MouseEvent e) {
   } else if (e.offset.x > rbound && MODE == 5) {
     MODE = 3;
     doModeSpecificLogic();
+
   } else if (e.offset.x > rbound && MODE == 4 ) {
     MODE = 3; 
     animLoopTimer.cancel();
@@ -315,7 +316,7 @@ void testSwitchMode(MouseEvent e) {
       doModeSpecificLogic();
     }
     else if (MODE != MODEAfterSetup) {
-      if (MODE == 4 || MODE == 5) {
+      if (MODE == 4) {
         MODE = 1;
         readyToGoOn = false;
         draggedUnits = 0;
@@ -605,7 +606,7 @@ void resumeEventsForScreenCapsWindow() {
 //response to forward back buttons, once the MODE value has been switched.
 void doModeSpecificLogic() {
   //print("MODE = " + MODE.toString());
-  if (MODE == 1) {
+  if (MODE == 1) { // SETUP
     if (SETUPMouseDown.isPaused) {
       SETUPMouseDown.resume();
       SETUPTouchStart.resume();
@@ -636,12 +637,22 @@ void doModeSpecificLogic() {
       CUTTouchGetRotationPoint.pause();
     }
 
+
+    if (!GEOMouseDown.isPaused) {
+      GEOMouseDown.pause();
+      GEOTouchStart.pause();
+      GEOMouseMove.pause();
+      GEOTouchMove.pause();
+      GEOMouseUp.pause();
+      GEOTouchEnd.pause();
+    }
+
     rememberPresentSETUPSWEEP();
     readyToGoOn = true; //testing this
     drawSETUP();
     drawTools();
   }
-  if (MODE == 2) {
+  if (MODE == 2) { // SWEEPING
     if (!SETUPMouseDown.isPaused) {
       SETUPMouseDown.pause();
       SETUPTouchStart.pause();
@@ -669,6 +680,15 @@ void doModeSpecificLogic() {
       CUTTouchGetRotationPoint.pause();
     }
 
+    if (!GEOMouseDown.isPaused) {
+      GEOMouseDown.pause();
+      GEOTouchStart.pause();
+      GEOMouseMove.pause();
+      GEOTouchMove.pause();
+      GEOMouseUp.pause();
+      GEOTouchEnd.pause();
+    }
+
     grabbed = "";
     draggedUnits = 0;
     hasCut = false;
@@ -679,7 +699,7 @@ void doModeSpecificLogic() {
     drawSWEEP();
     drawTools();
   }
-  if (MODE == 3) { // This
+  if (MODE == 3) { // CUTTING
     if (!SETUPMouseDown.isPaused) {
       SETUPMouseDown.pause();
       SETUPTouchStart.pause();
@@ -761,6 +781,15 @@ void doModeSpecificLogic() {
       CUTTouchMove.pause();
       CUTMouseUp.pause();
       CUTTouchEnd.pause();
+    }
+
+    if (!GEOMouseDown.isPaused) {
+      GEOMouseDown.pause();
+      GEOTouchStart.pause();
+      GEOMouseMove.pause();
+      GEOTouchMove.pause();
+      GEOMouseUp.pause();
+      GEOTouchEnd.pause();
     }
     
     if (ss != null && ss.isPaused){
@@ -1086,7 +1115,7 @@ int getSubTickCoordForPixelV(int py) {
 
 
 void overrideFontsForIPAD() {
-  print("got here");
+  //print("got here");
   document.querySelectorAll(".popinput").style.font = "20pt sans-serif";
   document.querySelectorAll(".popbutton").style.font = "22pt sans-serif";
 }

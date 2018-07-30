@@ -796,4 +796,16 @@ class Piece {
     ctxt.fill();
     ctxt.stroke();
   }
+
+
+  String toString() {
+    String toReturn = "(";
+
+    vertices.forEach( (p) => toReturn = toReturn + ", (" + p.x.toString() + ", " + p.y.toString() + ")");
+
+    toReturn = toReturn + ")";
+
+    return toReturn;
+  }
+
 }

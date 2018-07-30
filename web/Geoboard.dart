@@ -114,7 +114,7 @@ void drawGEO() {
 
   drawRulers(ctx);
   drawGrid(ctx);
-  //drawTools();
+  drawTools();
 
 
   pieces.forEach((piece) => piece.draw(ctx));
