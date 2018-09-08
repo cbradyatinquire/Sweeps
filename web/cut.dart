@@ -10,9 +10,11 @@ var cutGrabbed = "none";
 int numSubdivisions = 30;
 int numIterations = 0;
 Point currentCenter = null;
-Point currentPossibleCenter = null;
+Point currentPossibleCenter = null; // in canvas coordinates
+Point shapeRotationPoint = null;
 int radiusOfRotationPoints = 5;
 Piece rotatedPiece = null;
+bool rotationAllowed = false;
 
 void setCutPoints() {
   vcuts = new Point(hoff - 20, getYForVSubTick(-1 + vticks * vSubTicks));
@@ -21,12 +23,23 @@ void setCutPoints() {
 
 //CUT MODE HAS AN IMMEDIATE RESPONSE TO THE CLICK.
 void startDragCUT(MouseEvent event) {
-  clickLogicCUT(event.offset);
+  if (!doingRotation) {
+    clickLogicCUT(event.offset);
+  }
+  else {
+    clickLogicROTATE(event.offset, true);
+  }
 }
 
 void startTouchCUT(TouchEvent evt) {
   Point initPoint = evt.changedTouches[0].client;
-  clickLogicCUT(initPoint);
+
+  if (!doingRotation) {
+    clickLogicCUT(initPoint);
+  }
+  else {
+    clickLogicROTATE(initPoint, false);
+  }
 }
 
 
@@ -65,7 +78,7 @@ void dragFirstPieceClickedOn(Point pt)
   }
 }
 
-
+//only will be called outside of rotations
 void clickLogicCUT(Point pt) { // inputted point is where the mouse clicked; logic for mouse DOWN only
   if (cutFlavor == "all") {
     if (!hasCut) { // logic for the first click only
@@ -74,55 +87,164 @@ void clickLogicCUT(Point pt) { // inputted point is where the mouse clicked; log
       drawCUT();
     }
     else { // logic for all times pieces are moving
-      if (!doingRotation) {
-        drawCUT();
-        dragFirstPieceClickedOn(pt);
-      }
+      drawCUT();
+      dragFirstPieceClickedOn(pt);
     }
   }
   else { // logic for cutting a piece yourself, when cutFlavor == "select" (dragThreshold is the error tolerance for a click)
-    if (!doingRotation) {
-      if (sqPixelDistance(pt, vcuts) < dragThreshold) {
-        cutGrabbed = "vertical";
-        drawCUT();
-      } else if (sqPixelDistance(pt, hcuts) < dragThreshold) {
-        cutGrabbed = "horizontal";
-        drawCUT();
-      } else if (pt.y < 50 && pt.x < 50) { // this does not trigger cut yet, only makes screen change color to show it is cutting, cut happens when mouse lifts UP, in either stopTouchCUT or stopDragCUT
-        cutGrabbed = "scissors";
-        drawCUT();
-      } else {
-        drawCUT();
-        dragFirstPieceClickedOn(pt);
-      }
+    if (sqPixelDistance(pt, vcuts) < dragThreshold) {
+      cutGrabbed = "vertical";
+      drawCUT();
+    } else if (sqPixelDistance(pt, hcuts) < dragThreshold) {
+      cutGrabbed = "horizontal";
+      drawCUT();
+    } else if (pt.y < 50 && pt.x < 50) { // this does not trigger cut yet, only makes screen change color to show it is cutting, cut happens when mouse lifts UP, in either stopTouchCUT or stopDragCUT
+      cutGrabbed = "scissors";
+      drawCUT();
+    } else {
+      drawCUT();
+      dragFirstPieceClickedOn(pt);
     }
   }
+}
 
-  if (doingRotation) {
-    if (indexSelectedForRotation == -1) {
-      num i = getFirstIndex(pt);
-      if (i == -1) {
-        doingRotation = false;
-      }
-      else {
-        indexSelectedForRotation = i;
-        currentPossibleCenter = pt;
-        drawRotationCenter(canv.context2D);
-        CUTMouseGetRotationPoint.resume();
-        CUTTouchGetRotationPoint.resume();
-      }
-    }
-    else if (!rotationInProgress) {
-      Point p = new Point( 0.5 * (2.0 * getGridCoordForPixelH(pt.x)).round(), 0.5 * (2.0 * getGridCoordForPixelV(pt.y)).round());
-      rotationInProgress = true;
-      rotatePiece(p);
-      CUTMouseGetRotationPoint.pause();
-      CUTTouchGetRotationPoint.pause();
-    }
+void drawRotationConnection(Point shapePoint, Point rotationPoint, bool allowed) {
+
+  CanvasRenderingContext2D ctxt = canv.context2D;
+
+  if (allowed) {
+    ctxt.strokeStyle = "rgba(0, 255, 0, 0.8)";
+    ctxt.fillStyle = "rgba(0, 255, 0, .2)";
+  }
+  else {
+    ctxt.strokeStyle = "rgba(255, 0, 0, 0.8)";
+    ctxt.fillStyle = "rgba(255, 0, 0, .2)";
   }
 
+  num centerx = getXForHSubTick(rotationPoint.x);
+  num centery = getYForVSubTick(rotationPoint.y);
+
+  num dispx = getXForHSubTick(shapePoint.x) - centerx;
+  num dispy = getYForVSubTick(shapePoint.y) - centery;
+  ctxt.moveTo(dispx + centerx, dispy + centery);
+  ctxt.lineTo(centerx, centery);
+  ctxt.stroke();
+
+  if (indexSelectedForRotation != -1) // shouldn't be, but just checking to be safe
+      {
+    pieces[indexSelectedForRotation].rotate180Degrees(rotationPoint).drawInsubstantialForRotate(ctxt, allowed);
+  }
+
+  num length = sqrt( dispx * dispx + dispy * dispy );
+
+  // want to rotate by 15 degrees and make a new line that's somewhat more transparent
+  num disp2x = length * ( (dispx / length) * cos(15 * 2 * PI / 360 ) - (dispy / length) * sin(15 * 2 * PI / 360));
+  num disp2y = length * ( (dispx / length) * sin(15 * 2 * PI / 360 ) + (dispy / length) * cos(15 * 2 * PI / 360));
+
+  if (allowed) {
+    ctxt.strokeStyle = "rgba(0, 255, 0, 0.6)";
+  }
+  else {
+    ctxt.strokeStyle = "rgba(255, 0, 0, 0.6)";
+  }
+
+  ctxt.moveTo(disp2x + centerx, disp2y + centery);
+  ctxt.lineTo(centerx, centery);
+  ctxt.stroke();
+
+  // repeating this:
+  num disp3x = length * ((disp2x / length) * cos(15 * 2 * PI / 360 ) - (disp2y / length) * sin(15 * 2 * PI / 360));
+  num disp3y = length * ((disp2x / length) * sin(15 * 2 * PI / 360 ) + (disp2y / length) * cos(15 * 2 * PI / 360));
+
+  if (allowed) {
+    ctxt.strokeStyle = "rgba(0, 255, 0, 0.4)";
+  }
+  else {
+    ctxt.strokeStyle = "rgba(255, 0, 0, 0.4)";
+  }
+
+  ctxt.moveTo(disp3x + centerx, disp3y + centery);
+  ctxt.lineTo(centerx, centery);
+  ctxt.stroke();
+
+  // and again:
+  num disp4x = length * ((disp3x / length) * cos(15 * 2 * PI / 360 ) - (disp3y / length) * sin(15 * 2 * PI / 360));
+  num disp4y = length * ((disp3x / length) * sin(15 * 2 * PI / 360 ) + (disp3y / length) * cos(15 * 2 * PI / 360));
+
+  if (allowed) {
+    ctxt.strokeStyle = "rgba(0, 255, 0, 0.2)";
+  }
+  else {
+    ctxt.strokeStyle = "rgba(255, 0, 0, 0.2)";
+  }
+
+  ctxt.moveTo(disp4x + centerx, disp4y + centery);
+  ctxt.lineTo(centerx, centery);
+  ctxt.stroke();
+
+
+  //drawing an arrow
+  if (allowed) {
+    ctxt.strokeStyle = "rgba(0, 255, 0, 1)";
+    ctxt.fillStyle = "rgba(0, 255, 0, .1)";
+  }
+  else {
+    ctxt.strokeStyle = "rgba(255, 0, 0, 1)";
+    ctxt.fillStyle = "rgba(255, 0, 0, .1)";
+  }
+
+  ctxt.moveTo(centerx + (disp3x / 3), centery + (disp3y / 3));
+  ctxt.lineTo(centerx + (disp4x / 2), centery + (disp4y / 2));
+  ctxt.lineTo(centerx + (2 * disp3x / 3), centery + (2 * disp3y / 3));
+  ctxt.closePath();
+  ctxt.fill();
+  ctxt.stroke();
+
+  num angle;
+
+  if (dispy > 0) {
+    angle = acos(dispx / length);
+  }
+  else {
+    angle = 2 * PI - acos(dispx / length);
+  }
+
+  ctxt.moveTo(centerx + (dispx / 2), centery + (dispy / 2));
+  ctxt.arc(centerx, centery, length/2, angle, angle + (2 * PI / 360 * (15 * 3)));
+  ctxt.stroke();
+
+  //TODO draw arc showing rotation direction
 
 }
+
+
+
+
+void clickLogicROTATE(Point pt, bool isMouse) {
+  if (indexSelectedForRotation == -1) { // haven't selected a piece yet
+    num i = getFirstIndex(pt);
+    if (i == -1) {
+      doingRotation = false;
+    }
+    else {
+      indexSelectedForRotation = i;
+      currentPossibleCenter = new Point( 0.5 * (2.0 * getGridCoordForPixelH(pt.x)).round(), 0.5 * (2.0 * getGridCoordForPixelV(pt.y)).round());
+      shapeRotationPoint = new Point( 0.5 * (2.0 * getGridCoordForPixelH(pt.x)).round(), 0.5 * (2.0 * getGridCoordForPixelV(pt.y)).round());
+      CUTMouseGetRotationPoint.resume();
+      CUTTouchGetRotationPoint.resume();
+    }
+  }
+  else if (isMouse && !rotationInProgress) {
+    Point p = new Point( 0.5 * (2.0 * getGridCoordForPixelH(pt.x)).round(), 0.5 * (2.0 * getGridCoordForPixelV(pt.y)).round());
+    rotationInProgress = true;
+    rotatePiece(p);
+    CUTMouseGetRotationPoint.pause();
+    CUTTouchGetRotationPoint.pause();
+  }
+}
+
+
+
 
 num getFirstIndex(Point pt) {
   num i = 0;
@@ -186,12 +308,33 @@ void drawCUT() {
   /*if (wasInCavalieri) { drawCavalieriPath(ctx); }
   else { drawSweeperSweptSWEEP(ctx); }*/
 
-  if (hasCut) { pieces.forEach((piece) => piece.draw(ctx)); }
+  //if (hasCut) { pieces.forEach((piece) => piece.draw(ctx)); }
 
   if (doingRotation && indexSelectedForRotation != -1) {
-    pieces[indexSelectedForRotation].drawAsDragging(ctx);
+
+    bool allowed = pieces[indexSelectedForRotation].possibleCenter(currentPossibleCenter, vticks * vSubTicks, hticks * hSubTicks);
+
     drawRotationCenter(ctx);
+    //drawRotationConnection(shapeRotationPoint, currentPossibleCenter, allowed);
+    pieces[indexSelectedForRotation].drawRotatedCopiesEveryNDegrees(ctx, currentPossibleCenter, 45, allowed);
+
+    pieces[indexSelectedForRotation].rotate180Degrees(currentPossibleCenter).drawInsubstantialForRotate(ctx, allowed);
+
+
+    pieces[indexSelectedForRotation].drawAsDragging(ctx);
   }
+
+  if (hasCut) {
+    int i = 0;
+    while (i < pieces.length) {
+      if (i != indexSelectedForRotation) {
+        pieces[i].draw(ctx);
+      }
+      i++;
+    }
+  }
+
+
 
   drawTools();
 
@@ -208,12 +351,7 @@ void touchGetRotationPoint(TouchEvent e) {
         0.5 * (2.0 * getGridCoordForPixelH(pt.x)).round(),
         0.5 * (2.0 * getGridCoordForPixelV(pt.y)).round());
 
-    CanvasRenderingContext2D ctx = canv.context2D;
-
     drawCUT();
-    pieces[indexSelectedForRotation].drawAsDragging(ctx);
-
-    drawRotationCenter(ctx);
   }
 }
 
@@ -223,12 +361,9 @@ void mouseGetRotationPoint(MouseEvent e) {
       0.5 * (2.0 * getGridCoordForPixelH(pt.x)).round(),
       0.5 * (2.0 * getGridCoordForPixelV(pt.y)).round());
 
-  CanvasRenderingContext2D ctx = canv.context2D;
 
   drawCUT();
-  pieces[indexSelectedForRotation].drawAsDragging(ctx);
 
-  drawRotationCenter(ctx);
 }
 
 void drawRotationCenter(CanvasRenderingContext2D ctx) {
@@ -350,6 +485,13 @@ void stopTouchCUT(TouchEvent evt) {
   }
   cutGrabbed = "none"; // resets cutGrabbed (from where it was set in clickLogicCut)
   drawCUT();
+
+  if (indexSelectedForRotation != -1){
+    rotationInProgress = true;
+    rotatePiece(currentPossibleCenter);
+    CUTMouseGetRotationPoint.pause();
+    CUTTouchGetRotationPoint.pause();
+  }
 }
 
 

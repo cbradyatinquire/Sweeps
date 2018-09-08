@@ -5,9 +5,12 @@ import 'dart:math';
 import 'dart:core';
 import 'dart:async';
 
+import 'dart:convert';
+
 import 'package:uuid/uuid.dart';
 
 import 'dart:js';
+
 
 part "piece.dart";
 part "setup.dart";
@@ -18,6 +21,7 @@ part "post.dart";
 part "tests.dart";
 part "parsingInput.dart";
 part "Geoboard.dart";
+part "ModeManagingMethods.dart";
 
 
 
@@ -169,10 +173,12 @@ void main() {
   splash = querySelector("#splashdiv");
   submitUnitsButton = document.querySelector("#submitUnit");
   manageInputs();
+  manageWebpageInput(); // can react to outside requests to change the state
   splash.onClick.listen(startUp);
 }
 
 void doEventSetup() {
+
   //SETUP MODE EVENTS
   SETUPMouseDown = canv.onMouseDown.listen(startDragSETUP);
   SETUPTouchStart = canv.onTouchStart.listen(startTouchSETUP);
@@ -207,22 +213,10 @@ void doEventSetup() {
   listenForVerticalUnitsSubmit.pause();
 
   //Pause the SWEEP mode events because we start in SETUP mode
-  SWEEPMouseDown.pause();
-  SWEEPTouchStart.pause();
-  SWEEPMouseMove.pause();
-  SWEEPTouchMove.pause();
-  SWEEPMouseUp.pause();
-  SWEEPTouchEnd.pause();
+  TurnOffSWEEP();
 
   //Pause the CUT mode events because we start in SETUP mode
-  CUTMouseDown.pause();
-  CUTTouchStart.pause();
-  CUTMouseMove.pause();
-  CUTTouchMove.pause();
-  CUTMouseGetRotationPoint.pause();
-  CUTTouchGetRotationPoint.pause();
-  CUTMouseUp.pause();
-  CUTTouchEnd.pause();
+  TurnOffCUT();
 
   //relevant only to Geoboard
   GEOMouseDown = canv.onMouseDown.listen(startDragGEO);
@@ -232,14 +226,7 @@ void doEventSetup() {
   GEOMouseUp = canv.onMouseUp.listen(stopDragGEO);
   GEOTouchEnd = canv.onTouchEnd.listen(stopTouchGEO);
 
-  GEOMouseDown.pause();
-  GEOTouchStart.pause();
-  GEOMouseMove.pause();
-  GEOTouchMove.pause();
-  GEOMouseUp.pause();
-  GEOTouchEnd.pause();
-
-
+  TurnOffGEO();
 
   //set up mouse actions on the screen capture dialog.
   // document.querySelector("#trashIcon").onMouseUp.listen( deleteScreenCap );
@@ -343,7 +330,7 @@ void testSwitchMode(MouseEvent e) {
         doModeSpecificLogic();
       }
       if (MODE == 3) {
-        pieces = inputPieces;
+        pieces = copy(inputPieces);
         drawCUT();
         drawTools();
       }
@@ -378,59 +365,44 @@ void goOnFromCavalieri(int yclickvalue) {
   }
   
   if (!SETUPMouseDown.isPaused) {
-       SETUPMouseDown.pause();
-       SETUPTouchStart.pause();
-       SETUPMouseMove.pause();
-       SETUPTouchMove.pause();
-       SETUPMouseUp.pause();
-       SETUPTouchEnd.pause();
-     }
+    TurnOffSETUP();
+  }
 
-     if (!SWEEPMouseDown.isPaused) {
-       SWEEPMouseDown.pause();
-       SWEEPTouchStart.pause();
-       SWEEPMouseMove.pause();
-       SWEEPTouchMove.pause();
-       SWEEPMouseUp.pause();
-       SWEEPTouchEnd.pause();
-     }
+  if (!SWEEPMouseDown.isPaused) {
+    TurnOffSWEEP();
+  }
 
-     if (CUTMouseDown.isPaused) {
-       CUTMouseDown.resume();
-       CUTTouchStart.resume();
-       CUTMouseMove.resume();
-       CUTTouchMove.resume();
-       CUTMouseUp.resume();
-       CUTTouchEnd.resume();
-     }
-     
-     //FOR CUTTING CAVALIERI WITH GRID POINTS MANUALLY.
-     if (yclickvalue < (tools.height / 2)) {
-       cutFlavor = "all";
-       hasCut = false;
-     } else {
-       cutFlavor = "selected";
-       hasCut = true;
-     }
-     setCutPoints();
-    
+  if (CUTMouseDown.isPaused) {
+    TurnOnCUT();
+  }
 
-     List<Point> gridPoints = new List<Point>();
-     for (int i = 0; i<t1s.length; i++ ) {
-         gridPoints.add(t1s[i]);
-       }
-       for (int j = t2s.length - 1; j>=0; j-- ) {
-         gridPoints.add(t2s[j]);
-       }
-     //gridPoints.add(t1s[0]);
-     
-     pieces.clear();
-     Piece whole = new Piece(gridPoints);
-     pieces.add(whole);
-     originalPieces = [whole];
-     
-     drawCUT();
-     drawTools();
+  //FOR CUTTING CAVALIERI WITH GRID POINTS MANUALLY.
+  if (yclickvalue < (tools.height / 2)) {
+    cutFlavor = "all";
+    hasCut = false;
+  } else {
+    cutFlavor = "selected";
+    hasCut = true;
+  }
+  setCutPoints();
+
+
+  List<Point> gridPoints = new List<Point>();
+  for (int i = 0; i<t1s.length; i++ ) {
+    gridPoints.add(t1s[i]);
+  }
+  for (int j = t2s.length - 1; j>=0; j-- ) {
+    gridPoints.add(t2s[j]);
+  }
+  //gridPoints.add(t1s[0]);
+
+  pieces.clear();
+  Piece whole = new Piece(gridPoints);
+  pieces.add(whole);
+  originalPieces = copy(pieces);
+
+  drawCUT();
+  drawTools();
 }
 
 void addScreenCap() {
@@ -439,11 +411,11 @@ void addScreenCap() {
   
   //screencaps.add(imageData);
   screens.add(base64Cap);// Two lists, one of screenshots & one of captions
-  List<String> userInput = getUserInput();
-  if (userInput != null) {
-    toolsText.add(userInput[0]);  // adding data to both
+  List<String> userInput = new List<String>(); //getUserInput();
+ //if (userInput != null) {
+   // toolsText.add(userInput[0]);  // adding data to both
     postImageData(canv, userInput); // posting newest addition to webpage
-  }
+  //}
 
 }
 
@@ -536,33 +508,19 @@ void pauseEventsForScreenCapsWindow() {
   //print("Pausing nav");
   navigationEvents.pause();
   if (MODE == 1) {
-      SETUPMouseDown.pause();
-      SETUPTouchStart.pause();
-      SETUPMouseMove.pause();
-      SETUPTouchMove.pause();
-      SETUPMouseUp.pause();
-      SETUPTouchEnd.pause();
+    TurnOffSETUP();
     }
 
     if (MODE == 2) {
-      SWEEPMouseDown.pause();
-      SWEEPTouchStart.pause();
-      SWEEPMouseMove.pause();
-      SWEEPTouchMove.pause();
-      SWEEPMouseUp.pause();
-      SWEEPTouchEnd.pause();
+    TurnOffSWEEP();
     }
   
   if (MODE == 3) {
-      CUTMouseDown.pause();
-      CUTTouchStart.pause();
-      CUTMouseMove.pause();
-      CUTTouchMove.pause();
-      CUTMouseUp.pause();
-      CUTTouchEnd.pause();
+    TurnOffCUT();
+  }
 
-      CUTMouseGetRotationPoint.pause();
-      CUTTouchGetRotationPoint.pause();
+  if (MODE == 5) {
+    TurnOffGEO();
   }
 }
 
@@ -570,36 +528,20 @@ void resumeEventsForScreenCapsWindow() {
   //print("resuming nav");
   navigationEvents.resume();
   if (MODE == 1) {
-        SETUPMouseDown.resume();
-        SETUPTouchStart.resume();
-        SETUPMouseMove.resume();
-        SETUPTouchMove.resume();
-        SETUPMouseUp.resume();
-        SETUPTouchEnd.resume();
-      }
+     TurnOnSETUP();
+  }
 
-      if (MODE == 2) {
-        SWEEPMouseDown.resume();
-        SWEEPTouchStart.resume();
-        SWEEPMouseMove.resume();
-        SWEEPTouchMove.resume();
-        SWEEPMouseUp.resume();
-        SWEEPTouchEnd.resume();
-      }
-    
-    if (MODE == 3) {
-        CUTMouseDown.resume();
-        CUTTouchStart.resume();
-        CUTMouseMove.resume();
-        CUTTouchMove.resume();
-        CUTMouseUp.resume();
-        CUTTouchEnd.resume();
+  if (MODE == 2) {
+    TurnOnSWEEP();
+  }
 
-        if (rotationsAllowed) {
-          CUTMouseGetRotationPoint.resume();
-          CUTTouchGetRotationPoint.resume();
-        }
-    }
+  if (MODE == 3) {
+    TurnOnCUT();
+  }
+
+  if (MODE == 5) {
+    TurnOnGEO();
+  }
 }
 
 
@@ -608,43 +550,20 @@ void doModeSpecificLogic() {
   //print("MODE = " + MODE.toString());
   if (MODE == 1) { // SETUP
     if (SETUPMouseDown.isPaused) {
-      SETUPMouseDown.resume();
-      SETUPTouchStart.resume();
-      SETUPMouseMove.resume();
-      SETUPTouchMove.resume();
-      SETUPMouseUp.resume();
-      SETUPTouchEnd.resume();
+      TurnOnSETUP();
       showArea = false;
     }
 
     if (!SWEEPMouseDown.isPaused) {
-      SWEEPMouseDown.pause();
-      SWEEPTouchStart.pause();
-      SWEEPMouseMove.pause();
-      SWEEPTouchMove.pause();
-      SWEEPMouseUp.pause();
-      SWEEPTouchEnd.pause();
+      TurnOffSWEEP();
     }
 
     if (!CUTMouseDown.isPaused) {
-      CUTMouseDown.pause();
-      CUTTouchStart.pause();
-      CUTMouseMove.pause();
-      CUTTouchMove.pause();
-      CUTMouseUp.pause();
-      CUTTouchEnd.pause();
-      CUTMouseGetRotationPoint.pause();
-      CUTTouchGetRotationPoint.pause();
+      TurnOffCUT();
     }
 
-
     if (!GEOMouseDown.isPaused) {
-      GEOMouseDown.pause();
-      GEOTouchStart.pause();
-      GEOMouseMove.pause();
-      GEOTouchMove.pause();
-      GEOMouseUp.pause();
-      GEOTouchEnd.pause();
+      TurnOffGEO();
     }
 
     rememberPresentSETUPSWEEP();
@@ -654,39 +573,17 @@ void doModeSpecificLogic() {
   }
   if (MODE == 2) { // SWEEPING
     if (!SETUPMouseDown.isPaused) {
-      SETUPMouseDown.pause();
-      SETUPTouchStart.pause();
-      SETUPMouseMove.pause();
-      SETUPTouchMove.pause();
-      SETUPMouseUp.pause();
-      SETUPTouchEnd.pause();
+      TurnOffSETUP();
     }
 
-    SWEEPMouseDown.resume();
-    SWEEPTouchStart.resume();
-    SWEEPMouseMove.resume();
-    SWEEPTouchMove.resume();
-    SWEEPMouseUp.resume();
-    SWEEPTouchEnd.resume();
+    TurnOnSWEEP();
 
     if (!CUTMouseDown.isPaused) {
-      CUTMouseDown.pause();
-      CUTTouchStart.pause();
-      CUTMouseMove.pause();
-      CUTTouchMove.pause();
-      CUTMouseUp.pause();
-      CUTTouchEnd.pause();
-      CUTMouseGetRotationPoint.pause();
-      CUTTouchGetRotationPoint.pause();
+      TurnOffCUT();
     }
 
     if (!GEOMouseDown.isPaused) {
-      GEOMouseDown.pause();
-      GEOTouchStart.pause();
-      GEOMouseMove.pause();
-      GEOTouchMove.pause();
-      GEOMouseUp.pause();
-      GEOTouchEnd.pause();
+      TurnOffGEO();
     }
 
     grabbed = "";
@@ -701,38 +598,18 @@ void doModeSpecificLogic() {
   }
   if (MODE == 3) { // CUTTING
     if (!SETUPMouseDown.isPaused) {
-      SETUPMouseDown.pause();
-      SETUPTouchStart.pause();
-      SETUPMouseMove.pause();
-      SETUPTouchMove.pause();
-      SETUPMouseUp.pause();
-      SETUPTouchEnd.pause();
+      TurnOffSETUP();
     }
 
     if (!SWEEPMouseDown.isPaused) {
-      SWEEPMouseDown.pause();
-      SWEEPTouchStart.pause();
-      SWEEPMouseMove.pause();
-      SWEEPTouchMove.pause();
-      SWEEPMouseUp.pause();
-      SWEEPTouchEnd.pause();
+      TurnOffSWEEP();
     }
 
     if (!GEOMouseDown.isPaused) {
-      GEOMouseDown.pause();
-      GEOTouchStart.pause();
-      GEOMouseMove.pause();
-      GEOTouchMove.pause();
-      GEOMouseUp.pause();
-      GEOTouchEnd.pause();
+      TurnOffGEO();
     }
 
-    CUTMouseDown.resume();
-    CUTTouchStart.resume();
-    CUTMouseMove.resume();
-    CUTTouchMove.resume();
-    CUTMouseUp.resume();
-    CUTTouchEnd.resume();
+    TurnOnCUT();
 
     if (MODEAfterSetup != 5) {
       List<Point> gridPoints = new List<Point>();
@@ -749,7 +626,7 @@ void doModeSpecificLogic() {
       pieces.clear();
       Piece whole = new Piece(gridPoints);
       pieces.add(whole);
-      originalPieces = [whole];
+      originalPieces = copy(pieces);
     }
 
     drawCUT();
@@ -757,39 +634,19 @@ void doModeSpecificLogic() {
   }
   if (MODE == 4) {
     if (!SETUPMouseDown.isPaused) {
-      SETUPMouseDown.pause();
-      SETUPTouchStart.pause();
-      SETUPMouseMove.pause();
-      SETUPTouchMove.pause();
-      SETUPMouseUp.pause();
-      SETUPTouchEnd.pause();
+      TurnOffSETUP();
     }
 
     if (!SWEEPMouseDown.isPaused) {
-      SWEEPMouseDown.pause();
-      SWEEPTouchStart.pause();
-      SWEEPMouseMove.pause();
-      SWEEPTouchMove.pause();
-      SWEEPMouseUp.pause();
-      SWEEPTouchEnd.pause();
+      TurnOffSWEEP();
     }
     
     if (!CUTMouseDown.isPaused) {
-      CUTMouseDown.pause();
-      CUTTouchStart.pause();
-      CUTMouseMove.pause();
-      CUTTouchMove.pause();
-      CUTMouseUp.pause();
-      CUTTouchEnd.pause();
+      TurnOffCUT();
     }
 
     if (!GEOMouseDown.isPaused) {
-      GEOMouseDown.pause();
-      GEOTouchStart.pause();
-      GEOMouseMove.pause();
-      GEOTouchMove.pause();
-      GEOMouseUp.pause();
-      GEOTouchEnd.pause();
+      TurnOffGEO();
     }
     
     if (ss != null && ss.isPaused){
@@ -802,40 +659,20 @@ void doModeSpecificLogic() {
   }
 
   if (MODE == 5) {
-    pieces = originalPieces;
+    pieces = copy(inputPieces);
 
-    GEOMouseDown.resume();
-    GEOTouchStart.resume();
-    GEOMouseMove.resume();
-    GEOTouchMove.resume();
-    GEOMouseUp.resume();
-    GEOTouchEnd.resume();
+    TurnOnGEO();
 
     if (!SETUPMouseDown.isPaused) {
-      SETUPMouseDown.pause();
-      SETUPTouchStart.pause();
-      SETUPMouseMove.pause();
-      SETUPTouchMove.pause();
-      SETUPMouseUp.pause();
-      SETUPTouchEnd.pause();
+      TurnOffSETUP();
     }
 
     if (!SWEEPMouseDown.isPaused) {
-      SWEEPMouseDown.pause();
-      SWEEPTouchStart.pause();
-      SWEEPMouseMove.pause();
-      SWEEPTouchMove.pause();
-      SWEEPMouseUp.pause();
-      SWEEPTouchEnd.pause();
+      TurnOffSWEEP();
     }
 
     if (!CUTMouseDown.isPaused) {
-      CUTMouseDown.pause();
-      CUTTouchStart.pause();
-      CUTMouseMove.pause();
-      CUTTouchMove.pause();
-      CUTMouseUp.pause();
-      CUTTouchEnd.pause();
+      TurnOffCUT();
     }
   }
 }
@@ -871,15 +708,17 @@ void startUp(MouseEvent event) {
       hasCut = true;
       setCutPoints();
       doModeSpecificLogic();
-      pieces = inputPieces;
-      originalPieces = inputPieces;
+
+      pieces = copy(inputPieces);
+      originalPieces = copy(inputPieces);
       drawCUT();
       drawTools();
     }
 
     if (MODEAfterSetup == 5) {
-      originalPieces = inputPieces;
-      pieces = originalPieces;
+      pieces = copy(inputPieces);
+      originalPieces = copy(inputPieces);
+
       doModeSpecificLogic();
       drawGEO();
     }
@@ -968,7 +807,6 @@ void drawTools() {
     else {
       ctx.drawImageScaled(rotateButtonUpState, tools.width - imwid, 0, imwid, imht);
     }
-    // TODO: confirm images work for rotation button
 
   }
 
@@ -1406,4 +1244,17 @@ void drawVerticalAxisCompare(CanvasRenderingContext2D ctxt, int right) {
   ctxt.closePath();
   ctxt.stroke();
   ctxt.restore();
+}
+
+
+List<Piece> copy(List<Piece> input) {
+  List<Piece> toReturn = new List<Piece>();
+
+  int i = 0;
+  while (i < input.length) {
+    toReturn.add(input[i].copy());
+    i++;
+  }
+
+  return toReturn;
 }

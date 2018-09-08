@@ -66,26 +66,29 @@ List<Point> ParseSlider(String s) {
           currentYcor = currentYcor * pow(0.1, decimalPlaces);
           toReturn.add(new Point(currentXcor, currentYcor));
         }
+        else {
+          if (currentPlace == ",") {
+            currentXcor = currentXcor * pow(0.1, decimalPlaces);
+            onYcor = true;
+            countingDec = false;
+            decimalPlaces = 0;
+          }
 
-        if (currentPlace == ",") {
-          currentXcor = currentXcor * pow(0.1, decimalPlaces);
-          onYcor = true;
-          countingDec = false;
-          decimalPlaces = 0;
-        }
+          else {
+            num digit = digits.indexOf(currentPlace);
+            if (digit != -1) {
+              if (onYcor)
+                currentYcor = currentYcor * 10 + digit;
+              else
+                currentXcor = currentXcor * 10 + digit;
+              if (countingDec)
+                decimalPlaces++;
+            }
 
-        num digit = digits.indexOf(currentPlace);
-        if (digit != -1) {
-          if (onYcor)
-            currentYcor = currentYcor * 10 + digit;
-          else
-            currentXcor = currentXcor * 10 + digit;
-          if (countingDec)
-            decimalPlaces++;
-        }
-
-        if (currentPlace == ".") {
-          countingDec = true;
+            if (currentPlace == ".") {
+              countingDec = true;
+            }
+          }
         }
       }
     }
@@ -104,6 +107,10 @@ List<Point> ParseSlider(String s) {
 
 
 List<Piece> ParsePieces(String s) {
+  if (s == null) {
+    return new List<Piece>();
+  }
+
   bool inPoint = false;
   List<Point> currentPiece = new List<Point>();
   List<Piece> toReturn = new List<Piece>();

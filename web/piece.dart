@@ -23,6 +23,44 @@ class Piece {
     establishBoundingBox();
     setupSides();
   }
+  
+  List<num> getColor() {
+    List<num> toReturn = new List<num>();
+
+    num current = 0;
+    
+    List<String> digits = [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ];
+
+
+    int j = 5;
+    while (j < fillsty.length) {
+      String currentPlace = fillsty[j];
+
+
+      if (currentPlace == " ") {
+        j++;
+      }
+      else {
+        if (currentPlace == ",") {
+          toReturn.add(current);
+          current = 0;
+          j++;
+        }
+        else {
+          if (currentPlace != ")") {
+            current = current * 10 + digits.indexOf(currentPlace);
+            j++;
+          }
+          else {
+            toReturn.add(current);
+            return toReturn;
+          }
+        }
+      }
+    }
+
+    return toReturn;
+  }
 
   void setColor(List<num> c){
     while (c.length < 4) {
@@ -776,17 +814,99 @@ class Piece {
     setupSides();
   }
 
+  Piece copy() { // make an identical copy a piece sidestep pointer issues
+    List<Point> newVerticies = new List<Point>();
+
+    int i = 0;
+    while (i < vertices.length) {
+      newVerticies.add(new Point(vertices[i].x, vertices[i].y));
+      i++;
+    }
+
+    return new Piece(newVerticies);
+  }
+
   void drawAsDragging(CanvasRenderingContext2D ctxt) {
     ctxt.strokeStyle = strokesty;
     ctxt.fillStyle = "#F55";
     mainDraw(ctxt);
   }
+
   void draw(CanvasRenderingContext2D ctxt) {
     ctxt.strokeStyle = strokesty;
     ctxt.fillStyle = fillsty;
     mainDraw(ctxt);
   }
-  
+
+  void drawAsVeryInsubstantial(CanvasRenderingContext2D ctxt, bool allowed) {
+
+    ctxt.beginPath();
+    if (allowed) {
+      ctxt.strokeStyle = "rgba(0, 255, 0, 1)";
+      ctxt.fillStyle = "rgba(0, 255, 0, .1)";
+    }
+    else {
+      ctxt.strokeStyle = "rgba(255, 0, 0, 0.2)";
+      ctxt.fillStyle = "rgba(255, 0, 0, .03)";
+    }
+
+    Point strtpt = vertices.last;
+    ctxt.moveTo(getXForHSubTick(strtpt.x), getYForVSubTick(strtpt.y));
+
+    ctxt.setLineDash([3]); // making the line dashed
+
+    vertices.forEach((vertex) => ctxt.lineTo(getXForHSubTick(vertex.x), getYForVSubTick(vertex.y)));
+    ctxt.closePath();
+    ctxt.fill();
+    ctxt.stroke();
+
+    ctxt.setLineDash([]); // making the line not dashed
+
+
+  }
+
+
+  void drawRotatedCopiesEveryNDegrees(CanvasRenderingContext2D ctxt, Point center, num degreeInterval, bool allowed) {
+    int i = degreeInterval;
+
+    Piece temp;
+    while (i < 180) {
+      temp = copy();
+      temp.rotateCounterclockwiseBy((i * 2.0 * PI / 360.0), center);
+      temp.drawAsVeryInsubstantial(ctxt, allowed);
+
+      i = i + degreeInterval;
+    }
+
+  }
+
+
+  void drawInsubstantialForRotate(CanvasRenderingContext2D ctxt, bool allowed) {
+
+    ctxt.beginPath();
+    if (allowed) {
+      ctxt.strokeStyle = "rgba(0, 0, 0, 0.8)";
+      ctxt.fillStyle = "rgba(0, 255, 0, .1)";
+    }
+    else {
+      ctxt.strokeStyle = "rgba(255, 0, 0, 0.8)";
+      ctxt.fillStyle = "rgba(255, 0, 0, .1)";
+    }
+
+    Point strtpt = vertices.last;
+    ctxt.moveTo(getXForHSubTick(strtpt.x), getYForVSubTick(strtpt.y));
+
+    ctxt.setLineDash([3]); // making the line dashed
+
+    vertices.forEach((vertex) => ctxt.lineTo(getXForHSubTick(vertex.x), getYForVSubTick(vertex.y)));
+    ctxt.closePath();
+    ctxt.fill();
+    ctxt.stroke();
+
+    ctxt.setLineDash([]); // making the line not dashed
+
+  }
+
   void mainDraw(CanvasRenderingContext2D ctxt) {
     ctxt.beginPath();
     Point strtpt = vertices.last;
@@ -798,10 +918,23 @@ class Piece {
   }
 
 
+  String pointToString(Point p) {
+    return ("(" + p.x.toString() + ", " + p.y.toString() + ")");
+  }
+
   String toString() {
     String toReturn = "(";
 
-    vertices.forEach( (p) => toReturn = toReturn + ", (" + p.x.toString() + ", " + p.y.toString() + ")");
+    int i = 0;
+    if (vertices.length > 0) {
+      toReturn = toReturn + pointToString(vertices[0]);
+      i = 1;
+    }
+
+    while (i < vertices.length) {
+      toReturn = toReturn + ", (" + vertices[i].x.toString() + ", " + vertices[i].y.toString() + ")";
+      i++;
+    }
 
     toReturn = toReturn + ")";
 
