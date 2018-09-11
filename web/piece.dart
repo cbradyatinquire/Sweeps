@@ -741,13 +741,14 @@ class Piece {
 
 
   // Rotation Methods
+
   Point vectr(Point one, Point two ) {
     return new Point( one.x-two.x, one.y-two.y );
   }
 
   void rotateCounterclockwiseBy(double angle, Point center) {
     List<Point> relativePlaces = new List<Point>();
-    vertices.forEach( (vertex) => relativePlaces.add(vectr(vertex, center)) );
+    vertices.forEach( (vertex) => relativePlaces.add( vectr(vertex, center)) );
 
     List<Point> rotatedPlaces = new List<Point>();
     relativePlaces.forEach( (vector) => rotatedPlaces.add(rotateVectorBy(angle, vector)));
@@ -760,12 +761,15 @@ class Piece {
   }
 
   Point rotateVectorBy(double angle, Point v ) {
-    num x = v.x;
-    num y = v.y;
+    num x = v.x * ticwid / hSubTicks;
+    num y = v.y * ticht / vSubTicks;
+
     num newx = x * cos(angle) - y * sin(angle);
     num newy = x * sin(angle) + y * cos(angle);
 
-    return new Point(newx, newy);
+    return new Point(newx * hSubTicks / ticwid , newy * vSubTicks / ticht);
+
+    // logic now accommodates units being different on the axes (tics are assumed to have a universal height scale)
   }
 
   // to avoid cumulative rounding errors

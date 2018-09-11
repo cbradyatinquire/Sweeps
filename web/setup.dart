@@ -18,7 +18,6 @@ void displayUnitDialogH() {
   else { ce.checked = false; }
   
   document.querySelector("#oppDirection").innerHtml = "Vertical";
-  
 
   document.querySelector("#popupDiv").style.visibility = "visible";
 
@@ -62,18 +61,12 @@ void getHorizUnits(MouseEvent me) {
   
   CheckboxInputElement ce = document.querySelector("#sameUnit");
   if (ce.checked) {
-    if (!unitsLocked) {
-      makeHEqualToV();
-      if (s1end.x >= hticks * hSubTicks ) { s1end = new Point((hticks * hSubTicks), s1end.y); }
-      if (s2end.x >= hticks * hSubTicks  ) { s2end = new Point((hticks * hSubTicks), s2end.y); }
-      hunits_abbreviated = vunits_abbreviated;
-      unitsLocked = true;
-      ensureAllPointsAreOnscreen();
-    } else {
-      if (oldAbbrev != proposedAbbrev) {
-        unitsLocked = false;
-      }
-    }
+    makeHEqualToV();
+    if (s1end.x >= hticks * hSubTicks ) { s1end = new Point((hticks * hSubTicks), s1end.y); }
+    if (s2end.x >= hticks * hSubTicks  ) { s2end = new Point((hticks * hSubTicks), s2end.y); }
+    vunits_abbreviated = hunits_abbreviated;
+    unitsLocked = true;
+    ensureAllPointsAreOnscreen();
   } else {
     if ( unitsLocked == true ) {
       unitsLocked = false;
@@ -94,8 +87,7 @@ void getHorizUnits(MouseEvent me) {
     hSubTicks = proposedSubDivs;
     updateSweeperHPoints(oldHSubTicks, hSubTicks);
     document.querySelector("#popupDiv").style.visibility = "hidden";
-    document.querySelector("#popupDivToPost").style.visibility = "hidden";
-      
+
     drawSETUP();
   
   if (!listenForVerticalUnitsSubmit.isPaused) {
@@ -132,18 +124,12 @@ void getVerticalUnits(MouseEvent me) {
   
   CheckboxInputElement ce = document.querySelector("#sameUnit");
     if (ce.checked) {
-      if (!unitsLocked) {
-        makeVEqualToH();
-        if (s1end.y >= vticks * vSubTicks ) { s1end = new Point(s1end.x, (vticks * vSubTicks)); }
-        if (s2end.y >= vticks * vSubTicks ) { s2end = new Point(s2end.x, (vticks * vSubTicks)); }
-        vunits_abbreviated = hunits_abbreviated;
-        unitsLocked = true;
-        ensureAllPointsAreOnscreen();
-      } else {
-        if (oldAbbrev != proposedAbbrev) {
-          unitsLocked = false;
-        }
-      }
+      makeVEqualToH();
+      if (s1end.y >= vticks * vSubTicks ) { s1end = new Point(s1end.x, (vticks * vSubTicks)); }
+      if (s2end.y >= vticks * vSubTicks ) { s2end = new Point(s2end.x, (vticks * vSubTicks)); }
+      hunits_abbreviated = vunits_abbreviated;
+      unitsLocked = true;
+      ensureAllPointsAreOnscreen();
     } else {
       if ( unitsLocked == true ) {
         unitsLocked = false;

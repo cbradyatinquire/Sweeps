@@ -988,6 +988,15 @@ int getYForVSubTick(num j) {
 }
 
 
+//Only Rotation
+int getXForHSubTickRotationOnly(num i) {
+  return hoff + (i * ticwid / hSubTicks).round();
+}
+
+int getYForVSubTickRotationOnly(num j) {
+  return voff + (j * ticht / vSubTicks).round();
+}
+
 //Drawing Grids/Rulers, Axes
 void drawGrid(CanvasRenderingContext2D ctxt) {
   //ctxt.strokeStyle = "#555";
