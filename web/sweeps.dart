@@ -38,6 +38,7 @@ String littleCanvasFont = 'italic 20pt Calibri';
 String bigCanvasFont = 'italic 26pt  Calibri';
 String overrideHTMLInputFont = "24pt sans-serif";
 String overrideHTMLPromptFont = "26pt sans-serif";
+String className;
 
 
 bool unitsLocked = false;
@@ -55,6 +56,10 @@ String areaToDisplay = "";
 
 var listenForVerticalUnitsSubmit, listenForHorizontalUnitsSubmit;
 ButtonInputElement submitUnitsButton;
+
+ButtonInputElement submitScreenCapButton, cancelScreenCapButton;
+var listenForSubmitScreenCap, listenForCancelScreenCap;
+TextInputElement usernameBox, commentTextBox;
 
 
 int MODE = 0;
@@ -128,6 +133,10 @@ Point pieceDragOrigin;
 bool doingRotation = false;
 int indexSelectedForRotation = -1;
 
+// relevant only to the Cavalieri mode
+StreamSubscription<DeviceMotionEvent> TabletTiltSensorCav; // for tablets
+var mouseDownCav, mouseMoveCav, mouseUpCav; // for computers
+
 
 // relevant only to the geoboard
 var GEOMouseDown, GEOTouchStart, GEOMouseMove, GEOTouchMove, GEOMouseUp, GEOTouchEnd;
@@ -172,6 +181,9 @@ void main() {
   tools = querySelector("#tcanvas");
   splash = querySelector("#splashdiv");
   submitUnitsButton = document.querySelector("#submitUnit");
+  submitScreenCapButton = document.querySelector("#submitPost");
+  cancelScreenCapButton = document.querySelector("#cancelPost");
+
   manageInputs();
   manageWebpageInput(); // can react to outside requests to change the state
   splash.onClick.listen(startUp);
@@ -205,6 +217,26 @@ void doEventSetup() {
   CUTMouseUp = canv.onMouseUp.listen(stopDragCUT);
   CUTTouchEnd = canv.onTouchEnd.listen(stopTouchCUT);
 
+  //Cav MODE EVENTS
+  TabletTiltSensorCav = window.onDeviceMotion.listen((DeviceMotionEvent e) {
+    ax = e.accelerationIncludingGravity.x;
+    ay = e.accelerationIncludingGravity.y;
+    az = e.accelerationIncludingGravity.z;
+    numDeviceMotionEvents++;
+  });
+
+  TabletTiltSensorCav.pause();
+  numDeviceMotionEvents = 0;
+
+  mouseDownCav = canv.onMouseDown.listen(CavMouseDown);
+  mouseUpCav = canv.onMouseUp.listen(CavMouseUp);
+  mouseMoveCav = canv.onMouseMove.listen(CavMouseMove);
+
+  mouseDownCav.pause();
+  mouseUpCav.pause();
+  mouseMoveCav.pause();
+
+
   //unit change dialog events
   submitUnitsButton = document.querySelector("#submitUnit");
   listenForHorizontalUnitsSubmit = submitUnitsButton.onClick.listen(getHorizUnits);
@@ -228,18 +260,18 @@ void doEventSetup() {
 
   TurnOffGEO();
 
+
+  //Post events
+  listenForSubmitScreenCap = submitScreenCapButton.onClick.listen(goOnWithScreenCap);
+  listenForCancelScreenCap = cancelScreenCapButton.onClick.listen(cancelScreenCap);
+  listenForCancelScreenCap.pause();
+  listenForSubmitScreenCap.pause();
+
   //set up mouse actions on the screen capture dialog.
-  // document.querySelector("#trashIcon").onMouseUp.listen( deleteScreenCap );
-  // document.querySelector("#trashIcon").onTouchEnd.listen( deleteScreenCap );
   document.querySelector("#trashIcon").onClick.listen(deleteScreenCap);
 
-  // document.querySelector("#closeIcon").onMouseUp.listen( closeScreenCapWindow );
-//  document.querySelector("#closeIcon").onTouchEnd.listen( closeScreenCapWindow );
   document.querySelector("#closeIcon").onClick.listen(closeScreenCapWindow);
 
-
-  //document.querySelector("#screencap").onMouseUp.listen( MOUSEforwardOrBackInScreens );
-  //document.querySelector("#screencap").onTouchEnd.listen( TOUCHforwardOrBackInScreens );
   document.querySelector("#screencap").onClick.listen( MOUSEforwardOrBackInScreens );
   document.querySelector("#leftIcon").onClick.listen(MOUSEbackInScreens);
   document.querySelector("#rightIcon").onClick.listen(MOUSEforwardInScreens);
@@ -250,7 +282,7 @@ void testSwitchMode(MouseEvent e) {
   int rbound = tools.width - 2 * tools.height;
   int lbound = tools.height * 2;
 
-  int screenCapIconTolerance = 40;
+  int screenCapIconTolerance = (tools.height / 3.0).round();
   int cavalieriButtonTolerance = 64;
 
   if (e.offset.x > rbound && MODE == 3 && rotationsAllowed && hasCut) { // want to do a rotation
@@ -293,51 +325,79 @@ void testSwitchMode(MouseEvent e) {
     animLoopTimer.cancel();
     goOnFromCavalieri(e.offset.y);
   } else if (e.offset.x < lbound) { //we're in the left arrow
-    if (MODEAfterSetup == 5) {
-      if (MODE == 5) {
+    if (MODE == 1) { // setup -> unchanged
+      // do nothing
+    }
+    else if (MODE == 2) { // sweeping -> setup / sweeping -> unchanged
+      if (MODEAfterSetup != 2) {
         MODE = 1;
+        doModeSpecificLogic();
       }
       else {
-        MODE == 5;
-      }
-      doModeSpecificLogic();
-    }
-    else if (MODE != MODEAfterSetup) {
-      if (MODE == 4) {
-        MODE = 1;
-        readyToGoOn = false;
-        draggedUnits = 0;
-        animLoopTimer.cancel();
+        print(MODEAfterSetup);
+        s1end = new Point(inputPoint1.x, inputPoint1.y);
+        s2end = new Point(inputPoint2.x, inputPoint2.y);
         doModeSpecificLogic();
-      } else if (MODE > 1) {
-        MODE--;
-        if (wasInCavalieri) {
-          MODE = 1;
-          wasInCavalieri = false;
-          hasCut = false;
-        }
-        readyToGoOn = false;
-        draggedUnits = 0;
-        doModeSpecificLogic();
-      } else if (MODE == 1) {
-        window.location.reload();
       }
     }
-    else {
-      if (MODE == 4 || MODE == 2) {
-        s1end = inputPoint1;
-        s2end = inputPoint2;
-        doModeSpecificLogic();
-      }
-      if (MODE == 3) {
-        pieces = copy(inputPieces);
+    else if (MODE == 3) { // cut -> cut / cut -> cav / cut -> geo / cut -> setup (after cav from setup)/ cut -> sweep
+      if (MODEAfterSetup == 3) {
+        pieces = copy(originalPieces);
         drawCUT();
-        drawTools();
+      }
+      else if (MODEAfterSetup == 4) {
+        MODE = 4;
+        s1end = new Point(inputPoint1.x, inputPoint1.y);
+        s2end = new Point(inputPoint2.x, inputPoint2.y);
+
+        draggedUnits = 0;
+        pieces.clear();
+        originalPieces.clear();
+
+        doModeSpecificLogic();
+      }
+      else if (MODEAfterSetup == 5) {
+        pieces = copy(originalPieces);
+        MODE == 5;
+        doModeSpecificLogic();
+      }
+      else if (wasInCavalieri) {
+       MODE = 1;
+       doModeSpecificLogic();
+      }
+      else {
+        MODE = 2;
+        doModeSpecificLogic();
       }
     }
-  } else if (e.offset.distanceTo(screenCapIconCenter) < screenCapIconTolerance) {
-    addScreenCap();
-    openScreenCapsWindow();
+    else if (MODE == 4) { // cav -> cav / cav -> setup
+      if (MODEAfterSetup == 4) {
+        s1end = new Point(inputPoint1.x, inputPoint1.y);
+        s2end = new Point(inputPoint2.x, inputPoint2.y);
+
+        t1s = new List<Point>();
+        t2s = new List<Point>();
+        t1s.add(s1end);
+        t2s.add(s2end);
+
+        draggedUnits = 0;
+        pieces = new List<Piece>();
+        originalPieces = new List<Piece>();
+        drawCavalieri();
+      }
+      else {
+        TurnOffCav();
+        MODE = 1;
+        doModeSpecificLogic();
+      }
+    }
+    else if (MODE == 5) { // geo -> geo
+      pieces = copy(originalPieces);
+      drawGEO();
+    }
+  }
+  else if (e.offset.distanceTo(screenCapIconCenter) < screenCapIconTolerance) {
+    getUserInput();
   } else if (MODE==1 && s1end.y == s2end.y) {  //THIS is where i block accidental cavalieri
     if (  ((e.offset.x - cavalieriCenter.x).abs() < 2 * cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
       MODE = 4;
@@ -354,14 +414,53 @@ void testSwitchMode(MouseEvent e) {
 }
 
 
+void getUserInput() {
+  pauseEventsForScreenCapsWindow();
+
+  document.querySelector("#popupDivToPost").style.visibility = "visible";
+
+  commentTextBox = document.querySelector("#descriptionToPost");
+  usernameBox = document.querySelector("#usernameToPost");
+
+  listenForCancelScreenCap.resume();
+  listenForSubmitScreenCap.resume();
+}
+
+void goOnWithScreenCap(MouseEvent e) {
+  document.querySelector("#popupDivToPost").style.visibility = "hidden";
+  listenForCancelScreenCap.pause();
+  listenForSubmitScreenCap.pause();
+
+  String comments = commentTextBox.value;
+  String username = usernameBox.value;
+
+  List<String> toSend = new List<String>();
+  toSend.add(username);
+  toSend.add(comments);
+
+  commentTextBox.value = "";
+
+  addScreenCap(toSend);
+  openScreenCapsWindow();
+}
+
+void cancelScreenCap(MouseEvent e) {
+  document.querySelector("#popupDivToPost").style.visibility = "hidden";
+  listenForCancelScreenCap.pause();
+  listenForSubmitScreenCap.pause();
+
+  resumeEventsForScreenCapsWindow();
+}
 
 void goOnFromCavalieri(int yclickvalue) {
   wasInCavalieri = true;
 
-  if (mouseDownSubscription != null && !mouseDownSubscription.isPaused ) {
-    mouseDownSubscription.pause();
-    mouseUpSubscription.pause();
-    mouseMoveSubscription.pause();
+  animLoopTimer.cancel();
+
+  if (mouseDownCav != null && !mouseDownCav.isPaused ) {
+    mouseDownCav.pause();
+    mouseUpCav.pause();
+    mouseMoveCav.pause();
   }
   
   if (!SETUPMouseDown.isPaused) {
@@ -405,17 +504,15 @@ void goOnFromCavalieri(int yclickvalue) {
   drawTools();
 }
 
-void addScreenCap() {
+void addScreenCap(List<String> annotations) {
   //ImageData imageData = canv.context2D.getImageData(0,0,canv.width,canv.height);
   String base64Cap = canv.toDataUrl("image/png");
   
   //screencaps.add(imageData);
-  screens.add(base64Cap);// Two lists, one of screenshots & one of captions
-  List<String> userInput = new List<String>(); //getUserInput();
- //if (userInput != null) {
-   // toolsText.add(userInput[0]);  // adding data to both
-    postImageData(canv, userInput); // posting newest addition to webpage
-  //}
+  screens.add(base64Cap); // Two lists, one of screenshots & one of captions
+  toolsText.add(annotations[0] + ": " + annotations[1]);
+
+  postImageData(canv, annotations); // posting newest addition to webpage
 
 }
 
@@ -499,8 +596,9 @@ void openScreenCapsWindow() {
   sc.height = scpop.clientHeight - topstuff.clientHeight - botstuff.clientHeight;
   loadScreen(sc);
   screenPointer = screens.length - 1;
-  pauseEventsForScreenCapsWindow();
   changeScreen(0);
+
+
 }
 
 
@@ -509,11 +607,11 @@ void pauseEventsForScreenCapsWindow() {
   navigationEvents.pause();
   if (MODE == 1) {
     TurnOffSETUP();
-    }
+  }
 
-    if (MODE == 2) {
+  if (MODE == 2) {
     TurnOffSWEEP();
-    }
+  }
   
   if (MODE == 3) {
     TurnOffCUT();
@@ -567,7 +665,7 @@ void doModeSpecificLogic() {
     }
 
     rememberPresentSETUPSWEEP();
-    readyToGoOn = true; //testing this
+    readyToGoOn = true;
     drawSETUP();
     drawTools();
   }
@@ -609,6 +707,8 @@ void doModeSpecificLogic() {
       TurnOffGEO();
     }
 
+    TurnOffCav();
+
     TurnOnCUT();
 
     if (MODEAfterSetup != 5) {
@@ -648,12 +748,12 @@ void doModeSpecificLogic() {
     if (!GEOMouseDown.isPaused) {
       TurnOffGEO();
     }
-    
-    if (ss != null && ss.isPaused){
-      ss.resume();
-    }
+
+    TurnOnCav();
+
+    numDeviceMotionEvents = 0;
+    pieces = new List<Piece>();
     startCavalieriLoop();
-    
     drawCavalieri();
     drawTools();
   }
@@ -698,8 +798,8 @@ void startUp(MouseEvent event) {
     MODE = MODEAfterSetup;
 
     if (MODEAfterSetup == 2 || MODEAfterSetup == 4) {
-      s1end = inputPoint1;
-      s2end = inputPoint2;
+      s1end = new Point(inputPoint1.x, inputPoint1.y);
+      s2end = new Point(inputPoint2.x, inputPoint2.y);
       doModeSpecificLogic();
     }
 
@@ -760,8 +860,8 @@ void drawStatus(CanvasRenderingContext2D ctx) {
   }
 
   ctx.fillText(currentToolsText, tools.width / 2, tools.height / 2); // 2 * tools.height / 3);
-  ctx.drawImageScaled(cameraButton, screenCapIconCenter.x - 32, screenCapIconCenter.y - 32, 64, 64);
-  
+  ctx.drawImageScaled(cameraButton, screenCapIconCenter.x - ( tools.height / 6 ), screenCapIconCenter.y - ( tools.height / 6 ), ( tools.height / 3 ), (tools.height / 3 ));
+
   if (MODE == 1 && s1end.y == s2end.y) { 
     ctx.drawImageScaled(cavalieriButton, cavalieriCenter.x - 49, cavalieriCenter.y - 28, 98, 56);
   }
@@ -800,7 +900,7 @@ void drawTools() {
   }
   drawStatus(ctx);
 
-  if (MODE == 3 && rotationsAllowed) {
+  if (MODE == 3 && rotationsAllowed && hasCut) {
     if (doingRotation){
       ctx.drawImageScaled(rotateButtonDownState, tools.width - imwid, 0, imwid, imht);
     }
@@ -984,16 +1084,6 @@ int getYForVTick(num j) {
 }
 
 int getYForVSubTick(num j) {
-  return voff + (j * ticht / vSubTicks).round();
-}
-
-
-//Only Rotation
-int getXForHSubTickRotationOnly(num i) {
-  return hoff + (i * ticwid / hSubTicks).round();
-}
-
-int getYForVSubTickRotationOnly(num j) {
   return voff + (j * ticht / vSubTicks).round();
 }
 

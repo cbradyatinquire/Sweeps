@@ -827,7 +827,10 @@ class Piece {
       i++;
     }
 
-    return new Piece(newVerticies);
+    Piece toReturn = new Piece(newVerticies);
+    toReturn.setColorString(fillsty);
+
+    return toReturn;
   }
 
   void drawAsDragging(CanvasRenderingContext2D ctxt) {

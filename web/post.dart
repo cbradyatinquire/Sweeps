@@ -18,6 +18,17 @@ void messageResponse(MessageEvent e) {
   int EventMode = d["mode"]; // need this from event
   bool EventRotationsAllowed = d["rotationsAllowed"]; // need this from event also
 
+  /*
+  ticht = ;
+  ticwid = ;
+  vSubTicks = ;
+  hSubTicks = ;
+
+  */
+
+
+  // need ticwid, tickht, vsubtics, and hsubtics: also need the world height and world width, to re-normalize all of these to the current window size
+
 
   // what to do with the event
   rotationsAllowed = EventRotationsAllowed;
@@ -110,15 +121,6 @@ void manageWebpageInput() {
   window.addEventListener("message", x);
 }
 
-List<String> getUserInput() {
-  //List<String> toReturn = new List<String>();
-
-  document.querySelector("#popupDivToPost").style.visibility = "visible";
-
-  //document.querySelector("#popupDivToPost").style.visibility = "hidden";
-
-  return null;
-}
 
 //requires classes from dart:html
 void postImageData(CanvasElement canv, List<String> annotation) {
@@ -153,14 +155,19 @@ void postImageData(CanvasElement canv, List<String> annotation) {
 
   dataToEncode = "";
 
-  var sid = Uri.encodeQueryComponent('SweepTest');
+  var sid = Uri.encodeQueryComponent(className);
   var im = Uri.encodeQueryComponent(idata);
   var dat = Uri.encodeQueryComponent(dataToEncode);
-  var met = Uri.encodeQueryComponent("{'name':'fiona'}"); // TODO: Get the user input to input here & get a comment?
+
+  print(className);
+  String user = annotation[0];
+  String comm = annotation[1];
+
+  var met = Uri.encodeQueryComponent("{'name':'$user', 'description': '$comm' }");
 
 
-  // TODO: uncomment after establishing that data can be processed by the program
-  HttpRequest.request('https://rendupo.com:8001/uploads/?session-id=$sid&metadata=$met&image=$im&data=$dat', method:'POST')
+  // TODO: establishing that data can be processed by the program
+   HttpRequest.request('http://rendupo.com:8000/uploads/?session-id=$sid&metadata=$met&image=$im&data=$dat', method:'POST')
       .then((HttpRequest resp) {
     // Do something with the response.
   });

@@ -26,6 +26,21 @@ void manageInputs() {
     }
 
   }
+
+  String x = input['className'];
+
+  if (x == "" || x == "#" || x == null) {
+    className = "SweepGallary";
+  }
+  else {
+    if (x[0] == "#") {
+      className = x.substring(1);
+    }
+    else {
+      className = x;
+    }
+  }
+
 }
 
 

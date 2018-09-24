@@ -86,3 +86,26 @@ void TurnOffAllMain() {
   TurnOffGEO();
   TurnOffSETUP();
 }
+
+void TurnOffCav() {
+  TabletTiltSensorCav.pause();
+  numDeviceMotionEvents = 0;
+
+  mouseMoveCav.pause();
+  mouseUpCav.pause();
+  mouseDownCav.pause();
+
+  if (animLoopTimer != null) {
+    animLoopTimer.cancel();
+    animLoopTimer = null;
+    print("canceled");
+  }
+}
+
+void TurnOnCav() {
+  TabletTiltSensorCav.resume();
+  mouseMoveCav.resume();
+  mouseUpCav.resume();
+  mouseDownCav.resume();
+
+}

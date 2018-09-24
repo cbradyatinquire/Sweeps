@@ -1,7 +1,6 @@
 part of sweeps;
 
 
-StreamSubscription<DeviceMotionEvent> ss;
 num ax, ay, az;
 Timer animLoopTimer;
 int numDeviceMotionEvents = 0;
@@ -22,9 +21,6 @@ bool cavIsDragging = false;
 Point cavDragPoint;
 String cavArrowDraw = "none";
 
-var mouseDownSubscription = null;
-var mouseMoveSubscription = null;
-var mouseUpSubscription = null;
 
 
 void initAndCheckForConstraints() {
@@ -55,18 +51,8 @@ void startCavalieriLoop() {
   initAndCheckForConstraints();
   t1s = new List<Point>();
   t2s = new List<Point>();
-  if (ss == null) {
-    ss = window.onDeviceMotion.listen((DeviceMotionEvent e) {
-      ax = e.accelerationIncludingGravity.x;
-      ay = e.accelerationIncludingGravity.y;
-      az = e.accelerationIncludingGravity.z;
-      //querySelector("#dartGAccel")
-      //     ..text = "("+ax.toString()+", "+ay.toString()+", "+az.toString()+")";
-      if (numDeviceMotionEvents > 0) {
-        print("i believe there really is an accelerometer here... ");
-      }
-      numDeviceMotionEvents++;
-    });
+  if (TabletTiltSensorCav == null) {
+
   }
   t1s.add(s1end);
   t2s.add(s2end);
@@ -78,19 +64,19 @@ num distancexy(Point p, num xv, num yv) {
   return p.distanceTo(new Point(xv, yv));
 }
 
-void getMouseDown(MouseEvent me) {
+void CavMouseDown(MouseEvent me) {
   if (distancexy(me.client, cavClickCenterX, cavClickCenterY) < threshold) {
     cavIsDragging = true;
     cavDragPoint = me.client;
   }
 }
 
-void getMouseUp(MouseEvent me) {
+void CavMouseUp(MouseEvent me) {
   cavIsDragging = false;
   cavArrowDraw = "none";
 }
 
-void getMouseMove(MouseEvent me) {
+void CavMouseMove(MouseEvent me) {
   if (cavIsDragging) {
     double delx = (me.client.x - cavDragPoint.x) / 1.0;
     double dely = (me.client.y - cavDragPoint.y) / 1.0;
@@ -176,66 +162,52 @@ void maybeFall() {
   fallCounter++;
   // print("s1end=(" + s1end.x.toString() + ", " + s1end.y.toString() + ") and s2end=(" + s2end.x.toString() + ", " + s2end.y.toString() + ")");
   // print("hst=" + hSubTicks.toString() + "; vst=" + vSubTicks.toString() );
+
   animLoopTimer = new Timer(new Duration(milliseconds: 500), maybeFall);
 }
 
 void drawCavalieri() {
-//  ticwid = canv.width / hticks;
-//   ticht = canv.height / vticks;
-
-
   CanvasRenderingContext2D ctx = canv.context2D;
   ctx.clearRect(0, 0, canv.width, canv.height);
 
   drawRulers(ctx);
   drawGrid(ctx);
-  drawCavalieriPath(ctx);
+  drawCavShape(ctx);
   drawSweeperCurrentSWEEP(ctx);
 
- // print("drawCavalieri - " + fallCounter.toString() + " times to fallcounter " );
-  if (numDeviceMotionEvents < 2 && fallCounter > 0) {  // TODO figure out why my computer always hits this part (Workaround, to test this mode: Replace with < 20000 and >= 0)
-    if (mouseMoveSubscription == null || mouseMoveSubscription.isPaused ) {
-      initializeMouseEventListening();
-    }
+  if (numDeviceMotionEvents < 2 && fallCounter > 0) { // if it is responding to a mouse
     drawMouseBullseye(ctx);
   }
-
 
   drawTools();
 }
 
 
 
-void drawCavalieriPath(CanvasRenderingContext2D ctxt) {
+void drawCavShape(CanvasRenderingContext2D ctxt) {
   ctxt.strokeStyle = "#555";
   ctxt.fillStyle = "#88F";
+
   ctxt.beginPath();
+
   Point init = new Point(getXForHSubTick(t1s.first.x), getYForVSubTick(t1s.first.y));
   ctxt.moveTo(init.x, init.y);
+
   for (int i = 1; i < t1s.length; i++) {
     Point p = new Point(getXForHSubTick(t1s[i].x), getYForVSubTick(t1s[i].y));
     ctxt.lineTo(p.x, p.y);
   }
+
   for (int j = t2s.length - 1; j >= 0; j--) {
     Point p = new Point(getXForHSubTick(t2s[j].x), getYForVSubTick(t2s[j].y));
     ctxt.lineTo(p.x, p.y);
   }
+
   ctxt.lineTo(init.x, init.y);
   ctxt.closePath();
-  if (!hasCut) {
-    ctxt.fill();
-  }
+
+  ctxt.fill();
   ctxt.stroke();
-}
-
-
-
-
-
-void initializeMouseEventListening() {
-  mouseDownSubscription = canv.onMouseDown.listen(getMouseDown);
-  mouseUpSubscription = canv.onMouseUp.listen(getMouseUp);
-  mouseMoveSubscription = canv.onMouseMove.listen(getMouseMove);
 }
 
 void drawMouseBullseye(CanvasRenderingContext2D ctxt) {
