@@ -318,8 +318,9 @@ void testSwitchMode(MouseEvent e) {
     }
   } else if (e.offset.x > rbound && MODE == 5) {
     MODE = 3;
+    originalPieces = copy(pieces);
     doModeSpecificLogic();
-
+    hasCut = false;
   } else if (e.offset.x > rbound && MODE == 4 ) {
     MODE = 3; 
     animLoopTimer.cancel();
@@ -349,6 +350,7 @@ void testSwitchMode(MouseEvent e) {
         MODE = 4;
         s1end = new Point(inputPoint1.x, inputPoint1.y);
         s2end = new Point(inputPoint2.x, inputPoint2.y);
+        hasCut = false;
 
         draggedUnits = 0;
         pieces.clear();
@@ -358,7 +360,7 @@ void testSwitchMode(MouseEvent e) {
       }
       else if (MODEAfterSetup == 5) {
         pieces = copy(originalPieces);
-        MODE == 5;
+        MODE = 5;
         doModeSpecificLogic();
       }
       else if (wasInCavalieri) {
@@ -392,7 +394,7 @@ void testSwitchMode(MouseEvent e) {
       }
     }
     else if (MODE == 5) { // geo -> geo
-      pieces = copy(originalPieces);
+      pieces = copy(inputPieces);
       drawGEO();
     }
   }
@@ -767,10 +769,6 @@ void doModeSpecificLogic() {
   }
 
   if (MODE == 5) {
-    pieces = copy(inputPieces);
-
-    TurnOnGEO();
-
     if (!SETUPMouseDown.isPaused) {
       TurnOffSETUP();
     }
@@ -782,6 +780,10 @@ void doModeSpecificLogic() {
     if (!CUTMouseDown.isPaused) {
       TurnOffCUT();
     }
+
+    TurnOnGEO();
+
+    drawGEO();
   }
 }
 

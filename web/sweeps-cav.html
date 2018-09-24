@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Sweeps</title>
+    
+    <script async type="application/dart" src="sweeps.dart"></script>
+    <script async src="packages/browser/dart.js"></script>
+    
+    <link rel="stylesheet" href="sweeps.css">
+    <script type="text/javascript">
+
+        var galleryname = window.location.hash;
+
+        // Inputs
+        var arguments = {
+            vertices : "(1,1), (4, 1), (5, 3), (2, 3) | (5, 6), (6, 6), (5, 2)",
+            colors : [[0, 0, 255, 0.3], [255, 255, 0, 0.3]],
+            //vertices and colors are used to form shapes if the input mode is 3
+            //they are used to get a starting position for the slider of the input mode is 2 or 4
+            // (mode 4 uses vertices which must be horizontally or vertically in line, however)
+            // not used at all if inputMode is anything else
+            rotationsAllowed : false,
+            className: galleryname,
+            inputMode : 4
+            // (proceeds normally if inputMode is 0 or 1)
+        };
+
+        // Modes Index:
+        // 0: initial state
+        // 1: Setup
+        // 2: Sweeping
+        // 3: Cutting
+        // 4: Cavalieri
+        // 5: Geoboard
+
+      function doWidths() {
+        var w = document.getElementById("construction").offsetWidth;
+        var h = document.getElementById("construction").offsetHeight;
+        var sca = document.getElementById("scanvas");
+        var context = sca.getContext('2d');
+        if (context.setLineDash == null ) {
+           context.setLineDash = function() {};
+        }
+        sca.width = w;
+        sca.height = h;
+        
+        var w = document.getElementById("tools").offsetWidth;
+        var h = document.getElementById("tools").offsetHeight;
+        var tca = document.getElementById("tcanvas");
+        var contextt = sca.getContext('2d');
+        if (contextt.setLineDash == null ) {
+           contextt.setLineDash = function() {};
+        }
+        tca.width = w;
+        tca.height = h;
+      }
+    </script>
+  </head>
+
+
+
+
+  <body onload="doWidths()" onresize="doWidths()">
+
+  <!-- Canvas Environment and Toolbar -->
+    <div id="construction" width="100%" height="85%">
+      <canvas id="scanvas" ></canvas>
+    </div>
+    <div id="tools" width="100%" height="15%" bottom="15%">
+      <canvas id="tcanvas" ></canvas>
+    </div>
+
+
+    <!-- Opening Screen -->
+    <div id="splashdiv"><center><img id="splash" src="images/splash.jpg"></img></center></div>
+
+
+    <!-- Popup Window Which Allows Inputting Units -->
+    <div id="popupDiv"><p>&nbsp;</p>
+        Abbreviated Unit Name (for example, <b>m</b> for <b><i>meters</i></b>):<br>
+        <input class="popinput" type="text" maxlength="5" id="unitshort"></input><br>
+        Subdivision(s): <span id="sliderval"></span><br>
+        <input class="poprange" style="width:250px" type="range" id="subdiv" min=1 value=1 max=10 step=1 oninput="document.getElementById('sliderval').innerHTML=this.value"></input>
+        <br>
+        <input  type="checkbox"  class="popinput" id="sameUnit" value="Same Unit"> Use Same Units as </input><span id="oppDirection">Horizontal</span> Units
+
+        <p>&nbsp;</p>
+        <input class="popbutton" type="button" id="submitUnit" value="change units"></input>
+    </div>
+
+    <div id="popupDivToPost"><p>&nbsp;</p>
+        Username: <br>
+        <input class="popinput" type="text" maxlength="20" id="usernameToPost"></input><br>
+        Description: <br>
+        <input class="popinput" type="text" maxlength="50" id="descriptionToPost"></input><br>
+
+        <p>&nbsp;</p>
+        <input class="popbutton" type="button" id="cancelPost" value="Cancel"></input>
+        <input class="popbutton" type="button" id="submitPost" value="Submit"></input>
+    </div>
+
+    <!-- Screen Capture Window -->
+    <div id="screenCapDiv" width="80%" height="85%">
+        <div id="topbar">
+        <table class="nav">
+        <tr>
+          <th>
+            <img id="trashIcon" src="images/trash.png" alt="Note" style="height:32px;width:24px">
+          </th>
+          <td>
+            screenshot #<span id="screennum">0</span>
+          </td>
+        <th>
+            <img id="closeIcon" src="images/x.png" alt="Note" style="height:24px;width:24px">
+          </th>
+        </tr>
+        </table>
+        </div>
+        <canvas id="screencap" ></canvas><br>
+        <div id="bottombar">
+        <table class = "nav">
+        <tr>
+        <th>
+            <img id="leftIcon" src="images/left.png" alt="Left" style="height:40px;width:40px">
+          </th>
+          <td>
+            <div id="toolstext"> _ </div>
+          </td>
+          <th>
+            <img id="rightIcon" src="images/right.png" alt="Right" style="height:40px;width:40px">
+          </th>
+        </tr>
+        </table>
+        </div>
+    </div>
+  </body>
+</html>
