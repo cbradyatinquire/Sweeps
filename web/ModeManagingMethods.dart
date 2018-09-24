@@ -98,7 +98,6 @@ void TurnOffCav() {
   if (animLoopTimer != null) {
     animLoopTimer.cancel();
     animLoopTimer = null;
-    print("canceled");
   }
 }
 
@@ -109,3 +108,21 @@ void TurnOnCav() {
   mouseDownCav.resume();
 
 }
+
+void PauseCavForScreenCap() {
+  TabletTiltSensorCav.pause();
+  mouseMoveCav.pause();
+  mouseUpCav.pause();
+  mouseDownCav.pause();
+  animLoopTimer = null;
+}
+
+void ResumeCavForScreenCap() {
+  TabletTiltSensorCav.resume();
+  mouseMoveCav.resume();
+  mouseUpCav.resume();
+  mouseDownCav.resume();
+  animLoopTimer = new Timer(new Duration(milliseconds: 50), maybeFall);
+}
+
+

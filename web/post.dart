@@ -207,4 +207,5 @@ void oldPostImageData(CanvasElement canv, List<String> annotation) {
   HttpRequest.request('http://54.69.108.80/sweep_image/', method: 'POST', sendData: fdata).then((HttpRequest r) {
     print("request sent");
   });
+
 }

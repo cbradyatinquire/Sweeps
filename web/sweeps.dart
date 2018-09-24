@@ -617,6 +617,10 @@ void pauseEventsForScreenCapsWindow() {
     TurnOffCUT();
   }
 
+  if (MODE == 4) {
+    PauseCavForScreenCap();
+  }
+
   if (MODE == 5) {
     TurnOffGEO();
   }
@@ -635,6 +639,10 @@ void resumeEventsForScreenCapsWindow() {
 
   if (MODE == 3) {
     TurnOnCUT();
+  }
+
+  if (MODE == 4) {
+    ResumeCavForScreenCap();
   }
 
   if (MODE == 5) {
