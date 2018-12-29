@@ -30,7 +30,7 @@ void manageInputs() {
   String x = input['className'];
 
   if (x == "" || x == "#" || x == null) {
-    className = "SweepGallary";
+    className = "SweepGallery";
   }
   else {
     if (x[0] == "#") {
@@ -45,6 +45,10 @@ void manageInputs() {
 
 
 List<Point> ParseSlider(String s) {
+  if (s == null) {
+    return [s1end, s2end];
+  }
+
   bool inPoint = false;
   List<Point> toReturn = new List<Point>();
 
@@ -139,7 +143,7 @@ List<Piece> ParsePieces(String s) {
   List<String> digits = [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ];
 
   num j = 0;
-  while (j < s.length) {
+  while (j < s.length && s[j] != "^") {
     String currentPlace = s[j];
 
 
@@ -204,5 +208,63 @@ List<Piece> ParsePieces(String s) {
   return toReturn;
 }
 
+
+List<List<num>> ParseColors(String s) {
+  if (s == null) {
+    return new List<List<num>>();
+  }
+
+  List<num> currentList = new List<num>();
+  List<List<num>> toReturn = new List<List<num>>();
+
+  num currentNum = 0;
+  bool countingDec = false;
+  num decimalPlaces = 0;
+
+  List<String> digits = [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ];
+
+  num j = 0;
+  while (j < s.length) {
+    String currentPlace = s[j];
+
+    if (currentPlace == "]") {
+      if (currentList.length > 0) {
+        toReturn.add(currentList);
+        currentList = new List<num>();
+      }
+    }
+
+    if (currentPlace != " ") {
+      if (currentPlace == ",") {
+        currentNum = currentNum * pow(0.1, decimalPlaces);
+        currentList.add(currentNum);
+        currentNum = 0;
+        countingDec = false;
+        decimalPlaces = 0;
+      }
+
+      num digit = digits.indexOf(currentPlace);
+      if (digit != -1) {
+        currentNum = currentNum * 10 + digit;
+
+        if (countingDec) {
+          decimalPlaces++;
+        }
+      }
+
+      if (currentPlace == ".") {
+        countingDec = true;
+      }
+      j++;
+    }
+  }
+
+  if (currentList.length > 0) {
+    toReturn.add(currentList);
+  }
+
+  print(toReturn);
+  return toReturn;
+}
 
 
