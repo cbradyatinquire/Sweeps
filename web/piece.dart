@@ -31,6 +31,8 @@ class Piece {
     
     List<String> digits = [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ];
 
+    num decimalPlaces = 0;
+    bool inDec = false;
 
     int j = 5;
     while (j < fillsty.length) {
@@ -42,24 +44,35 @@ class Piece {
       }
       else {
         if (currentPlace == ",") {
-          toReturn.add(current);
+          toReturn.add(current * pow(0.1, decimalPlaces));
           current = 0;
+          decimalPlaces = 0;
+          inDec = false;
           j++;
         }
         else {
           if (currentPlace != ")") {
-            current = current * 10 + digits.indexOf(currentPlace);
+            if (currentPlace == ".") {
+              inDec = true;
+            }
+            else {
+              current = current * 10 + digits.indexOf(currentPlace);
+              if (inDec) {
+                decimalPlaces++;
+              }
+            }
             j++;
           }
           else {
-            toReturn.add(current);
+            toReturn.add(current * pow(0.1, decimalPlaces));
+            print(toReturn);
             return toReturn;
           }
         }
       }
     }
 
-    return toReturn;
+    return [255, 0, 0, 0.3];
   }
 
   void setColor(List<num> c){

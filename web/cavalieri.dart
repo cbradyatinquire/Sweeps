@@ -12,6 +12,8 @@ num cavalieriArea;
 num cavalieriLeftAdd, cavalieriRightAdd, cavalieriA, cavalieriB;
 num cavalieriHeight = 0.0;
 
+List<Point> savedT2S = new List<Point>();
+
 
 //for support of non-tablet cavalieri.
 int fallCounter = 0;
@@ -50,7 +52,7 @@ void initAndCheckForConstraints() {
 void startCavalieriLoop() {
   initAndCheckForConstraints();
   t1s = new List<Point>();
-  t2s = new List<Point>();
+  t2s = savedT2S;
   if (TabletTiltSensorCav == null) {
 
   }
@@ -170,8 +172,7 @@ void drawCavalieri() {
   CanvasRenderingContext2D ctx = canv.context2D;
   ctx.clearRect(0, 0, canv.width, canv.height);
 
-  drawRulers(ctx);
-  drawGrid(ctx);
+  drawGridAndRulers(canv);
   drawCavShape(ctx);
   drawSweeperCurrentSWEEP(ctx);
 

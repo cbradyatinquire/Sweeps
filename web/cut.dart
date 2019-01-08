@@ -301,8 +301,7 @@ void drawCUT() {
     
   }
 
-  drawRulers(ctx);
-  drawGrid(ctx);
+  drawGridAndRulers(canv);
 
   drawOriginalPieceCUT(ctx);
   /*if (wasInCavalieri) { drawCavalieriPath(ctx); }
@@ -528,8 +527,7 @@ void drawRotateCUT() {
   CanvasRenderingContext2D ctx = canv.context2D;
   ctx.clearRect(0, 0, canv.width, canv.height);
 
-  drawRulers(ctx);
-  drawGrid(ctx);
+  drawGridAndRulers(canv);
 
   drawOriginalPieceCUT(ctx);
 

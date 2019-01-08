@@ -149,8 +149,8 @@ String currentToolsText = "";
 int screenPointer = 0;
 
 bool wasInCavalieri = false;
-Point screenCapIconCenter = new Point(tools.width / 4, 2 * tools.height / 3);
-Point cavalieriCenter = new  Point(3 * tools.width / 4, 2 * tools.height / 3);
+Point screenCapIconCenter = new Point(max(tools.width / 4, tools.height * 2), 2 * tools.height / 3); // 2 * tools.height is the offset of the arrow buttons
+Point cavalieriCenter = new Point(3 * tools.width / 4, 2 * tools.height / 3);
 
 bool comparingRulers = false;
 int compareRulerAngle = 0;
@@ -282,7 +282,7 @@ void testSwitchMode(MouseEvent e) {
   int rbound = tools.width - 2 * tools.height;
   int lbound = tools.height * 2;
 
-  int screenCapIconTolerance = (tools.height / 3.0).round();
+  int screenCapIconTolerance = (tools.height / 2.0).round();
   int cavalieriButtonTolerance = 64;
 
   if (e.offset.x > rbound && MODE == 3 && rotationsAllowed && hasCut) { // want to do a rotation
@@ -747,9 +747,7 @@ void doModeSpecificLogic() {
       TurnOffSETUP();
     }
 
-    if (!SWEEPMouseDown.isPaused) {
-      TurnOffSWEEP();
-    }
+    TurnOffSWEEP();
     
     if (!CUTMouseDown.isPaused) {
       TurnOffCUT();
@@ -836,7 +834,7 @@ void startUp(MouseEvent event) {
   }
 }
 
-void drawStatus(CanvasRenderingContext2D ctx) {
+void drawStatus(CanvasRenderingContext2D ctx, imwid, imht) {
   ctx.strokeStyle = "#000";
   ctx.fillStyle = "#000";
   ctx.font = bigCanvasFont;
@@ -869,11 +867,11 @@ void drawStatus(CanvasRenderingContext2D ctx) {
     currentToolsText = captions[MODE];
   }
 
-  ctx.fillText(currentToolsText, tools.width / 2, tools.height / 2); // 2 * tools.height / 3);
-  ctx.drawImageScaled(cameraButton, screenCapIconCenter.x - ( tools.height / 6 ), screenCapIconCenter.y - ( tools.height / 6 ), ( tools.height / 3 ), (tools.height / 3 ));
+  ctx.fillText(currentToolsText, min(tools.width / 2, tools.width - 2 * imwid), imwid / 4); // 2 * tools.height / 3);
+  ctx.drawImageScaled(cameraButton, screenCapIconCenter.x - ( imht / 4 ), screenCapIconCenter.y - ( imht / 4 ), ( imht / 2 ), (imht / 2 ));
 
   if (MODE == 1 && s1end.y == s2end.y) { 
-    ctx.drawImageScaled(cavalieriButton, cavalieriCenter.x - 49, cavalieriCenter.y - 28, 98, 56);
+    ctx.drawImageScaled(cavalieriButton, cavalieriCenter.x - 49, cavalieriCenter.y - 28, 98, 56); // TODO: Make this rational
   }
   /*if (MODE == 2 && grabbed == "done") {
     ctx.textAlign = 'right';
@@ -894,6 +892,19 @@ void drawTools() {
   ctx.clearRect(0, 0, tools.width, tools.height);
   int imht = tools.height;
   int imwid = 2 * imht; //right now they're 2:1
+
+  print(tools.width);
+
+  if (tools.width < 4.5 * tools.height) {
+    imwid = ((2.0 / 4.5) * tools.width).round();
+    imht = (imwid / 2).round();
+  }
+
+  screenCapIconCenter = new Point(max(tools.width / 4, (imwid * 1.125).round()), 2 * imht / 3); // 2 * tools.height is the offset of the arrow buttons
+  cavalieriCenter = new Point(3 * tools.width / 4, imwid / 3);
+  drawStatus(ctx, imwid, imht);
+
+
   if (MODE > 0) {
     ctx.drawImageScaled(leftButton, 0, 0, imwid, imht);
   }
@@ -908,7 +919,6 @@ void drawTools() {
   if (MODE < 2 && readyToGoOn) {
     ctx.drawImageScaled(rightButton, tools.width - imwid, 0, imwid, imht);
   }
-  drawStatus(ctx);
 
   if (MODE == 3 && rotationsAllowed && hasCut) {
     if (doingRotation){
@@ -967,8 +977,7 @@ void drawSWEEP() {
   CanvasRenderingContext2D ctx = canv.context2D;
   ctx.clearRect(0, 0, canv.width, canv.height);
   if (grabbed != "") {
-    drawGrid(ctx);
-    drawRulers(ctx);
+    drawGridAndRulers(canv);
     drawSweeperSweptSWEEP(ctx);
     drawSweeperCurrentSWEEP(ctx);
     areaToDisplay = getAreaString() + " " + getAreaUnitsString();
@@ -978,8 +987,7 @@ void drawSWEEP() {
       readyToGoOn = true;
     }
   } else {
-    drawGrid(ctx);
-    drawRulers(ctx);
+    drawGridAndRulers(canv);
     drawSweeperCurrentSWEEP(ctx);
   }
   drawTools();
@@ -1096,6 +1104,46 @@ int getYForVTick(num j) {
 int getYForVSubTick(num j) {
   return voff + (j * ticht / vSubTicks).round();
 }
+
+void drawGridAndRulers(CanvasElement canv) {
+  if ((hrulerwidth != (canv.width - hoff)) || (vrulerheight != (canv.height - voff))) {
+    fixSize(canv);
+  }
+
+  CanvasRenderingContext2D ctxt = canv.context2D;
+  drawGrid(ctxt);
+  drawRulers(ctxt);
+}
+
+void fixSize(CanvasElement canv) { // ToDo: Finish This
+  num newhrulerwidth = canv.width - hoff;
+  num newvrulerheight = canv.height - voff;
+
+  if (newhrulerwidth >= hrulerwidth) {
+    hrulerwidth = newhrulerwidth;
+  }
+
+  if (newvrulerheight >= vrulerheight) {
+    vrulerheight = newvrulerheight;
+  }
+
+  if ((newhrulerwidth < hrulerwidth) || (newvrulerheight < vrulerheight)) {
+    Point p = maxXYCors(); // this is in tics
+
+    if (newhrulerwidth < hrulerwidth) {
+
+    }
+
+    num newMaxX = newhrulerwidth / ticwid; // These are all in pixels
+    num newMaxY = newvrulerheight / ticht;
+  }
+
+}
+
+Point maxXYCors() {
+  return new Point (0, 0); // TODO: FIX THIS
+}
+
 
 //Drawing Grids/Rulers, Axes
 void drawGrid(CanvasRenderingContext2D ctxt) {

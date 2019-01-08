@@ -12,7 +12,7 @@ Piece originalPieceBeforeModification = null;
 
 List<Point> problemPoints = new List<Point>();
 
-num uncertaintyAllowed = .05; //uncertainty on the clicks
+num uncertaintyAllowed = .2; //uncertainty on the clicks
 
 // On a click, choose a vertex, inputted point is in tick coordinates
 void selectVertex(Point pt) {
@@ -112,8 +112,7 @@ void drawGEO() {
   CanvasRenderingContext2D ctx = canv.context2D;
   ctx.clearRect(0, 0, canv.width, canv.height);
 
-  drawRulers(ctx);
-  drawGrid(ctx);
+  drawGridAndRulers(canv);
   drawTools();
 
 

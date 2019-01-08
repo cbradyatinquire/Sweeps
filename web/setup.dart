@@ -363,18 +363,16 @@ void drawSETUP() {
   CanvasRenderingContext2D ctx = canv.context2D;
   ctx.clearRect(0, 0, canv.width, canv.height);
   if (grabbed == "horizontal" || grabbed == "vertical") {
-    drawGrid(ctx);
-    drawRulers(ctx);
+    drawGridAndRulers(canv);
     drawSweeperSETUP(ctx, oldpx2, oldpx1);
   } else {
     //if (grabbed != "") {
-    drawGrid(ctx);
     //}
     //Point strt = new Point(getXForHTick(s1end.x), getYForVTick(s1end.y));
     //Point end = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
     Point strt = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y));
     Point end = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
-    drawRulers(ctx);
+    drawGridAndRulers(canv);
     drawSweeperSETUP(ctx, strt, end);
   }
   ctx.drawImageScaled(rulerCompareButton, 0, 0, 58, 58);

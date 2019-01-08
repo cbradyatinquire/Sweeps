@@ -28,6 +28,8 @@ void messageResponse(MessageEvent e) {
 
   var d = e.data;
 
+  print(d);
+
   // Getting Inputs From The Event TODO: Fix when the format of the data is finished!
   String EventVertices = d['vertices'];
   String OriginalEventPieces = d['outlineVertices'];
@@ -35,8 +37,7 @@ void messageResponse(MessageEvent e) {
   int EventMode = d['mode'];
   bool EventRotationsAllowed = d['rotationsAllowed'];
 
-  print(d);
-  print(d['vertices']);
+  print(EventShapeColors);
 
   /*
   ticht = d['ticht'];
@@ -58,7 +59,7 @@ void messageResponse(MessageEvent e) {
     if (EventShapeColors != null) {
       int i = 0;
       while (i < pieces.length && i < EventShapeColors.length) {
-        if (EventShapeColors[i].length == 3) {
+        if (EventShapeColors[i].length == 4) {
           pieces[i].setColor(EventShapeColors[i]);
         }
         i++;
@@ -72,12 +73,52 @@ void messageResponse(MessageEvent e) {
     inputPoint1 = a[0];
     inputPoint2 = a[1];
 
-    if (MODE == 4){ // ensuring that the slider for Cavalieri is in the right position
-      if (inputPoint1.y != inputPoint2.y) {
+    if (EventMode == 2) { // sweeping mode
+
+      // The way sweep is structured, this does not make sense
+      /*
+      List<Point> b = ParseSlider(OriginalEventPieces);
+
+      if (!b.isEmpty) {
+        if ((b[0].y - a[0].y) != 0) {
+          dragIsVertical = true;
+          draggedUnits = a[0].y - b[0].y;
+          print(a[0].y - b[0].y);
+        }
+        else {
+          if ((b[0].x - a[0].x) != 0) {
+            dragIsVertical = false;
+            draggedUnits = a[0].x - b[0].x;
+            print(a[0].x - b[0].x);
+          }
+        }
+
+        if ((b[0].y - a[0].y == 0) && (b[0].x - a[0].x == 0)) {
+          draggedUnits = 0;
+          print("both zero");
+        }
+      }
+      else {
+        draggedUnits = 0;
+      }
+      */
+    }
+
+    if (EventMode == 4) {
+      if (inputPoint1.y != inputPoint2.y) {  // ensuring that the slider for Cavalieri is in the right position
         inputPoint2 = new Point(inputPoint2.x, inputPoint1.y);
+      }
+
+
+      savedT2S = ParsePoints(OriginalEventPieces);
+
+      if (!savedT2S.isEmpty) {
+        cavIsDragging = true;
       }
     }
   }
+
+
 
 
   doEventSetup();
@@ -99,6 +140,7 @@ void messageResponse(MessageEvent e) {
     if (EventMode == 2 || EventMode == 4) {
       s1end = inputPoint1;
       s2end = inputPoint2;
+      readyToGoOn = false;
       doModeSpecificLogic();
     }
 
@@ -158,7 +200,46 @@ void postImageData(CanvasElement canv, List<String> annotation) {
   }
 
   if (((MODE == 1) || (MODE == 2)) || (MODE == 4)) {
-    pieceVertices = "'(" + s1end.x.toString() + ", " + s1end.y.toString() + "), (" + s2end.x.toString() + ", " + s2end.y.toString() + ")'";
+    pieceVertices =
+        "'(" + s1end.x.toString() + ", " + s1end.y.toString() + "), (" +
+            s2end.x.toString() + ", " + s2end.y.toString() + ")'";
+
+    if ((MODE == 2)) {
+      if (dragIsVertical) {
+        originalPieceVertices = "'(" + s1end.x.toString() + ", " +
+            (s1end.y - draggedUnits).toString() + "), (" + s2end.x.toString() +
+            ", " + (s2end.y - draggedUnits).toString() + ")'";
+      }
+      else {
+        originalPieceVertices =
+            "'(" + (s1end.x - draggedUnits).toString() + ", " +
+                s1end.y.toString() + "), (" +
+                (s2end.x - draggedUnits).toString() + ", " +
+                s2end.y.toString() + ")'";
+      }
+    }
+
+    if (MODE == 4) {
+      if (cavIsDragging) {
+        List<Point> L1 = t1s.reversed;
+        int i = 0;
+        while (i < L1.length) {
+          print(L1[i]);
+          originalPieceVertices =
+              originalPieceVertices + ", (" + (L1[i].x).toString() + ", " +
+                  L1[i].y.toString() + ")";
+          i++;
+        }
+
+        i = 0;
+        while (i < t2s.length) {
+          originalPieceVertices =
+              originalPieceVertices + ", (" + t2s[i].x.toString() + ", " +
+                  t2s[i].y.toString() + ")";
+          i++;
+        }
+      }
+    }
   }
 
   //postSomething("hi");
@@ -199,10 +280,7 @@ void postImageData(CanvasElement canv, List<String> annotation) {
 
   var met = {'name':'$user', 'description': '$comm' };
 
-  print('got here');
   var dataToSend = { 'metadata': met, 'image': idata, 'data': dataToEncode, 'type' : 'export-settings' };
-
-  print('hi');
 
   postSomething(dataToSend);
 

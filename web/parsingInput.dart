@@ -9,6 +9,8 @@ void manageInputs() {
     inputPoint1 = a[0];
     inputPoint2 = a[1];
 
+    readyToGoOn = false;
+
     if (MODE == 4){ // ensuring that the slider for Cavalieri is in the right position
       if (inputPoint1.y != inputPoint2.y) {
         inputPoint2 = new Point(inputPoint2.x, inputPoint1.y);
@@ -119,6 +121,76 @@ List<Point> ParseSlider(String s) {
 
   while (toReturn.length > 2)
     toReturn.removeLast();
+
+  return toReturn;
+}
+
+
+List<Point> ParsePoints(String s) {
+  if (s == null) {
+    return [];
+  }
+
+  bool inPoint = false;
+  List<Point> toReturn = new List<Point>();
+
+  bool onYcor = false;
+  num currentXcor = 0;
+  num currentYcor = 0;
+  int decimalPlaces = 0;
+  bool countingDec = false;
+
+  List<String> digits = [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ];
+
+  num j = 0;
+  while (j < s.length) {
+    String currentPlace = s[j];
+
+    if (currentPlace != " ") {
+      if (!inPoint) {
+        if (currentPlace == "(") {
+          inPoint = true;
+          onYcor = false;
+          countingDec = false;
+          decimalPlaces = 0;
+          currentXcor = 0;
+          currentYcor = 0;
+        }
+      }
+      else { // if you are in a point
+        if (currentPlace == ")") {
+          inPoint = false;
+          currentYcor = currentYcor * pow(0.1, decimalPlaces);
+          toReturn.add(new Point(currentXcor, currentYcor));
+        }
+        else {
+          if (currentPlace == ",") {
+            currentXcor = currentXcor * pow(0.1, decimalPlaces);
+            onYcor = true;
+            countingDec = false;
+            decimalPlaces = 0;
+          }
+
+          else {
+            num digit = digits.indexOf(currentPlace);
+            if (digit != -1) {
+              if (onYcor)
+                currentYcor = currentYcor * 10 + digit;
+              else
+                currentXcor = currentXcor * 10 + digit;
+              if (countingDec)
+                decimalPlaces++;
+            }
+
+            if (currentPlace == ".") {
+              countingDec = true;
+            }
+          }
+        }
+      }
+    }
+    j++;
+  }
 
   return toReturn;
 }
