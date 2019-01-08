@@ -244,9 +244,9 @@ void postImageData(CanvasElement canv, List<String> annotation) {
 
   //postSomething("hi");
 
-  //dataToEncode = '''[ { inputVertices: $pieceVertices }, { originalVertices : $originalPieceVertices }, { colors: $colorsList }, { mode: $MODE }, {rotationsAllowed: $rotationsAllowed } ]''';
+  //dataToEncode = '''[ { inputVertices: $pieceVertices }, { outlineVertices : $originalPieceVertices }, { colors: $colorsList }, { mode: $MODE }, {rotationsAllowed: $rotationsAllowed } ]''';
 
-  //dataToEncode = '''[ { inputVertices: $pieceVertices }, { originalVertices : $originalPieceVertices }, { colors: $colorsList }, { mode: $MODE }, {rotationsAllowed: $rotationsAllowed } ]''';
+  //dataToEncode = '''[ { inputVertices: $pieceVertices }, { outlineVertices : $originalPieceVertices }, { colors: $colorsList }, { mode: $MODE }, {rotationsAllowed: $rotationsAllowed } ]''';
 
 
 

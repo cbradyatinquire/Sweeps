@@ -2,7 +2,7 @@ part of sweeps;
 
 
 void manageInputs() {
-  MODEAfterSetup = input['inputMode'];
+  MODEAfterSetup = input['mode'];
 
   if (MODEAfterSetup == 2 || MODEAfterSetup == 4) {
     List<Point> a = ParseSlider(inputVertices);
