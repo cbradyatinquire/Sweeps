@@ -40,13 +40,11 @@ void draggingSWEEP(Point currentPt) {
   if (delx.abs() > dely.abs()) {
     if (dragIsVertical) {
       changedDirection = true;
-      print("hi");
     }
     dragIsVertical = false;
   } else {
     if (!dragIsVertical) {
       changedDirection = true;
-      print("hi");
     }
     dragIsVertical = true;
   }
@@ -86,11 +84,15 @@ void draggingSWEEP(Point currentPt) {
       s2end = new2;
       draggedUnits = wantToDragSubUnits;
     }
+    else {
+      if (changedDirection) {
+        dragIsVertical = !dragIsVertical;
+      }
+    }
   }
   else {
     if (changedDirection) {
       dragIsVertical = !dragIsVertical;
-      print("got to here");
     }
   }
   drawSWEEP();
