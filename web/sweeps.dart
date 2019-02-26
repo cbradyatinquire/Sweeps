@@ -675,6 +675,7 @@ void doModeSpecificLogic() {
     }
 
     rememberPresentSETUPSWEEP();
+    draggedUnits = 0;
     readyToGoOn = true;
     drawSETUP();
     drawTools();
