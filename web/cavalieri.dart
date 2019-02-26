@@ -52,7 +52,7 @@ void initAndCheckForConstraints() {
 void startCavalieriLoop() {
   initAndCheckForConstraints();
   t1s = new List<Point>();
-  t2s = savedT2S;
+  t2s = new List<Point>(); //savedT2S;
   if (TabletTiltSensorCav == null) {
 
   }

@@ -675,7 +675,12 @@ void doModeSpecificLogic() {
     }
 
     rememberPresentSETUPSWEEP();
+
+    //variables that need to be reset if you're coming back to this
     draggedUnits = 0;
+    wasInCavalieri = false;
+
+
     readyToGoOn = true;
     drawSETUP();
     drawTools();
@@ -686,6 +691,7 @@ void doModeSpecificLogic() {
     }
 
     TurnOnSWEEP();
+    TurnOnSWEEP(); // TODO: I *really* don't know why, but this second request fixes the bug that cav -> setup -> sweep without moving the sweeper doesn't turn on Mouse down?
 
     if (!CUTMouseDown.isPaused) {
       TurnOffCUT();
@@ -704,6 +710,7 @@ void doModeSpecificLogic() {
     rememberPresentSETUPSWEEP();
     drawSWEEP();
     drawTools();
+    print(SWEEPMouseDown.isPaused);
   }
   if (MODE == 3) { // CUTTING
     if (!SETUPMouseDown.isPaused) {
@@ -893,8 +900,6 @@ void drawTools() {
   ctx.clearRect(0, 0, tools.width, tools.height);
   int imht = tools.height;
   int imwid = 2 * imht; //right now they're 2:1
-
-  print(tools.width);
 
   if (tools.width < 4.5 * tools.height) {
     imwid = ((2.0 / 4.5) * tools.width).round();

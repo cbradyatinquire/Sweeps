@@ -230,7 +230,7 @@ void drawRulerMarkings(Point BottomLeft, Point TopLeft, Point TopRight, CanvasRe
   ifFractions = ' ';
   numToDraw = (getSubTickCoordForPixelH(TopRight.x) - getSubTickCoordForPixelH(TopLeft.x)).abs().toString();
   if (hSubTicks > 1) {
-    ifFractions = " / " + vSubTicks.toString() + " ";
+    ifFractions = " / " + hSubTicks.toString() + " ";
   }
   toDraw = numToDraw + ifFractions + hunits_abbreviated;
   ctxt.fillText(toDraw, ((TopLeft.x + TopRight.x) / 2).round(), 28);

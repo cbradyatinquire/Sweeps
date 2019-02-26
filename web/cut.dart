@@ -521,7 +521,7 @@ drawOriginalPieceCUT(CanvasRenderingContext2D ctxt) {
   ctxt.beginPath();
   originalPieces.forEach((piece) => drawOutlineCUT(ctxt, piece));
 
-  if (MODEAfterSetup != 4 && MODEAfterSetup != 5) { // if it came from the sweeper
+  if (MODEAfterSetup != 3 && MODEAfterSetup != 5 && !wasInCavalieri) { // if it came from the sweeper
     List x = originalPieces[0].vertices;
 
 
