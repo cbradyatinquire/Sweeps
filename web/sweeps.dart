@@ -967,8 +967,10 @@ void updateSweeperVPoints(int oldval, int newval) {
 void initInteractionSWEEP(Point initPoint) {
   if (inMiddle(initPoint)) {
     grabbed = "body";
-    draggedUnits = 0;
-    setupDragOriginMemorySETUPSWEEP(initPoint);
+    //draggedUnits = 0; removed so that it wouldn't
+    if (draggedUnits == 0) {
+      setupDragOriginMemorySETUPSWEEP(initPoint);
+    }
     drawSWEEP();
   }
 }

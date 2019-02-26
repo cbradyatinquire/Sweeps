@@ -35,20 +35,29 @@ void mouseDragSWEEP(MouseEvent event) {
 void draggingSWEEP(Point currentPt) {
   int delx = currentPt.x - dragOrigin.x;
   int dely = currentPt.y - dragOrigin.y;
+
+  bool changedDirection = false;
   if (delx.abs() > dely.abs()) {
+    if (dragIsVertical) {
+      changedDirection = true;
+    }
     dragIsVertical = false;
   } else {
+    if (!dragIsVertical) {
+      changedDirection = true;
+    }
     dragIsVertical = true;
   }
 
-  //exceptional logic ---> if the sweeper is vertical, all sweeps should be horizontal; 
+  //exceptional logic ---> if the sweeper is vertical, all sweeps should be horizontal;
   //and if the sweeper is horizontal, all sweeps should be vertical.
+
   if (olds1.x == olds2.x) {
     if (olds1.y != olds2.y) {
       dragIsVertical = false;
-      }    
+      }
   }
-  if (olds1.y == olds2.y) {
+  else if (olds1.y == olds2.y) {
     if (olds1.x != olds2.x) {
       dragIsVertical = true;
       }
@@ -62,17 +71,26 @@ void draggingSWEEP(Point currentPt) {
     wantToDragSubUnits = (vSubTicks * dely / ticht).round();
     new1 = new Point(olds1.x, olds1.y + wantToDragSubUnits);
     new2 = new Point(olds2.x, olds2.y + wantToDragSubUnits);
+    print(new1.toString());
+    print(new2.toString());
   } else {
     //wantToDragUnits = (delx / ticwid).round();
     wantToDragSubUnits = (hSubTicks * delx / ticwid).round();
     new1 = new Point(olds1.x + wantToDragSubUnits, olds1.y);
     new2 = new Point(olds2.x + wantToDragSubUnits, olds2.y);
+    print(new1.toString());
+    print(new2.toString());
   }
   if (new1.x >= 0 && new1.x <= hticks * hSubTicks && new1.y >= 0 && new1.y <= vticks * vSubTicks) {
     if (new2.x >= 0 && new2.x <= hticks * hSubTicks && new2.y >= 0 && new2.y <= vticks * vSubTicks) {
       s1end = new1;
       s2end = new2;
       draggedUnits = wantToDragSubUnits;
+    }
+  }
+  else {
+    if (changedDirection) {
+      dragIsVertical = !dragIsVertical;
     }
   }
   drawSWEEP();
@@ -100,7 +118,6 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
 //  Point end = new Point(getXForHTick(s2end.x), getYForVTick(s2end.y));
   Point strt = new Point(getXForHSubTick(s1end.x), getYForVSubTick(s1end.y));
   Point end = new Point(getXForHSubTick(s2end.x), getYForVSubTick(s2end.y));
-
 
   Point strt2, end2;
   if (dragIsVertical) {
