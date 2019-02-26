@@ -40,11 +40,13 @@ void draggingSWEEP(Point currentPt) {
   if (delx.abs() > dely.abs()) {
     if (dragIsVertical) {
       changedDirection = true;
+      print("hi");
     }
     dragIsVertical = false;
   } else {
     if (!dragIsVertical) {
       changedDirection = true;
+      print("hi");
     }
     dragIsVertical = true;
   }
@@ -71,16 +73,13 @@ void draggingSWEEP(Point currentPt) {
     wantToDragSubUnits = (vSubTicks * dely / ticht).round();
     new1 = new Point(olds1.x, olds1.y + wantToDragSubUnits);
     new2 = new Point(olds2.x, olds2.y + wantToDragSubUnits);
-    print(new1.toString());
-    print(new2.toString());
   } else {
     //wantToDragUnits = (delx / ticwid).round();
     wantToDragSubUnits = (hSubTicks * delx / ticwid).round();
     new1 = new Point(olds1.x + wantToDragSubUnits, olds1.y);
     new2 = new Point(olds2.x + wantToDragSubUnits, olds2.y);
-    print(new1.toString());
-    print(new2.toString());
   }
+
   if (new1.x >= 0 && new1.x <= hticks * hSubTicks && new1.y >= 0 && new1.y <= vticks * vSubTicks) {
     if (new2.x >= 0 && new2.x <= hticks * hSubTicks && new2.y >= 0 && new2.y <= vticks * vSubTicks) {
       s1end = new1;
@@ -91,6 +90,7 @@ void draggingSWEEP(Point currentPt) {
   else {
     if (changedDirection) {
       dragIsVertical = !dragIsVertical;
+      print("got to here");
     }
   }
   drawSWEEP();
@@ -158,70 +158,80 @@ void drawSweeperSweptSWEEP(CanvasRenderingContext2D ctxt) {
   }
 
   //ADD MARKINGS TO RULER
+  if (draggedUnits != 0) {
+    if (dragIsVertical) {
+      if (strt.x > end.y) {
+        if (draggedUnits > 0) {
+          drawRulerMarkings(end2, end, strt, ctxt);
+        }
+        else {
+          drawRulerMarkings(end, end2, strt2, ctxt);
+        }
+      }
+      else {
+        if (draggedUnits > 0) {
+          drawRulerMarkings(strt2, strt, end, ctxt);
+        }
+        else {
+          drawRulerMarkings(strt, strt2, end2, ctxt);
+        }
+      }
+    }
+    else {
+      if (strt.y > end.y) {
+        if (draggedUnits > 0) {
+          drawRulerMarkings(strt, end, end2, ctxt);
+        }
+        else {
+          drawRulerMarkings(strt2, end2, end, ctxt);
+        }
+      }
+      else {
+        if (draggedUnits > 0) {
+          drawRulerMarkings(end, strt, strt2, ctxt);
+        }
+        else {
+          drawRulerMarkings(end2, strt2, strt, ctxt);
+        }
+      }
+    }
+  }
+}
+
+void drawRulerMarkings(Point BottomLeft, Point TopLeft, Point TopRight, CanvasRenderingContext2D ctxt) {
+
+  // Draw the boxes
   ctxt.fillStyle = "rgba(255, 0, 0, 0.15)";
-  if (draggedUnits != 0) {
-    if (dragIsVertical) {
-      ctxt.fillRect(0, strt.y, hoff, strt2.y - strt.y);
-      ctxt.fillRect(strt.x, 0, end.x - strt.x, voff);
-    } else {
-      ctxt.fillRect(strt.x, 0, strt2.x - strt.x, voff);
-      ctxt.fillRect(0, strt.y, hoff, end.y - strt.y);
-    }
+
+  ctxt.fillRect(0, BottomLeft.y, hoff, TopLeft.y - BottomLeft.y);
+  ctxt.fillRect(TopRight.x, 0, TopLeft.x - TopRight.x, voff);
+
+
+  //Draw the text
+  ctxt.strokeStyle = "#000";
+  ctxt.fillStyle = "#000";
+  ctxt.font = littleCanvasFont;
+  ctxt.textAlign = 'center';
+
+
+  //Vertical text
+  String ifFractions = ' ';
+  String numToDraw = (getSubTickCoordForPixelV(BottomLeft.y) - getSubTickCoordForPixelV(TopLeft.y)).abs().toString();
+  if (vSubTicks > 1) {
+    ifFractions = " / " + vSubTicks.toString() + " ";
   }
+  String toDraw = numToDraw + ifFractions + vunits_abbreviated;
+  int ycor = ((BottomLeft.y + TopLeft.y) / 2).round();
+  drawVerticalText(ctxt, toDraw, 28, ycor);
 
-  if (draggedUnits != 0) {
-    //ADD Drag Units to rulers.
-    ctxt.strokeStyle = "#000";
-    ctxt.fillStyle = "#000";
-    ctxt.font = littleCanvasFont;
-    ctxt.textAlign = 'center';
-    //horizontal
-
-    //TODO:  check it worked.
-    String ifFractions = " ";
-    if (dragIsVertical) {
-      String numToDraw = getSweeperLength().abs().toString();
-      if (hSubTicks > 1) {
-        //numToDraw = "<sup>" + numToDraw + "</sup>";
-        ifFractions = " / " + hSubTicks.toString() + " ";
-      }
-      String toDraw = numToDraw + ifFractions + hunits_abbreviated;
-      ctxt.fillText(toDraw, ((strt.x + end.x) / 2).round(), 28);
-    } else {
-      String numToDraw = draggedUnits.abs().toString();
-      if (hSubTicks > 1) {
-        //numToDraw = "<sup>" + numToDraw + "</sup>";
-        ifFractions = " / " + hSubTicks.toString() + " ";
-      }
-      String toDraw = numToDraw + ifFractions + hunits_abbreviated;
-      ctxt.fillText(toDraw, ((strt.x + strt2.x) / 2).round(), 28);
-    }
-
-
-    ifFractions = " ";
-    //vertical
-    //TODO: check it worked
-    if (dragIsVertical) {
-      String numToDraw = draggedUnits.abs().toString();
-      if (vSubTicks > 1) {
-        //numToDraw = "<sup>" + numToDraw + "</sup>";
-        ifFractions = " / " + vSubTicks.toString() + " ";
-      }
-      String toDraw = numToDraw + ifFractions + vunits_abbreviated;
-      int ycor = ((strt.y + strt2.y) / 2).round();
-      drawVerticalText(ctxt, toDraw, 28, ycor);
-    } else {
-      String numToDraw = getSweeperLength().abs().toString();
-      if (vSubTicks > 1) {
-        //numToDraw = "<sup>" + numToDraw + "</sup>";
-        ifFractions = " / " + vSubTicks.toString() + " ";
-      }
-      String toDraw = numToDraw + ifFractions + vunits_abbreviated;
-      int ycor = ((strt.y + end.y) / 2).round();
-      drawVerticalText(ctxt, toDraw, 28, ycor);
-    }
-
+  // Horizontal text
+  ifFractions = ' ';
+  numToDraw = (getSubTickCoordForPixelH(TopRight.x) - getSubTickCoordForPixelH(TopLeft.x)).abs().toString();
+  if (hSubTicks > 1) {
+    ifFractions = " / " + vSubTicks.toString() + " ";
   }
+  toDraw = numToDraw + ifFractions + hunits_abbreviated;
+  ctxt.fillText(toDraw, ((TopLeft.x + TopRight.x) / 2).round(), 28);
 }
 
 
