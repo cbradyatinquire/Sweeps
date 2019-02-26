@@ -516,10 +516,89 @@ void drawOutlineCUT(CanvasRenderingContext2D ctxt, Piece piece) {
 }
 
 drawOriginalPieceCUT(CanvasRenderingContext2D ctxt) {
-    ctxt.strokeStyle = "#555";
-    ctxt.fillStyle = "#88F";
-    ctxt.beginPath();
-    originalPieces.forEach((piece) => drawOutlineCUT(ctxt, piece));
+  ctxt.strokeStyle = "#555";
+  ctxt.fillStyle = "#88F";
+  ctxt.beginPath();
+  originalPieces.forEach((piece) => drawOutlineCUT(ctxt, piece));
+
+  if (MODEAfterSetup != 4 && MODEAfterSetup != 5) { // if it came from the sweeper
+    List x = originalPieces[0].vertices;
+
+
+    int indexOfTop = 0;
+    int i = 0;
+    num errorTol = .1;
+    while (i < x.length) {
+      if (x[i].y < x[indexOfTop].y + errorTol) {
+        indexOfTop = i;
+      }
+      i++;
+    }
+
+    Point BottomLeft, TopLeft, TopRight;
+
+    if (x[((indexOfTop + 1) % 4)].y <
+        x[indexOfTop].y + errorTol) { // these are the top two
+      if (x[((indexOfTop + 1) % 4)].x <
+          x[indexOfTop].x) { // top left & right points respectively
+        BottomLeft = x[((indexOfTop + 2) % 4)];
+        TopLeft = x[((indexOfTop + 1) % 4)];
+        TopRight = x[indexOfTop];
+      }
+      else { // top right and left points respectively
+        BottomLeft = x[((indexOfTop - 1) % 4)];
+        TopLeft = x[indexOfTop];
+        TopRight = x[((indexOfTop + 1) % 4)];
+      }
+    }
+
+    if (x[((indexOfTop - 1) % 4)].y <
+        x[indexOfTop].y + errorTol) { // these are the top two
+      if (x[((indexOfTop - 1) % 4)].x <
+          x[indexOfTop].x) { // top left & right points respectively
+        BottomLeft = x[((indexOfTop - 2) % 4)];
+        TopLeft = x[((indexOfTop - 1) % 4)];
+        TopRight = x[indexOfTop];
+      }
+      else { // top right and left points respectively
+        BottomLeft = x[((indexOfTop + 1) % 4)];
+        TopLeft = x[indexOfTop];
+        TopRight = x[((indexOfTop - 1) % 4)];
+      }
+    }
+
+    // Then the drag must have been vertical
+    if ((x[((indexOfTop + 1) % 4)].x - x[indexOfTop].x).abs() <
+        errorTol) { // these are one vertical side
+      if (x[((indexOfTop - 1) % 4)].x <
+          x[indexOfTop].x) { // top left & right points respectively
+        BottomLeft = x[((indexOfTop - 2) % 4)];
+        TopLeft = x[((indexOfTop - 1) % 4)];
+        TopRight = x[indexOfTop];
+      }
+      else { // top right and left points respectively
+        BottomLeft = x[((indexOfTop + 1) % 4)];
+        TopLeft = x[indexOfTop];
+        TopRight = x[((indexOfTop - 1) % 4)];
+      }
+    }
+    if ((x[((indexOfTop - 1) % 4)].x - x[indexOfTop].x).abs() <
+        errorTol) { // these are one vertical side
+      if (x[((indexOfTop + 1) % 4)].x <
+          x[indexOfTop].x) { // top left & right points respectively
+        BottomLeft = x[((indexOfTop + 2) % 4)];
+        TopLeft = x[((indexOfTop + 1) % 4)];
+        TopRight = x[indexOfTop];
+      }
+      else { // top right and left points respectively
+        BottomLeft = x[((indexOfTop - 1) % 4)];
+        TopLeft = x[indexOfTop];
+        TopRight = x[((indexOfTop + 1) % 4)];
+      }
+    }
+
+    drawRulerMarkings(convertFromTickCoordinates(BottomLeft), convertFromTickCoordinates(TopLeft), convertFromTickCoordinates(TopRight), ctxt);
+  }
 }
 
 
