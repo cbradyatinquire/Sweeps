@@ -1,0 +1,96 @@
+<html>
+  <head>
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<title>Sweeping App 2.0 </title>
+  </head>
+  <body  onbeforeunload="return myFunction()">
+    
+   <div style="width: 100%; height: 100%">
+	  <iframe id="sweep_frame"   src="sweeps.html" height="100%" width="100%" ></iframe>
+    </div>
+	<script>
+	function myFunction() {
+	  return "Write something clever here...";
+	}
+	</script>
+  </body>
+  <script type="text/javascript">
+	
+	//MANAGE THE COMMUNICATIONS
+	//var domain = "http://rendupo.com:8000";
+	var domain = "https://gallery.app.vanderbilt.edu";
+
+	
+	let makeEntriesFromFormData = function(obj, formData) {
+	  for (let key in (obj || {})) {
+	    formData.set(key, obj[key]);
+	  }
+	  return formData.entries();
+	};
+
+	//for safari.
+	let makeEntriesShim = function(obj, formElem) {
+	  let entryMap = new Map()
+
+	  if (formElem !== undefined) {
+	    Array.from(formElem.querySelectorAll("input[name]")).forEach((elem) => entryMap.set(elem.name, elem.value));
+	  }
+
+	  for (let key in (obj || {})) {
+	    entryMap.set(key, obj[key]);
+	  }
+
+	  return Array.from(entryMap.entries());
+	}
+
+	window.makeQueryString = function(obj, formElem) {
+	  let removeCRs = (str) => str.replace(/\r/g, '');
+	  let formData  = new FormData(formElem);
+	  let entries   = (formData.entries !== undefined) ? makeEntriesFromFormData(obj, formData) : makeEntriesShim(obj, formElem);
+	  return Array.from(entries).map(([k, v]) => encodeURIComponent(k) + "=" + encodeURIComponent(removeCRs(v))).join("&");
+	}
+
+	window.upload = function(code, image, summary, uploader) {
+  		let failback = function(response) {
+			alert("Failed to post sweeper information...");
+			response.text().then(function(body) { alert(JSON.stringify(body)) });
+		};
+
+		let callback = function(response) {
+	    	if (response.status === 200) {
+				alert("Successfully posted sweeper information.");
+	    	} else {
+	      		failback(response);
+	    	}
+	  	};
+
+		let sn = window.location.hash
+		while(sn.charAt(0) === '#') {
+			sn = sn.substr(1);
+		}
+		console.log(sn);
+	    if (sn.length < 1) { 
+			sn = "public";
+		}
+	    let params = makeQueryString({ "session-id": sn, image, "data": JSON.stringify(code), "metadata": JSON.stringify({ summary, uploader }) });
+  
+		fetch(domain + "/uploads/", { method: "POST", body: params, headers: { "Content-Type": "application/x-www-form-urlencoded" } }).then(callback, failback);
+		
+		return false;
+	};
+
+
+    let receiveMessage = function(event) {
+      switch (event.data.type) {
+		case "export-settings":
+		  console.log("message received to top level index.html");
+		  upload(event.data.data, event.data.image, event.data.metadata.description, event.data.metadata.name);
+	  	  break;
+		default:
+          console.log("Lady Octopus: Ignoring message of type '" + event.type + "'");
+      }
+    }
+    
+  window.addEventListener("message", receiveMessage, false);
+  </script>
+</html>

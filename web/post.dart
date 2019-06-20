@@ -32,7 +32,7 @@ void messageResponse(MessageEvent e) {
 
   // Getting Inputs From The Event TODO: Fix when the format of the data is finished!
   String EventVertices = d['vertices'];
-  String OriginalEventPieces = d['outlineVertices'];
+  String OriginalEventVertices = d['outlineVertices'];
   List<List<num>> EventShapeColors = d['colors'];
   int EventMode = d['mode'];
   bool EventRotationsAllowed = d['rotationsAllowed'];
@@ -50,7 +50,7 @@ void messageResponse(MessageEvent e) {
   rotationsAllowed = EventRotationsAllowed;
   MODEAfterSetup = EventMode;
 
-  originalPieces = ParsePieces(OriginalEventPieces);
+  List<Piece> OriginalEventPieces = ParsePieces(OriginalEventVertices);
 
   // processing the vertices
   if (EventMode == 3 || EventMode == 5) {
@@ -110,7 +110,7 @@ void messageResponse(MessageEvent e) {
       }
 
 
-      savedT2S = ParsePoints(OriginalEventPieces);
+      savedT2S = ParsePoints(OriginalEventVertices);
 
       if (!savedT2S.isEmpty) {
         cavIsDragging = true;
@@ -151,16 +151,16 @@ void messageResponse(MessageEvent e) {
       doModeSpecificLogic();
 
       pieces = copy(inputPieces);
-      originalPieces = copy(inputPieces);
+      originalPieces = copy(OriginalEventPieces);
       drawCUT();
       drawTools();
     }
 
     if (MODEAfterSetup == 5) {
-      pieces = copy(inputPieces);
-      originalPieces = copy(inputPieces);
-
       doModeSpecificLogic();
+      pieces = copy(inputPieces);
+      originalPieces = copy(OriginalEventPieces);
+
       drawGEO();
     }
   }

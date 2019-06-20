@@ -1,0 +1,72 @@
+<html>
+	<head>
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<title>Sweeping App 2.0 - Session Launcher</title>
+	<style>
+	
+	.tbutton {
+	  height: 28px;
+	  font-weight: bold;
+	  font-size:24px;
+	}
+
+	.teacher {
+	  font-size: 24px;
+	  font-weight: bold;
+	}
+	
+	body {
+		background-color: aliceblue;
+	}
+
+	p {
+	  font-size: 20px;
+	}
+
+	</style>
+	</head>
+	
+	<body onbeforeunload="return myFunction()">
+		<label class="teacher" for="sname">Session Name: </label>
+		<input id="sname" class="teacher" type="text" size="20" onkeyup="updateLinks();">
+		<input id="tbutt" class="tbutton" type="button" value="Update" onclick="updateLinks();">
+		<p>
+		[Please only use letters, numbers, or the 'underscore' character (_) in session names]
+		</p>
+		<br>
+	<div id="copier">
+		<p><i>Link to Full Screen Sweeper (student interface):</i><br>&nbsp;&nbsp;<a id="asweeponly" href="."><span id="linktextso">[Link will show here]</span></a></p>
+		<p><i>Link to Sweeper with Gallery (student or teacher interface):</i><br>&nbsp;&nbsp;<a id="asweepplus" href="."><span id="linktextsp">[Link will show here]</span></a></p>
+	</div>
+	
+	<script>
+		function myFunction() {
+	  		return "Write something clever here...";
+		}
+		
+		function updateLinks(  ) {
+			let loc = window.location.href;
+			let cutpt = loc.lastIndexOf("/");
+			loc = loc.substr(0,cutpt);
+			loconly = loc + "/sweeponly.html#";
+			locplus = loc + "/index.html#";
+			
+			let currentvalue = document.getElementById("sname").value;
+			let touse = (currentvalue.length < 1) ? "public" : currentvalue;
+			//touse = encodeURI(touse);
+			touse = touse.replace(/[^a-zA-Z0-9-_]/g, '');
+			
+			let linktextsonly = loconly + touse;
+			let linkso = document.getElementById("asweeponly");
+			linkso.href = linktextsonly;
+			document.getElementById("linktextso").innerHTML = linktextsonly;
+			
+			let linktextsg = locplus + touse;
+			let linksp = document.getElementById("asweepplus");
+			linksp.href = linktextsg;
+			document.getElementById("linktextsp").innerHTML = linktextsg;
+		}
+		updateLinks();
+	</script>
+	</body>
+</html>
