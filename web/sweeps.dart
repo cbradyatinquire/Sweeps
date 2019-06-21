@@ -342,8 +342,9 @@ void testSwitchMode(MouseEvent e) {
       }
     }
     else if (MODE == 3) { // cut -> cut / cut -> cav / cut -> geo / cut -> setup (after cav from setup)/ cut -> sweep
-      if (MODEAfterSetup == 3) {
+      if (MODEAfterSetup == 3 || notACopy(pieces, originalPieces)) {
         pieces = copy(originalPieces);
+        print('hi');
         drawCUT();
       }
       else if (MODEAfterSetup == 4) {

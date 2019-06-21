@@ -1,6 +1,34 @@
 part of sweeps;
 
 
+bool notACopy(List<Piece> a, List<Piece> b) {
+  List<Piece> pieces1 = copy(a);
+  List<Piece> pieces2 = copy(b);
+
+  num errorTol = .05;
+
+  if (pieces1.length != pieces2.length) {
+    return true;
+  }
+
+  int j = 0;
+  while (j < pieces2.length) {
+    if (pieces1[j].vertices.length != pieces2[j].vertices.length) {
+      return true;
+    }
+
+    int i = 0;
+    while (i < pieces1[j].vertices.length) {
+      if (pieces1[j].vertices[i].distanceTo(pieces2[j].vertices[i]) > errorTol) {
+        return true;
+      }
+      i = i + 1;
+    }
+    j = j + 1;
+  }
+  return false;
+}
+
 void manageInputs() {
   MODEAfterSetup = input['mode'];
 

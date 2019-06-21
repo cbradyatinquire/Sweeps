@@ -13,10 +13,12 @@ class Piece {
   String fillsty = "rgba(0, 0, 255, 0.3)";
   num xmin, xmax, ymin, ymax;
 
+  num errorTolerance = .05; // should change this depending on the environment
+
   Piece(List<Point> vs) {
     vertices = new List<Point>();
     for (Point p in vs) {
-      if ( !vertices.contains(p) ) {
+      if (!vertices.contains(p)) {
         vertices.add(p);
       }
     }
@@ -165,7 +167,7 @@ class Piece {
   }
 
   bool hitParityOdd( num x, num y ) { // for explanation of what is being calculated and why, see comment in method "containsGridPoint"
-    Point startPoint = new Point(xmin - 1.02, (ymax - ymin) / 2); // This is just chosen as point outside the piece
+    Point startPoint = new Point(xmin - 1, (ymax - ymin) / 2); // This is just chosen as point outside the piece
 
     num hits = getHitNumber(startPoint, new Point(x, y));
 
@@ -184,7 +186,6 @@ class Piece {
 
   int numIntersections( Point s1p1, Point s1p2, Point s2p1, Point s2p2 ) {
     num a1, a2, b1, b2, c1, c2, d1, d2;
-    num epsilon = .0000001;
 
     //get coefficients of line for side 1 in standard Ax + By + C = 0 form
     a1 = s1p2.y - s1p1.y;
@@ -208,7 +209,7 @@ class Piece {
 
     if (d1 * d2 > 0) { return 0; }
 
-    if ( ( (a1 * b2) - (a2 * b1) ).abs() < epsilon   ) { return 0; } // that is, if the lines are practically parallel, and hence on top of each other
+    if ( ( (a1 * b2) - (a2 * b1) ).abs() < errorTolerance   ) { return 0; } // that is, if the lines are practically parallel, and hence on top of each other
     else { return 1;}
   }
 
@@ -410,8 +411,7 @@ class Piece {
       num next = (index + 1) % vertices.length;
       int previous = (index - 1 + vertices.length) % vertices.length;
 
-      bool repeated = (vertices[previous].distanceTo(vertices[index]) <
-          .000001); // for catching rounding errors
+      bool repeated = (vertices[previous].distanceTo(vertices[index]) < errorTolerance); // for catching rounding errors
 
       if (repeated)
         index++;
@@ -443,7 +443,7 @@ class Piece {
 
       possiblePoint = isIntersection(checkingIndex, verticesWithoutRepeats, abc); // will consider side starting at the point indexed by checkingIndex
       if (possiblePoint != null) {
-        if (possiblePoint.distanceTo(verticesWithoutRepeats[checkingIndex]) > .0001) // accounting for rounding errors
+        if (possiblePoint.distanceTo(verticesWithoutRepeats[checkingIndex]) > errorTolerance) // accounting for rounding errors
           verticesTotal.add(possiblePoint);
         cutIndices.add(verticesTotal.length - 1); // index of the last element added
       }
@@ -579,7 +579,7 @@ class Piece {
 
     num j = 1; // first vertex will not be duplicated, as duplicated vertices only occur on tips that contribute to the cut, so do not need to check j = 0 for duplication
     while (j < cutIndicesFinal.length - 1) {
-      if (verticesToReturn[cutIndicesFinal[j]].distanceTo(verticesToReturn[cutIndicesFinal[j + 1]]) < .00001) {
+      if (verticesToReturn[cutIndicesFinal[j]].distanceTo(verticesToReturn[cutIndicesFinal[j + 1]]) < errorTolerance) {
         // (if duplicated)
 
         // now need to order them (ignore their current order)
@@ -653,7 +653,7 @@ class Piece {
     num b = abc[1];
     num c = abc[2];
 
-    return ((a * three.x + b * three.y + c).abs() < .000001); // for rounding errors
+    return ((a * three.x + b * three.y + c).abs() < errorTolerance); // for rounding errors
   }
 
   // takes a list and a cut index (as specified by the method above), then returns the next cut index
@@ -674,7 +674,6 @@ class Piece {
   // where the second endpoint is not included (as it will be checked later in the method that calls this)
   Point isIntersection(int checkingIndex, List<Point> verticesWithoutRepeats, List<num> abc) {
     num a, b, c;
-    num epsilon = 0.000001; // to deal with rounding errors
 
     a = abc[0];
     b = abc[1];
@@ -690,12 +689,12 @@ class Piece {
     if (d1 * d2 > 0)
       return null; // in this case, the points are on the same side of the line
 
-    if (d1.abs() < epsilon)
+    if (d1.abs() < errorTolerance)
       return end1;
     // in this case, the first point is on the line up to rounding errors
     // thus, it needs to be included in the list
 
-    if (d2.abs() < epsilon)
+    if (d2.abs() < errorTolerance)
       return null;
     // as the next vertex to be checked will be the vertex at checkingIndex + 1,
     // if only one point is on the line, we don't want to add it twice, so we will
