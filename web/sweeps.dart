@@ -318,9 +318,19 @@ void testSwitchMode(MouseEvent e) {
     }
   } else if (e.offset.x > rbound && MODE == 5) {
     MODE = 3;
+    if (e.offset.y < (tools.height / 2)) {
+      cutFlavor = "all";
+      hasCut = false;
+      doModeSpecificLogic();
+    } else {
+      cutFlavor = "selected";
+      hasCut = true;
+      setCutPoints();
+      doModeSpecificLogic();
+    }
+
     originalPieces = copy(pieces);
     doModeSpecificLogic();
-    hasCut = false;
   } else if (e.offset.x > rbound && MODE == 4 ) {
     MODE = 3; 
     animLoopTimer.cancel();
@@ -922,7 +932,7 @@ void drawTools() {
   }
 
   if ( MODE == 5 ){
-    ctx.drawImageScaled(rightButton, tools.width - imwid, 0, imwid, imht);
+    ctx.drawImageScaled(forkedRightButton, tools.width - imwid, 0, imwid, imht);
   }
   
   if (MODE < 2 && readyToGoOn) {

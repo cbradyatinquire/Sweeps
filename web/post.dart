@@ -39,12 +39,14 @@ void messageResponse(MessageEvent e) {
 
   print(EventShapeColors);
 
-  /*
+
   ticht = d['ticht'];
   ticwid = d['ticwid'];
   vSubTicks = d['hSubTicks'];
   hSubTicks = d['vSubTicks'];
-  */
+  vunits_abbreviated = d['vUnits'];
+  hunits_abbreviated = d['hUnits'];
+  unitsLocked = d['unitsLocked'];
 
   // what to do with the event
   rotationsAllowed = EventRotationsAllowed;
@@ -74,6 +76,8 @@ void messageResponse(MessageEvent e) {
     inputPoint2 = a[1];
 
     if (EventMode == 2) { // sweeping mode
+
+      originalPieces = new List<Piece>();
 
       // The way sweep is structured, this does not make sense
       /*
@@ -259,7 +263,10 @@ void postImageData(CanvasElement canv, List<String> annotation) {
     'ticht': ticht,
     'ticwid': ticwid,
     'vSubTicks': vSubTicks,
-    'hSubTicks': hSubTicks
+    'hSubTicks': hSubTicks,
+    'vUnits' : vunits_abbreviated,
+    'hUnits' : hunits_abbreviated,
+    'unitsLocked': unitsLocked
   };
 
 
