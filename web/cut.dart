@@ -17,7 +17,7 @@ Piece rotatedPiece = null;
 bool rotationAllowed = false;
 
 void setCutPoints() {
-  vcuts = new Point(hoff - 20, getYForVSubTick(-1 + vticks * vSubTicks));
+  vcuts = new Point(hoff - 20, getYForVSubTick(-1 + vticks.round() * vSubTicks));
   hcuts = new Point(getXForHSubTick(-1 + hticks * hSubTicks), voff - 20);
 }
 
