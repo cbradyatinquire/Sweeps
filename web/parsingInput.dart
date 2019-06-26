@@ -223,6 +223,18 @@ List<Point> ParsePoints(String s) {
   return toReturn;
 }
 
+String convertPointListToString(List<Point> x){
+  String toReturn = "";
+  int i = 0;
+
+  while (i < x.length) {
+    toReturn = toReturn + "(" + x[i].x.toString() + ", " + x[i].y.toString() + "), ";
+    i = i + 1;
+  }
+
+  return toReturn;
+}
+
 
 
 List<Piece> ParsePieces(String s) {

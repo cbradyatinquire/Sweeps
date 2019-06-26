@@ -342,6 +342,16 @@ void testSwitchMode(MouseEvent e) {
     else if (MODE == 2) { // sweeping -> setup / sweeping -> unchanged
       if (MODEAfterSetup != 2) {
         MODE = 1;
+
+        if (dragIsVertical) {
+          s1end = new Point(s1end.x, s1end.y - draggedUnits);
+          s2end = new Point(s2end.x, s2end.y - draggedUnits);
+        }
+        else {
+          s1end = new Point(s1end.x - draggedUnits, s1end.y);
+          s2end = new Point(s2end.x - draggedUnits, s2end.y);
+        }
+
         doModeSpecificLogic();
       }
       else {
@@ -382,7 +392,34 @@ void testSwitchMode(MouseEvent e) {
       }
       else {
         MODE = 2;
+
+        Point a = originalPieces[0].vertices[0];
+        Point b = originalPieces[0].vertices[1];
+        Point c = originalPieces[0].vertices[2];
+        Point d = originalPieces[0].vertices[3];
+
+        s1end = new Point(c.x, c.y);
+        s2end = new Point(d.x, d.y);
+
         doModeSpecificLogic();
+
+        s1end = a;
+        s2end = b;
+
+        num difx = b.x - c.x;
+        num dify = b.y - c.y;
+
+        if (difx == 0) {
+          dragIsVertical = true;
+          draggedUnits = dify;
+        }
+        else {
+          dragIsVertical = false;
+          draggedUnits = difx;
+        }
+        print(dragOrigin.toString());
+        grabbed = "done";
+        drawSWEEP();
       }
     }
     else if (MODE == 4) { // cav -> cav / cav -> setup
@@ -977,9 +1014,6 @@ void updateSweeperVPoints(int oldval, int newval) {
   s1end = new Point(s1end.x, (newval * s1end.y / oldval).round());
   s2end = new Point(s2end.x, (newval * s2end.y / oldval).round());
 }
-
-
-
 
 
 

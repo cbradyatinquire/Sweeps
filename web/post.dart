@@ -40,14 +40,6 @@ void messageResponse(MessageEvent e) {
   print(EventShapeColors);
 
 
-  ticht = d['ticht'];
-  ticwid = d['ticwid'];
-  vSubTicks = d['hSubTicks'];
-  hSubTicks = d['vSubTicks'];
-  vunits_abbreviated = d['vUnits'];
-  hunits_abbreviated = d['hUnits'];
-  unitsLocked = d['unitsLocked'];
-
   // what to do with the event
   rotationsAllowed = EventRotationsAllowed;
   MODEAfterSetup = EventMode;
@@ -71,48 +63,16 @@ void messageResponse(MessageEvent e) {
     inputPieces = copy(pieces);
   }
   else {
-    List<Point> a = ParseSlider(EventVertices);
-    inputPoint1 = a[0];
-    inputPoint2 = a[1];
+    List<Point> sliderPoints = ParseSlider(EventVertices);
+    inputPoint1 = sliderPoints[0];
+    inputPoint2 = sliderPoints[1];
 
-    if (EventMode == 2) { // sweeping mode
-
-      originalPieces = new List<Piece>();
-
-      // The way sweep is structured, this does not make sense
-      /*
-      List<Point> b = ParseSlider(OriginalEventPieces);
-
-      if (!b.isEmpty) {
-        if ((b[0].y - a[0].y) != 0) {
-          dragIsVertical = true;
-          draggedUnits = a[0].y - b[0].y;
-          print(a[0].y - b[0].y);
-        }
-        else {
-          if ((b[0].x - a[0].x) != 0) {
-            dragIsVertical = false;
-            draggedUnits = a[0].x - b[0].x;
-            print(a[0].x - b[0].x);
-          }
-        }
-
-        if ((b[0].y - a[0].y == 0) && (b[0].x - a[0].x == 0)) {
-          draggedUnits = 0;
-          print("both zero");
-        }
-      }
-      else {
-        draggedUnits = 0;
-      }
-      */
-    }
 
     if (EventMode == 4) {
-      if (inputPoint1.y != inputPoint2.y) {  // ensuring that the slider for Cavalieri is in the right position
+      if (inputPoint1.y != inputPoint2
+          .y) { // ensuring that the slider for Cavalieri is in the right position
         inputPoint2 = new Point(inputPoint2.x, inputPoint1.y);
       }
-
 
       savedT2S = ParsePoints(OriginalEventVertices);
 
@@ -120,9 +80,12 @@ void messageResponse(MessageEvent e) {
         cavIsDragging = true;
       }
     }
+    if (EventMode == 1) {
+      s1end = sliderPoints[0];
+      s2end = sliderPoints[1];
+      doModeSpecificLogic();
+    }
   }
-
-
 
 
   doEventSetup();
@@ -132,8 +95,14 @@ void messageResponse(MessageEvent e) {
   splash.style.zIndex = "-1";
 
   adjustDimensions(); // initializes several variables
-  makeVEqualToH();
-  unitsLocked = true;
+
+  ticht = d['ticht'];
+  ticwid = d['ticwid'];
+  vSubTicks = d['hSubTicks'];
+  hSubTicks = d['vSubTicks'];
+  vunits_abbreviated = d['vUnits'];
+  hunits_abbreviated = d['hUnits'];
+  unitsLocked = d['unitsLocked'];
 
   drawSETUP();
   drawTools();
@@ -141,11 +110,54 @@ void messageResponse(MessageEvent e) {
   if (EventMode > 1) {
     MODE = EventMode;
 
-    if (EventMode == 2 || EventMode == 4) {
-      s1end = inputPoint1;
-      s2end = inputPoint2;
-      readyToGoOn = false;
-      doModeSpecificLogic();
+    if (EventMode == 2) {
+      originalPieces = new List<Piece>();
+      pieces = new List<Piece>();
+      MODE = 2;
+
+      List<Point> inputtedPoints = ParsePoints(EventVertices);
+      Point a = inputtedPoints[0];
+      Point b = inputtedPoints[1];
+
+      if (inputtedPoints.length == 2) {
+        s1end = new Point(a.x, a.y);
+        s2end = new Point(b.x, b.y);
+        dragOrigin = new Point( getXForHSubTick((a.x + b.x) / 2.0) , getYForVTick((a.y + b.y) / 2.0) );
+        doModeSpecificLogic();
+      }
+      else {
+        if (inputtedPoints.length != 2) {
+          Point c = inputtedPoints[2];
+          Point d = inputtedPoints[3];
+
+          s1end = new Point(c.x, c.y);
+          s2end = new Point(d.x, d.y);
+          dragOrigin = new Point( getXForHSubTick((c.x + d.x) / 2.0) , getYForVTick((c.y + d.y) / 2.0) );
+          doModeSpecificLogic();
+
+          s1end = a;
+          s2end = b;
+
+          num difx = b.x - c.x;
+          num dify = b.y - c.y;
+
+          if (difx == 0) {
+            dragIsVertical = true;
+            draggedUnits = dify;
+          }
+
+          if (difx != 0) {
+            dragIsVertical = false;
+            draggedUnits = difx;
+          }
+
+          print(draggedUnits.toString());
+
+          grabbed = "middle";
+          drawSWEEP();
+          grabbed = "done";
+        }
+      }
     }
 
     if (EventMode == 3) {
@@ -158,6 +170,13 @@ void messageResponse(MessageEvent e) {
       originalPieces = copy(OriginalEventPieces);
       drawCUT();
       drawTools();
+    }
+
+    if (EventMode == 4) {
+      s1end = inputPoint1;
+      s2end = inputPoint2;
+      readyToGoOn = false;
+      doModeSpecificLogic();
     }
 
     if (MODEAfterSetup == 5) {
@@ -203,55 +222,46 @@ void postImageData(CanvasElement canv, List<String> annotation) {
     originalPieces.forEach((p) => originalPieceVertices = originalPieceVertices + " | " + p.toString());
   }
 
-  if (((MODE == 1) || (MODE == 2)) || (MODE == 4)) {
-    pieceVertices =
-        "'(" + s1end.x.toString() + ", " + s1end.y.toString() + "), (" +
-            s2end.x.toString() + ", " + s2end.y.toString() + ")'";
+  if ((MODE == 1)) {
+    pieceVertices = convertPointListToString([s1end, s2end]);
+    originalPieceVertices = "";
+  }
 
-    if ((MODE == 2)) {
-      if (dragIsVertical) {
-        originalPieceVertices = "'(" + s1end.x.toString() + ", " +
-            (s1end.y - draggedUnits).toString() + "), (" + s2end.x.toString() +
-            ", " + (s2end.y - draggedUnits).toString() + ")'";
-      }
-      else {
-        originalPieceVertices =
-            "'(" + (s1end.x - draggedUnits).toString() + ", " +
-                s1end.y.toString() + "), (" +
-                (s2end.x - draggedUnits).toString() + ", " +
-                s2end.y.toString() + ")'";
-      }
+  if ((MODE == 2)) {
+    Point a, b;
+    if (dragIsVertical) {
+      a = new Point(s2end.x, s2end.y - draggedUnits);
+      b = new Point(s1end.x, s1end.y - draggedUnits);
     }
+    else {
+      a = new Point(s2end.x - draggedUnits, s2end.y);
+      b = new Point(s1end.x - draggedUnits, s1end.y);
+    }
+    pieceVertices = convertPointListToString([s1end, s2end, a, b]);
+    originalPieceVertices = "";
+  }
 
-    if (MODE == 4) {
-      if (cavIsDragging) {
-        List<Point> L1 = t1s.reversed;
-        int i = 0;
-        while (i < L1.length) {
-          print(L1[i]);
-          originalPieceVertices =
-              originalPieceVertices + ", (" + (L1[i].x).toString() + ", " +
+  if (MODE == 4) {
+    if (cavIsDragging) {
+      List<Point> L1 = t1s.reversed;
+      int i = 0;
+      while (i < L1.length) {
+        print(L1[i]);
+        originalPieceVertices =
+            originalPieceVertices + ", (" + (L1[i].x).toString() + ", " +
                   L1[i].y.toString() + ")";
-          i++;
-        }
+        i++;
+      }
 
-        i = 0;
-        while (i < t2s.length) {
-          originalPieceVertices =
-              originalPieceVertices + ", (" + t2s[i].x.toString() + ", " +
-                  t2s[i].y.toString() + ")";
-          i++;
-        }
+      i = 0;
+      while (i < t2s.length) {
+        originalPieceVertices =
+            originalPieceVertices + ", (" + t2s[i].x.toString() + ", " +
+               t2s[i].y.toString() + ")";
+        i++;
       }
     }
   }
-
-  //postSomething("hi");
-
-  //dataToEncode = '''[ { inputVertices: $pieceVertices }, { outlineVertices : $originalPieceVertices }, { colors: $colorsList }, { mode: $MODE }, {rotationsAllowed: $rotationsAllowed } ]''';
-
-  //dataToEncode = '''[ { inputVertices: $pieceVertices }, { outlineVertices : $originalPieceVertices }, { colors: $colorsList }, { mode: $MODE }, {rotationsAllowed: $rotationsAllowed } ]''';
-
 
 
   dataToEncode = {
