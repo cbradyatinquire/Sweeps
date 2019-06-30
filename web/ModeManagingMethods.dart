@@ -10,12 +10,14 @@ void TurnOffSETUP() {
 }
 
 void TurnOnSETUP() {
-  SETUPMouseDown.resume();
-  SETUPTouchStart.resume();
-  SETUPMouseMove.resume();
-  SETUPTouchMove.resume();
-  SETUPMouseUp.resume();
-  SETUPTouchEnd.resume();
+  while (SETUPMouseDown.isPaused) {
+    SETUPMouseDown.resume();
+    SETUPTouchStart.resume();
+    SETUPMouseMove.resume();
+    SETUPTouchMove.resume();
+    SETUPMouseUp.resume();
+    SETUPTouchEnd.resume();
+  }
 }
 
 
@@ -29,12 +31,14 @@ void TurnOffSWEEP() {
 }
 
 void TurnOnSWEEP() {
-  SWEEPMouseDown.resume();
-  SWEEPTouchStart.resume();
-  SWEEPMouseMove.resume();
-  SWEEPTouchMove.resume();
-  SWEEPMouseUp.resume();
-  SWEEPTouchEnd.resume();
+  while (SWEEPMouseDown.isPaused) {
+    SWEEPMouseDown.resume();
+    SWEEPTouchStart.resume();
+    SWEEPMouseMove.resume();
+    SWEEPTouchMove.resume();
+    SWEEPMouseUp.resume();
+    SWEEPTouchEnd.resume();
+  }
 }
 
 void TurnOffCUT(){
@@ -49,16 +53,18 @@ void TurnOffCUT(){
 }
 
 void TurnOnCUT() {
-  CUTMouseDown.resume();
-  CUTTouchStart.resume();
-  CUTMouseMove.resume();
-  CUTTouchMove.resume();
-  CUTMouseUp.resume();
-  CUTTouchEnd.resume();
+  while (CUTMouseDown.isPaused) {
+    CUTMouseDown.resume();
+    CUTTouchStart.resume();
+    CUTMouseMove.resume();
+    CUTTouchMove.resume();
+    CUTMouseUp.resume();
+    CUTTouchEnd.resume();
 
-  if (rotationsAllowed) {
-    CUTMouseGetRotationPoint.resume();
-    CUTTouchGetRotationPoint.resume();
+    if (rotationsAllowed) {
+      CUTMouseGetRotationPoint.resume();
+      CUTTouchGetRotationPoint.resume();
+    }
   }
 }
 
@@ -72,16 +78,19 @@ void TurnOffGEO() {
 }
 
 void TurnOnGEO(){
-  GEOMouseDown.resume();
-  GEOTouchStart.resume();
-  GEOMouseMove.resume();
-  GEOTouchMove.resume();
-  GEOMouseUp.resume();
-  GEOTouchEnd.resume();
+  while(GEOMouseDown.isPaused) {
+    GEOMouseDown.resume();
+    GEOTouchStart.resume();
+    GEOMouseMove.resume();
+    GEOTouchMove.resume();
+    GEOMouseUp.resume();
+    GEOTouchEnd.resume();
+  }
 }
 
 void TurnOffAllMain() {
   TurnOffCUT();
+  TurnOffCav();
   TurnOffSWEEP();
   TurnOffGEO();
   TurnOffSETUP();
@@ -102,10 +111,12 @@ void TurnOffCav() {
 }
 
 void TurnOnCav() {
-  TabletTiltSensorCav.resume();
-  mouseMoveCav.resume();
-  mouseUpCav.resume();
-  mouseDownCav.resume();
+  while(mouseUpCav.isPaused) {
+    TabletTiltSensorCav.resume();
+    mouseMoveCav.resume();
+    mouseUpCav.resume();
+    mouseDownCav.resume();
+  }
 
 }
 

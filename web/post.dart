@@ -22,33 +22,31 @@ void messageResponse2(MessageEvent e){
 // response to event
 void messageResponse(MessageEvent e) {
 
- // var converter = new JsonDecoder();
+  // var converter = new JsonDecoder();
 
- // var d = converter.convert(e.data);
+  // var d = converter.convert(e.data);
 
   var d = e.data;
 
-  print(d);
 
   // Getting Inputs From The Event TODO: Fix when the format of the data is finished!
-  String EventVertices = d['vertices'];
-  String OriginalEventVertices = d['outlineVertices'];
+  String eventVertices = d['vertices'];
+  String originalEventVertices = d['outlineVertices'];
   List<List<num>> EventShapeColors = d['colors'];
   int EventMode = d['mode'];
   bool EventRotationsAllowed = d['rotationsAllowed'];
 
-  print(EventShapeColors);
 
 
   // what to do with the event
   rotationsAllowed = EventRotationsAllowed;
   MODEAfterSetup = EventMode;
 
-  List<Piece> OriginalEventPieces = ParsePieces(OriginalEventVertices);
+  List<Piece> originalEventPieces = ParsePieces(originalEventVertices);
 
   // processing the vertices
   if (EventMode == 3 || EventMode == 5) {
-    pieces = ParsePieces(EventVertices);
+    pieces = ParsePieces(eventVertices);
 
     if (EventShapeColors != null) {
       int i = 0;
@@ -63,23 +61,10 @@ void messageResponse(MessageEvent e) {
     inputPieces = copy(pieces);
   }
   else {
-    List<Point> sliderPoints = ParseSlider(EventVertices);
+    List<Point> sliderPoints = ParseSlider(eventVertices);
     inputPoint1 = sliderPoints[0];
     inputPoint2 = sliderPoints[1];
 
-
-    if (EventMode == 4) {
-      if (inputPoint1.y != inputPoint2
-          .y) { // ensuring that the slider for Cavalieri is in the right position
-        inputPoint2 = new Point(inputPoint2.x, inputPoint1.y);
-      }
-
-      savedT2S = ParsePoints(OriginalEventVertices);
-
-      if (!savedT2S.isEmpty) {
-        cavIsDragging = true;
-      }
-    }
     if (EventMode == 1) {
       s1end = sliderPoints[0];
       s2end = sliderPoints[1];
@@ -88,21 +73,27 @@ void messageResponse(MessageEvent e) {
   }
 
 
-  doEventSetup();
+  if (SWEEPMouseDown == null) {
+    doEventSetup();
+    navigationEvents = tools.onMouseDown.listen(testSwitchMode);
+  }
+
   MODE = 1;
-  navigationEvents = tools.onMouseDown.listen(testSwitchMode);
+  TurnOffAllMain();
+  TurnOnSETUP();
   splash.style.opacity = "0.0";
   splash.style.zIndex = "-1";
 
   adjustDimensions(); // initializes several variables
 
-  ticht = d['ticht'];
-  ticwid = d['ticwid'];
+  ticht = d['ticht']; // TODO: should this be hticks?
+  ticwid = d['ticwid']; // TODO: should this be vticks? if so adjustDimensions should be after
   vSubTicks = d['hSubTicks'];
   hSubTicks = d['vSubTicks'];
   vunits_abbreviated = d['vUnits'];
   hunits_abbreviated = d['hUnits'];
   unitsLocked = d['unitsLocked'];
+  bool gridCut = d['cutWithGrid'];
 
   drawSETUP();
   drawTools();
@@ -115,14 +106,15 @@ void messageResponse(MessageEvent e) {
       pieces = new List<Piece>();
       MODE = 2;
 
-      List<Point> inputtedPoints = ParsePoints(EventVertices);
+      List<Point> inputtedPoints = ParsePoints(eventVertices);
       Point a = inputtedPoints[0];
       Point b = inputtedPoints[1];
 
       if (inputtedPoints.length == 2) {
         s1end = new Point(a.x, a.y);
         s2end = new Point(b.x, b.y);
-        dragOrigin = new Point( getXForHSubTick((a.x + b.x) / 2.0) , getYForVTick((a.y + b.y) / 2.0) );
+        dragOrigin = new Point(getXForHSubTick((a.x + b.x) / 2.0),
+            getYForVTick((a.y + b.y) / 2.0));
         doModeSpecificLogic();
       }
       else {
@@ -132,7 +124,8 @@ void messageResponse(MessageEvent e) {
 
           s1end = new Point(c.x, c.y);
           s2end = new Point(d.x, d.y);
-          dragOrigin = new Point( getXForHSubTick((c.x + d.x) / 2.0) , getYForVTick((c.y + d.y) / 2.0) );
+          dragOrigin = new Point(getXForHSubTick((c.x + d.x) / 2.0),
+              getYForVTick((c.y + d.y) / 2.0));
           doModeSpecificLogic();
 
           s1end = a;
@@ -151,8 +144,6 @@ void messageResponse(MessageEvent e) {
             draggedUnits = difx;
           }
 
-          print(draggedUnits.toString());
-
           grabbed = "middle";
           drawSWEEP();
           grabbed = "done";
@@ -161,28 +152,48 @@ void messageResponse(MessageEvent e) {
     }
 
     if (EventMode == 3) {
-      cutFlavor = "selected";
-      hasCut = true;
+      if (gridCut) {
+        cutFlavor = "all";
+        if (notACopy(inputPieces, originalEventPieces)) {
+          hasCut = true;
+        }
+        else {
+          hasCut = false;
+        }
+      }
+      else {
+        cutFlavor = "selected";
+        hasCut = true;
+      }
       setCutPoints();
       doModeSpecificLogic();
 
       pieces = copy(inputPieces);
-      originalPieces = copy(OriginalEventPieces);
+      originalPieces = copy(originalEventPieces);
       drawCUT();
       drawTools();
     }
 
     if (EventMode == 4) {
-      s1end = inputPoint1;
-      s2end = inputPoint2;
+      hasCut = false;
+      List<Point> toMakeT1 = ParsePoints(originalEventVertices);
+      List<Point> toMakeT2 = ParsePoints(eventVertices);
+      s1end = toMakeT1.last;
+      s2end = toMakeT2.last;
       readyToGoOn = false;
+      MODE = 4;
       doModeSpecificLogic();
+      cavIsDragging = false;
+
+      t1s = toMakeT1;
+      t2s = toMakeT2;
+      draggedUnits = t1s.length - 1;
     }
 
     if (MODEAfterSetup == 5) {
       doModeSpecificLogic();
       pieces = copy(inputPieces);
-      originalPieces = copy(OriginalEventPieces);
+      originalPieces = copy(originalEventPieces);
 
       drawGEO();
     }
@@ -222,6 +233,11 @@ void postImageData(CanvasElement canv, List<String> annotation) {
     originalPieces.forEach((p) => originalPieceVertices = originalPieceVertices + " | " + p.toString());
   }
 
+  bool gridCut = false;
+  if (MODE == 3 && cutFlavor == "all") {
+    gridCut = true;
+  }
+
   if ((MODE == 1)) {
     pieceVertices = convertPointListToString([s1end, s2end]);
     originalPieceVertices = "";
@@ -242,25 +258,10 @@ void postImageData(CanvasElement canv, List<String> annotation) {
   }
 
   if (MODE == 4) {
-    if (cavIsDragging) {
-      List<Point> L1 = t1s.reversed;
-      int i = 0;
-      while (i < L1.length) {
-        print(L1[i]);
-        originalPieceVertices =
-            originalPieceVertices + ", (" + (L1[i].x).toString() + ", " +
-                  L1[i].y.toString() + ")";
-        i++;
-      }
-
-      i = 0;
-      while (i < t2s.length) {
-        originalPieceVertices =
-            originalPieceVertices + ", (" + t2s[i].x.toString() + ", " +
-               t2s[i].y.toString() + ")";
-        i++;
-      }
-    }
+    String string1 = convertPointListToString(t1s);
+    String string2 = convertPointListToString(t2s);
+    originalPieceVertices = string1;
+    pieceVertices = string2;
   }
 
 
@@ -276,7 +277,8 @@ void postImageData(CanvasElement canv, List<String> annotation) {
     'hSubTicks': hSubTicks,
     'vUnits' : vunits_abbreviated,
     'hUnits' : hunits_abbreviated,
-    'unitsLocked': unitsLocked
+    'unitsLocked': unitsLocked,
+    'cutWithGrid': gridCut
   };
 
 

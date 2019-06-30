@@ -42,6 +42,7 @@ String className;
 
 
 bool unitsLocked = false;
+bool willPost = true;
 
 bool showArea = false; // (in the text below the sweeping environment)
 
@@ -331,7 +332,7 @@ void testSwitchMode(MouseEvent e) {
 
     originalPieces = copy(pieces);
     doModeSpecificLogic();
-  } else if (e.offset.x > rbound && MODE == 4 ) {
+  } else if ((e.offset.x > rbound && MODE == 4) && t1s.length > 1) {
     MODE = 3; 
     animLoopTimer.cancel();
     goOnFromCavalieri(e.offset.y);
@@ -355,9 +356,14 @@ void testSwitchMode(MouseEvent e) {
         doModeSpecificLogic();
       }
       else {
-        print(MODEAfterSetup);
-        s1end = new Point(inputPoint1.x, inputPoint1.y);
-        s2end = new Point(inputPoint2.x, inputPoint2.y);
+        if (dragIsVertical) {
+          s1end = new Point(s1end.x, s1end.y - draggedUnits);
+          s2end = new Point(s2end.x, s2end.y - draggedUnits);
+        }
+        else {
+          s1end = new Point(s1end.x - draggedUnits, s1end.y);
+          s2end = new Point(s2end.x - draggedUnits, s2end.y);
+        }
         doModeSpecificLogic();
       }
     }
@@ -369,26 +375,16 @@ void testSwitchMode(MouseEvent e) {
         }
         drawCUT();
       }
-      else if (MODEAfterSetup == 4) {
-        MODE = 4;
-        s1end = new Point(inputPoint1.x, inputPoint1.y);
-        s2end = new Point(inputPoint2.x, inputPoint2.y);
-        hasCut = false;
-
-        draggedUnits = 0;
-        pieces.clear();
-        originalPieces.clear();
-
-        doModeSpecificLogic();
-      }
       else if (MODEAfterSetup == 5) {
         pieces = copy(originalPieces);
         MODE = 5;
         doModeSpecificLogic();
       }
       else if (wasInCavalieri) {
-       MODE = 1;
-       doModeSpecificLogic();
+       MODE = 4;
+       hasCut = false;
+
+       startCavalieriLoopNotFromScrach();
       }
       else {
         MODE = 2;
@@ -417,34 +413,31 @@ void testSwitchMode(MouseEvent e) {
           dragIsVertical = false;
           draggedUnits = difx;
         }
-        print(dragOrigin.toString());
         grabbed = "done";
         drawSWEEP();
       }
     }
     else if (MODE == 4) { // cav -> cav / cav -> setup
-      if (MODEAfterSetup == 4) {
-        s1end = new Point(inputPoint1.x, inputPoint1.y);
-        s2end = new Point(inputPoint2.x, inputPoint2.y);
-
-        t1s = new List<Point>();
-        t2s = new List<Point>();
-        t1s.add(s1end);
-        t2s.add(s2end);
-
-        draggedUnits = 0;
-        pieces = new List<Piece>();
-        originalPieces = new List<Piece>();
+      if (t1s.length > 1) {
+        t1s.removeLast();
+        t2s.removeLast();
+        s1end = t1s.last;
+        s2end = t2s.last;
         drawCavalieri();
       }
       else {
-        TurnOffCav();
-        MODE = 1;
-        doModeSpecificLogic();
+        if (MODEAfterSetup != 4) {
+          TurnOffCav();
+          MODE = 1;
+          draggedUnits = 0;
+          pieces = new List<Piece>();
+          originalPieces = new List<Piece>();
+          doModeSpecificLogic();
+        }
       }
     }
     else if (MODE == 5) { // geo -> geo
-      pieces = copy(inputPieces);
+      pieces = copy(originalPieces);
       drawGEO();
     }
   }
@@ -507,12 +500,10 @@ void cancelScreenCap(MouseEvent e) {
 void goOnFromCavalieri(int yclickvalue) {
   wasInCavalieri = true;
 
-  animLoopTimer.cancel();
+  //animLoopTimer.cancel();
 
   if (mouseDownCav != null && !mouseDownCav.isPaused ) {
-    mouseDownCav.pause();
-    mouseUpCav.pause();
-    mouseMoveCav.pause();
+    TurnOffCav();
   }
   
   if (!SETUPMouseDown.isPaused) {
@@ -563,9 +554,9 @@ void addScreenCap(List<String> annotations) {
   //screencaps.add(imageData);
   screens.add(base64Cap); // Two lists, one of screenshots & one of captions
   toolsText.add(annotations[0] + ": " + annotations[1]);
-
-  postImageData(canv, annotations); // posting newest addition to webpage
-
+  if (willPost) {
+    postImageData(canv, annotations); // posting newest addition to webpage
+  }
 }
 
 void closeScreenCapWindow(var event) {
@@ -741,7 +732,6 @@ void doModeSpecificLogic() {
     }
 
     TurnOnSWEEP();
-    TurnOnSWEEP(); // TODO: I *really* don't know why, but this second request fixes the bug that cav -> setup -> sweep without moving the sweeper doesn't turn on Mouse down?
 
     if (!CUTMouseDown.isPaused) {
       TurnOffCUT();
@@ -760,7 +750,6 @@ void doModeSpecificLogic() {
     rememberPresentSETUPSWEEP();
     drawSWEEP();
     drawTools();
-    print(SWEEPMouseDown.isPaused);
   }
   if (MODE == 3) { // CUTTING
     if (!SETUPMouseDown.isPaused) {
@@ -816,9 +805,11 @@ void doModeSpecificLogic() {
     }
 
     TurnOnCav();
+    TurnOnCav(); // TODO: this is hideous but it makes things work
 
     numDeviceMotionEvents = 0;
     pieces = new List<Piece>();
+    originalPieces = new List<Piece>();
     startCavalieriLoop();
     drawCavalieri();
     drawTools();
@@ -964,7 +955,7 @@ void drawTools() {
   if (MODE > 0) {
     ctx.drawImageScaled(leftButton, 0, 0, imwid, imht);
   }
-  if ( (MODE == 2 && readyToGoOn) || (MODE==4 && cavalieriHeight > 0 ) ){
+  if ( (MODE == 2 && readyToGoOn) || (MODE==4 && t1s.length > 1 ) ){
     ctx.drawImageScaled(forkedRightButton, tools.width - imwid, 0, imwid, imht);
   }
 

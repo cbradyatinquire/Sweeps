@@ -31,6 +31,7 @@ bool notACopy(List<Piece> a, List<Piece> b) {
 
 void manageInputs() {
   MODEAfterSetup = input['mode'];
+  willPost = input['post'];
 
   if (MODEAfterSetup == 2 || MODEAfterSetup == 4) {
     List<Point> a = ParseSlider(inputVertices);
@@ -316,7 +317,6 @@ List<Piece> ParsePieces(String s) {
     currentPiece.clear();
   }
 
-  print(toReturn);
   return toReturn;
 }
 
@@ -375,7 +375,6 @@ List<List<num>> ParseColors(String s) {
     toReturn.add(currentList);
   }
 
-  print(toReturn);
   return toReturn;
 }
 

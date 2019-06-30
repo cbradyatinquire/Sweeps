@@ -54,13 +54,41 @@ void startCavalieriLoop() {
   t1s = new List<Point>();
   t2s = new List<Point>(); //savedT2S;
   if (TabletTiltSensorCav == null) {
-
+//TODO: important?
   }
   t1s.add(s1end);
   t2s.add(s2end);
   animLoopTimer = new Timer(new Duration(milliseconds: 50), maybeFall);
 }
 
+void startCavalieriLoopNotFromScrach() {
+  if (!SETUPMouseDown.isPaused) {
+    TurnOffSETUP();
+  }
+
+  TurnOffSWEEP();
+
+  if (!CUTMouseDown.isPaused) {
+    TurnOffCUT();
+  }
+
+  if (!GEOMouseDown.isPaused) {
+    TurnOffGEO();
+  }
+
+  TurnOnCav();
+
+  numDeviceMotionEvents = 0;
+
+  initAndCheckForConstraints();
+  if (TabletTiltSensorCav == null) {
+//TODO: also important?
+  }
+  animLoopTimer = new Timer(new Duration(milliseconds: 50), maybeFall);
+
+  drawCavalieri();
+  drawTools();
+}
 
 num distancexy(Point p, num xv, num yv) {
   return p.distanceTo(new Point(xv, yv));
