@@ -341,7 +341,7 @@ void testSwitchMode(MouseEvent e) {
       // do nothing
     }
     else if (MODE == 2) { // sweeping -> setup / sweeping -> unchanged
-      if (MODEAfterSetup != 2) {
+      if (MODEAfterSetup != 2 && draggedUnits == 0) {
         MODE = 1;
 
         if (dragIsVertical) {
@@ -805,7 +805,6 @@ void doModeSpecificLogic() {
     }
 
     TurnOnCav();
-    TurnOnCav(); // TODO: this is hideous but it makes things work
 
     numDeviceMotionEvents = 0;
     pieces = new List<Piece>();

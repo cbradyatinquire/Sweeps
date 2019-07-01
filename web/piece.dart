@@ -13,7 +13,7 @@ class Piece {
   String fillsty = "rgba(0, 0, 255, 0.3)";
   num xmin, xmax, ymin, ymax;
 
-  num errorTolerance = .05; // should change this depending on the environment
+  num errorTolerance = .00001; // pretty sure this is the smallest you'd ever want to be able to distinguish
 
   Piece(List<Point> vs) {
     vertices = new List<Point>();
@@ -25,12 +25,12 @@ class Piece {
     establishBoundingBox();
     setupSides();
   }
-  
+
   List<num> getColor() {
     List<num> toReturn = new List<num>();
 
     num current = 0;
-    
+
     List<String> digits = [ "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" ];
 
     num decimalPlaces = 0;
@@ -467,9 +467,8 @@ class Piece {
       outsidePoint = new Point((0 - c) / a, -1);
 
     cutIndices.sort((a, b) =>
-        (((outsidePoint.distanceTo(verticesTotal[a]) * 1000).round()).compareTo(
-            (outsidePoint.distanceTo(verticesTotal[b]) * 1000).round())));
-    // as these are lattice points, no loss of information should come from this rounding
+        (outsidePoint.distanceTo(verticesTotal[a]).compareTo(
+            outsidePoint.distanceTo(verticesTotal[b]))));
 
 
 
