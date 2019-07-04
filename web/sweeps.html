@@ -20,24 +20,48 @@
            // e.source.postMessage(e.data.data, '*');
         });
 
-        var galleryname = window.location.hash;
+        var sn = window.parent.location.hash
+        while(sn.charAt(0) === '#')
+        {
+            sn = sn.substr(1);
+        }
+        console.log(sn);
+        if (sn.length < 1) { sn = "public";}
+        var galleryname = sn;
 
+
+        var urlParams = new URLSearchParams(window.parent.location.search);
+        //console.log(urlParams);
+        var modeParam = parseInt( urlParams.get("mode"), 10 );
+        //console.log(modeParam);
+        var rotationsStr = urlParams.get("rotation");
+        var rotationParam = (rotationsStr == "true") ? true : false;
+        //let result = condition ? value1 : value2;
+        //console.log(rotationParam);
+        var verts = urlParams.get("vertices");
+        var outverts = urlParams.get("outvertices");
+        verts = (verts.length > 6) ? verts : "(1,1), (4, 1), (5, 3), (2, 3) | (5, 6), (6, 6), (5, 2)";
+        outverts = (outverts.length > 6) ? outverts : "(1,1), (4, 1), (5, 3), (2, 3) | (5, 6), (6, 6), (5, 2), (3, 4)";
+
+        //  (1,2), (4, 2), (5, 4), (2, 4) | (4, 6), (5, 6), (5, 2), (3, 4)
 
         // Inputs
         var arguments = {
-            vertices : "(1,1), (4, 1), (5, 3), (2, 3) | (5, 6), (6, 6), (5, 2)",
-            outlineVertices : "(1,1), (4, 1), (5, 3), (2, 3) | (5, 6), (6, 6), (5, 2), (3, 4)",
+            vertices : verts,
+            outlineVertices : outverts,
             colors : [[0, 0, 255, 0.3], [255, 255, 0, 0.3]],
             //vertices and colors are used to form shapes if the input mode is 3
             //they are used to get a starting position for the slider of the input mode is 2 or 4
             // (mode 4 uses vertices which must be horizontally or vertically in line, however)
             // not used at all if mode is anything else
-            rotationsAllowed : true,
+            rotationsAllowed : rotationParam,
             className: galleryname,
-            mode : 0,
+            mode : modeParam,
             // (proceeds normally if mode is 0 or 1)
             post : true
         };
+
+        console.log(arguments);
 
         // Modes Index:
         // 0: initial state

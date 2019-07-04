@@ -14,6 +14,14 @@
 	  font-size: 24px;
 	  font-weight: bold;
 	}
+
+    .opts {
+        font-size: 14px;
+    }
+
+    .otitle {
+        font-size: 16px;
+    }
 	
 	body {
 		background-color: aliceblue;
@@ -33,7 +41,26 @@
 		<p>
 		[Please only use letters, numbers, or the 'underscore' character (_) in session names]
 		</p>
+        <div class="otitle"><i>Options</i></div>
+        <label class="opts" for="modeselect">Mode: </label>
+        <select id="modeselect" onchange="updateLinks()">
+			<option value="sweep">Sweep</option>
+			<option value="geoboard">GeoBoard</option>
+		</select>
+       <br>
+        <label class="opts" for="rotation">Rotation: </label>
+        <input type="checkbox" id="rotation" value="rotation" onchange="updateLinks()" checked> Allow Rotation of Cut Pieces<br>
 		<br>
+        <br>
+        <div id="advancedopts" hidden>
+            <div class="otitle"><i>Advanced Options (GeoBoard)</i></div>
+            <label class="opts" for="vertices">Vertices: </label>
+            <input type="text" id="vertices" class="opts" size="50" onkeyup="updateLinks();"><br>
+            <br>
+            <label class="opts" for="outvertices">Outlines: </label>
+            <input type="text" id="outvertices" class="opts" size="50" onkeyup="updateLinks();"><br>
+        </div>
+
 	<div id="copier">
 		<p><i>Link to Full Screen Sweeper (student interface):</i><br>&nbsp;&nbsp;<a id="asweeponly" href="."><span id="linktextso">[Link will show here]</span></a></p>
 		<p><i>Link to Sweeper with Gallery (student or teacher interface):</i><br>&nbsp;&nbsp;<a id="asweepplus" href="."><span id="linktextsp">[Link will show here]</span></a></p>
@@ -48,20 +75,41 @@
 			let loc = window.location.href;
 			let cutpt = loc.lastIndexOf("/");
 			loc = loc.substr(0,cutpt);
-			loconly = loc + "/sweeponly.html#";
-			locplus = loc + "/index.html#";
+			loconly = loc + "/sweeponly.html";
+			locplus = loc + "/index.html";
+
+			let modeval = document.getElementById("modeselect").selectedIndex;
+			let qstring = "?mode=";
+			if (modeval == 1) {
+			    qstring += "5";
+                document.getElementById("advancedopts").hidden = false;
+                qstring += "&vertices=" + document.getElementById("vertices").value;
+                qstring += "&outvertices=" + document.getElementById("outvertices").value;
+			} else {
+                qstring += "1";
+                document.getElementById("advancedopts").hidden = true;
+            }
+			let rotation = document.getElementById("rotation").checked;
+			console.log(rotation);
+            if (rotation == true) {
+                qstring += "&rotation=true";
+            } else {
+                qstring += "&rotation=false";
+            }
+			//still need to use these.  create a QUERY STRING.
 			
 			let currentvalue = document.getElementById("sname").value;
 			let touse = (currentvalue.length < 1) ? "public" : currentvalue;
 			//touse = encodeURI(touse);
 			touse = touse.replace(/[^a-zA-Z0-9-_]/g, '');
+			touse = "#" + touse;
 			
-			let linktextsonly = loconly + touse;
+			let linktextsonly = loconly + qstring + touse;
 			let linkso = document.getElementById("asweeponly");
 			linkso.href = linktextsonly;
 			document.getElementById("linktextso").innerHTML = linktextsonly;
 			
-			let linktextsg = locplus + touse;
+			let linktextsg = locplus + qstring + touse;
 			let linksp = document.getElementById("asweepplus");
 			linksp.href = linktextsg;
 			document.getElementById("linktextsp").innerHTML = linktextsg;
