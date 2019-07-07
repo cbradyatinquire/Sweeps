@@ -16,11 +16,11 @@
 	}
 
     .opts {
-        font-size: 14px;
+        font-size: 18px;
     }
 
     .otitle {
-        font-size: 16px;
+        font-size: 20px;
     }
 	
 	body {
@@ -49,16 +49,17 @@
 		</select>
        <br>
         <label class="opts" for="rotation">Rotation: </label>
-        <input type="checkbox" id="rotation" value="rotation" onchange="updateLinks()" checked> Allow Rotation of Cut Pieces<br>
+        <input class="opts" type="checkbox" id="rotation" value="rotation" onchange="updateLinks()" checked><span class="opts">Allow Rotation of Cut Pieces</span><br>
 		<br>
-        <br>
+
         <div id="advancedopts" hidden>
-            <div class="otitle"><i>Advanced Options (GeoBoard)</i></div>
+            <div class="otitle"><i>Advanced Options (GeoBoard Specific)</i></div>
             <label class="opts" for="vertices">Vertices: </label>
             <input type="text" id="vertices" class="opts" size="50" onkeyup="updateLinks();"><br>
             <br>
             <label class="opts" for="outvertices">Outlines: </label>
             <input type="text" id="outvertices" class="opts" size="50" onkeyup="updateLinks();"><br>
+            <br>
         </div>
 
 	<div id="copier">
@@ -96,7 +97,6 @@
             } else {
                 qstring += "&rotation=false";
             }
-			//still need to use these.  create a QUERY STRING.
 			
 			let currentvalue = document.getElementById("sname").value;
 			let touse = (currentvalue.length < 1) ? "public" : currentvalue;
