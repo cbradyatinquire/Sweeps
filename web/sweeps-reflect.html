@@ -12,57 +12,21 @@
     <link rel="stylesheet" href="sweeps.css">
     <script type="text/javascript">
 
-
-
-        window.addEventListener("message", function (e) {
-            console.log("message received");
-            console.log(e);
-           // e.source.postMessage(e.data.data, '*');
-        });
-
-        var sn = window.parent.location.hash
-        while(sn.charAt(0) === '#')
-        {
-            sn = sn.substr(1);
-        }
-        //console.log(sn);
-        if (sn.length < 1) { sn = "public";}
-        var galleryname = sn;
-
-
-        var urlParams = new URLSearchParams(window.parent.location.search);
-        //console.log(urlParams);
-        var modeParam = parseInt( urlParams.get("mode"), 10 );
-        //console.log(modeParam);
-        var rotationsStr = urlParams.get("rotation");
-        if (!rotationsStr) { rotationsStr = "true"; };
-        var rotationParam = (rotationsStr == "true") ? true : false;
-        //let result = condition ? value1 : value2;
-        //console.log(rotationParam);
-        var verts = urlParams.get("vertices");
-        var outverts = urlParams.get("outvertices");
-        if (!verts || verts.length < 6 ) { verts = "(1,1), (4, 1), (5, 3), (2, 3) | (5, 6), (6, 6), (5, 2)"; };
-        if (!outverts || outverts.length < 6) { outverts = "(1,1), (4, 1), (5, 3), (2, 3) | (5, 6), (6, 6), (5, 2), (3, 4)"; };
-
-        //  (1,2), (4, 2), (5, 4), (2, 4) | (4, 6), (5, 6), (5, 2), (3, 4)
+        var galleryname = window.location.hash;
 
         // Inputs
         var arguments = {
-            vertices : verts,
-            //outlineVertices : outverts,
+            vertices : "(1,1), (4, 1), (5, 3), (2, 3) | (5, 6), (6, 6), (5, 2)",
             colors : [[0, 0, 255, 0.3], [255, 255, 0, 0.3]],
             //vertices and colors are used to form shapes if the input mode is 3
             //they are used to get a starting position for the slider of the input mode is 2 or 4
             // (mode 4 uses vertices which must be horizontally or vertically in line, however)
             // not used at all if mode is anything else
-            rotationsAllowed : rotationParam,
+            rotationsAllowed : false,
             className: galleryname,
-            mode : modeParam,
+            mode : 7
             // (proceeds normally if mode is 0 or 1)
-            post : true
         };
-
-        //console.log(arguments);
 
         // Modes Index:
         // 0: initial state

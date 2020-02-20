@@ -68,6 +68,34 @@ void TurnOnCUT() {
   }
 }
 
+
+void TurnOffFLIP(){
+  FLIPMouseDown.pause();
+  FLIPTouchStart.pause();
+  FLIPMouseMove.pause();
+  FLIPTouchMove.pause();
+  FLIPMouseGetRotationPoint.pause();
+  FLIPTouchGetRotationPoint.pause();
+  FLIPMouseUp.pause();
+  FLIPTouchEnd.pause();
+}
+
+void TurnOnFLIP() {
+  while (FLIPMouseDown.isPaused) {
+    FLIPMouseDown.resume();
+    FLIPTouchStart.resume();
+    FLIPMouseMove.resume();
+    FLIPTouchMove.resume();
+    FLIPMouseUp.resume();
+    FLIPTouchEnd.resume();
+
+    if (rotationsAllowed) {
+      FLIPMouseGetRotationPoint.resume();
+      FLIPTouchGetRotationPoint.resume();
+    }
+  }
+}
+
 void TurnOffGEO() {
   GEOMouseDown.pause();
   GEOTouchStart.pause();

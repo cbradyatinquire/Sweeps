@@ -252,6 +252,7 @@ void touchDragSETUP(TouchEvent evt) {
 }
 
 void mouseDragSETUP(MouseEvent event) {
+  print("mouse drag setup");
   draggingSETUP(event.offset);
 }
 

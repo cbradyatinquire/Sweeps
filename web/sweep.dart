@@ -18,6 +18,7 @@ void touchDragSWEEP(TouchEvent evt) {
 }
 
 void mouseDragSWEEP(MouseEvent event) {
+  print("ouset drag sweep");
   if (grabbed == "body") {
     draggingSWEEP(event.offset);
   }
@@ -222,7 +223,7 @@ void drawRulerMarkings(Point BottomLeft, Point TopLeft, Point TopRight, CanvasRe
   if (vSubTicks > 1) {
     ifFractions = " / " + vSubTicks.toString() + " ";
   }
-  String toDraw = numToDraw + ifFractions + vunits_abbreviated;
+  String toDraw = numToDraw + ifFractions + vunits_abbreviated + "!";
   int ycor = ((BottomLeft.y + TopLeft.y) / 2).round();
   drawVerticalText(ctxt, toDraw, 28, ycor);
 

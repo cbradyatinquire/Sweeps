@@ -46,7 +46,7 @@ void manageInputs() {
       }
     }
   }
-  else if (MODEAfterSetup == 3 || MODEAfterSetup == 5) {
+  else if (MODEAfterSetup == 3 || MODEAfterSetup == 5 || MODEAfterSetup == 7) {
     inputPieces = ParsePieces(inputVertices);
     colorsOfPieces = input['colors'];
 

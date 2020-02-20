@@ -288,58 +288,61 @@ void doCut() {
 
 
 void drawCUT() {
-  CanvasRenderingContext2D ctx = canv.context2D;
-  ctx.clearRect(0, 0, canv.width, canv.height);
-  if (cutFlavor == "selected") {
-    if (cutGrabbed == "scissors" ) {
-      ctx.drawImageScaled(cutSelectedClosedButton, 0, 0, 58, 58);
-      canv.style.backgroundColor = "#aaaacc";
-    } else {
-      ctx.drawImageScaled(cutSelectedButton, 0, 0, 58, 58);
-      canv.style.backgroundColor = "#fff8ff";
+  if (MODE != 7 ) {
+    CanvasRenderingContext2D ctx = canv.context2D;
+    ctx.clearRect(0, 0, canv.width, canv.height);
+    if (cutFlavor == "selected") {
+      if (cutGrabbed == "scissors") {
+        ctx.drawImageScaled(cutSelectedClosedButton, 0, 0, 58, 58);
+        canv.style.backgroundColor = "#aaaacc";
+      } else {
+        ctx.drawImageScaled(cutSelectedButton, 0, 0, 58, 58);
+        canv.style.backgroundColor = "#fff8ff";
+      }
     }
-    
-  }
 
-  drawGridAndRulers(canv);
+    drawGridAndRulers(canv);
 
-  drawOriginalPieceCUT(ctx);
-  /*if (wasInCavalieri) { drawCavalieriPath(ctx); }
+    drawOriginalPieceCUT(ctx);
+    /*if (wasInCavalieri) { drawCavalieriPath(ctx); }
   else { drawSweeperSweptSWEEP(ctx); }*/
 
-  //if (hasCut) { pieces.forEach((piece) => piece.draw(ctx)); }
+    //if (hasCut) { pieces.forEach((piece) => piece.draw(ctx)); }
 
-  if (doingRotation && indexSelectedForRotation != -1) {
+    if (doingRotation && indexSelectedForRotation != -1) {
+      bool allowed = pieces[indexSelectedForRotation].possibleCenter(
+          currentPossibleCenter, vticks * vSubTicks, hticks * hSubTicks);
 
-    bool allowed = pieces[indexSelectedForRotation].possibleCenter(currentPossibleCenter, vticks * vSubTicks, hticks * hSubTicks);
+      drawRotationCenter(ctx);
+      //drawRotationConnection(shapeRotationPoint, currentPossibleCenter, allowed);
+      pieces[indexSelectedForRotation].drawRotatedCopiesEveryNDegrees(
+          ctx, currentPossibleCenter, 45, allowed);
 
-    drawRotationCenter(ctx);
-    //drawRotationConnection(shapeRotationPoint, currentPossibleCenter, allowed);
-    pieces[indexSelectedForRotation].drawRotatedCopiesEveryNDegrees(ctx, currentPossibleCenter, 45, allowed);
-
-    pieces[indexSelectedForRotation].rotate180Degrees(currentPossibleCenter).drawInsubstantialForRotate(ctx, allowed);
+      pieces[indexSelectedForRotation]
+          .rotate180Degrees(currentPossibleCenter)
+          .drawInsubstantialForRotate(ctx, allowed);
 
 
-    pieces[indexSelectedForRotation].drawAsDragging(ctx);
-  }
-
-  if (hasCut) {
-    int i = 0;
-    while (i < pieces.length) {
-      if (i != indexSelectedForRotation) {
-        pieces[i].draw(ctx);
-      }
-      i++;
+      pieces[indexSelectedForRotation].drawAsDragging(ctx);
     }
+
+    if (hasCut) {
+      int i = 0;
+      while (i < pieces.length) {
+        if (i != indexSelectedForRotation) {
+          pieces[i].draw(ctx);
+        }
+        i++;
+      }
+    }
+
+
+    drawTools();
+
+    //for testing
+    //print("Drawing Grid");
+    // drawPointGrid(ctx);
   }
-
-
-
-  drawTools();
-
-  //for testing
-  //print("Drawing Grid");
-  // drawPointGrid(ctx); 
 }
 
 void touchGetRotationPoint(TouchEvent e) {
@@ -413,6 +416,7 @@ void touchDragCUT(TouchEvent evt) {
 }
 
 void mouseDragCUT(MouseEvent event) {
+  print("in cut drag");
   if (draggingPiece != null) {
     draggingCUT(event.offset);
   } else if ( cutGrabbed != "none") {

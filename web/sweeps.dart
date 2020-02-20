@@ -16,6 +16,7 @@ part "piece.dart";
 part "setup.dart";
 part "sweep.dart";
 part "cut.dart";
+part "reflect.dart";
 part "cavalieri.dart";
 part "post.dart";
 part "tests.dart";
@@ -64,7 +65,7 @@ TextInputElement usernameBox, commentTextBox;
 
 
 int MODE = 0;
-var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Tilt to Sweep Down", "Click to Choose Vertices", "Click to Rotate; Drag to Arrange"];
+var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Tilt to Sweep Down", "Click to Choose Vertices", "Click to Rotate; Drag to Arrange", "Reflect(!)"];
 bool readyToGoOn = true;
 // MODES:
 // 0: initial state
@@ -73,6 +74,8 @@ bool readyToGoOn = true;
 // 3: Cutting
 // 4: Cavalieri
 // 5: Geoboard
+
+//7:reflect
 
 int MODEAfterSetup;
 
@@ -121,12 +124,17 @@ var SWEEPMouseDown, SWEEPTouchStart, SWEEPMouseMove, SWEEPTouchMove, SWEEPMouseU
 bool dragIsVertical = true; //false => that the drag is horizontal (logic for this in sweep.dart)
 int draggedUnits = 0; // also used in sweep.dart
 
+//FLIP mode
+var FLIPMouseDown, FLIPTouchStart, FLIPMouseMove, FLIPMouseGetRotationPoint, FLIPTouchGetRotationPoint, FLIPTouchMove, FLIPMouseUp, FLIPTouchEnd;
+
+
 //relevant to the CUT mode
 var CUTMouseDown, CUTTouchStart, CUTMouseMove, CUTMouseGetRotationPoint, CUTTouchGetRotationPoint, CUTTouchMove, CUTMouseUp, CUTTouchEnd;
 List<Piece> originalPieces;
 //for forward/back navigation.
 var navigationEvents;
 bool hasCut = false;
+bool hasFlip = false; //ADD
 List<Piece> pieces = new List<Piece>();
 Piece draggingPiece = null;
 Point pieceDragOrigin;
@@ -217,6 +225,17 @@ void doEventSetup() {
   CUTTouchGetRotationPoint = canv.onTouchMove.listen(touchGetRotationPoint);
   CUTMouseUp = canv.onMouseUp.listen(stopDragCUT);
   CUTTouchEnd = canv.onTouchEnd.listen(stopTouchCUT);
+
+
+  //Flip MODE EVENTS
+  FLIPMouseDown = canv.onMouseDown.listen(startDragFLIP);
+  FLIPTouchStart = canv.onTouchStart.listen(startTouchFLIP);
+  FLIPMouseMove = canv.onMouseMove.listen(mouseDragFLIP);
+  FLIPTouchMove = canv.onTouchMove.listen(touchDragFLIP);
+  FLIPMouseGetRotationPoint = canv.onMouseMove.listen(mouseGetRotationPoint);
+  FLIPTouchGetRotationPoint = canv.onTouchMove.listen(touchGetRotationPoint);
+  FLIPMouseUp = canv.onMouseUp.listen(stopDragFLIP);
+  FLIPTouchEnd = canv.onTouchEnd.listen(stopTouchFLIP);
 
   //Cav MODE EVENTS
   TabletTiltSensorCav = window.onDeviceMotion.listen((DeviceMotionEvent e) {
@@ -831,6 +850,51 @@ void doModeSpecificLogic() {
 
     drawGEO();
   }
+
+
+  if (MODE == 7) { // FLIPPING
+    if (!SETUPMouseDown.isPaused) {
+      TurnOffSETUP();
+    }
+
+    if (!SWEEPMouseDown.isPaused) {
+      TurnOffSWEEP();
+    }
+
+    if (!GEOMouseDown.isPaused) {
+      TurnOffGEO();
+    }
+
+    if (!CUTMouseDown.isPaused) {
+      TurnOffCUT();
+    }
+
+    TurnOffCav();
+
+    TurnOnFLIP();
+
+    if (MODEAfterSetup != 5) {
+      List<Point> gridPoints = new List<Point>();
+      gridPoints.add(s1end);
+      gridPoints.add(s2end);
+
+      if (dragIsVertical) {
+        gridPoints.add(new Point(s2end.x, s2end.y - draggedUnits));
+        gridPoints.add(new Point(s1end.x, s1end.y - draggedUnits));
+      } else {
+        gridPoints.add(new Point(s2end.x - draggedUnits, s2end.y));
+        gridPoints.add(new Point(s1end.x - draggedUnits, s1end.y));
+      }
+      pieces.clear();
+      Piece whole = new Piece(gridPoints);
+      pieces.add(whole);
+      originalPieces = copy(pieces);
+    }
+
+    drawFLIP();
+    drawTools();
+  }
+
 }
 
 
@@ -849,6 +913,25 @@ void startUp(MouseEvent event) {
 
   drawSETUP();
   drawTools();
+
+
+  //add
+  if (MODEAfterSetup == 7) {
+    MODE = 7;
+    flipFlavor = "selected";
+    flipGrabbed = "none";
+    hasFlip = true;
+    setFlipPoints();
+    doModeSpecificLogic();
+
+    pieces = copy(inputPieces);
+    originalPieces = copy(inputPieces);
+    drawFLIP();
+    drawTools();
+    return;
+  }
+//add
+
 
   if (MODEAfterSetup > 1) {
     MODE = MODEAfterSetup;
@@ -1311,6 +1394,23 @@ void drawHorizontalAxis(CanvasRenderingContext2D ctxt, int bott) {
       ctxt.fill();
     }
     ctxt.stroke();
+  } else if (MODE == 7 && flipFlavor == "selected") {
+    ctxt.beginPath();
+    ctxt.moveTo(hflips.x, hflips.y);
+    ctxt.lineTo(hflips.x, hflips.y + vrulerheight);
+    ctxt.moveTo(hflips.x - 10, hflips.y - 10);
+    ctxt.rect(hflips.x - 10, hflips.y - 10, 20, 20); //(hflips.x, hflips.y, 10, 0, 2 * PI);
+    ctxt.closePath();
+    if (flipGrabbed == "horizontal") {
+      ctxt.fillStyle = "#7F4";
+      ctxt.strokeStyle = "#7F4";
+      ctxt.fill();
+    } else {
+      ctxt.fillStyle = "#999";
+      ctxt.strokeStyle = "#000";
+      ctxt.fill();
+    }
+    ctxt.stroke();
   }
 
   ctxt.strokeStyle = "#000";
@@ -1364,6 +1464,23 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
     ctxt.rect(vcuts.x - 10, vcuts.y - 10, 20, 20);
     ctxt.closePath();
     if (cutGrabbed == "vertical") {
+      ctxt.fillStyle = "#7F4";
+      ctxt.strokeStyle = "#7F4";
+      ctxt.fill();
+    } else {
+      ctxt.fillStyle = "#999";
+      ctxt.strokeStyle = "#000";
+      ctxt.fill();
+    }
+    ctxt.stroke();
+  } else if (MODE == 7 && flipFlavor == "selected") {
+    ctxt.beginPath();
+    ctxt.moveTo(vflips.x, vflips.y);
+    ctxt.lineTo(vflips.x + hrulerwidth, vflips.y);
+    ctxt.moveTo(vflips.x - 10, vflips.y - 10);
+    ctxt.rect(vflips.x - 10, vflips.y - 10, 20, 20);
+    ctxt.closePath();
+    if (flipGrabbed == "vertical") {
       ctxt.fillStyle = "#7F4";
       ctxt.strokeStyle = "#7F4";
       ctxt.fill();

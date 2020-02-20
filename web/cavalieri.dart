@@ -107,6 +107,7 @@ void CavMouseUp(MouseEvent me) {
 }
 
 void CavMouseMove(MouseEvent me) {
+  print("cav mouse move");
   if (cavIsDragging) {
     double delx = (me.client.x - cavDragPoint.x) / 1.0;
     double dely = (me.client.y - cavDragPoint.y) / 1.0;
