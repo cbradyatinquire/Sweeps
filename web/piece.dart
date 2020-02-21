@@ -67,7 +67,7 @@ class Piece {
           }
           else {
             toReturn.add(current * pow(0.1, decimalPlaces));
-            print(toReturn);
+            //print(toReturn);
             return toReturn;
           }
         }
@@ -946,10 +946,10 @@ class Piece {
     //print(strtpt);
     //print(coord);
     if (horv == "horizontal") {
-      print(flipform(coord, strtpt.x));
+      //print(flipform(coord, strtpt.x));
       ctxt.moveTo( getXForHSubTick(flipform(coord, strtpt.x)), getYForVSubTick(strtpt.y)  ); }
     else {
-      print(flipform(coord, strtpt.y));
+      //print(flipform(coord, strtpt.y));
       ctxt.moveTo( getXForHSubTick(strtpt.x), getYForVSubTick(flipform(coord, strtpt.y))   );
     }
 
@@ -968,6 +968,23 @@ class Piece {
   }
 
 
+
+  //snaps to grid by moving only by integer amounts (TODO: does not snap vertices to grid, is this desirable?)
+  void actuallyFlip( var horv, num coord) {
+
+    for (int i = 0; i<vertices.length; i++) {
+      if (horv == "horizontal") {
+
+        vertices[i]=new Point( flipform(coord, vertices[i].x), vertices[i].y );
+      }
+      else {
+        vertices[i]=new Point( vertices[i].x, flipform(coord, vertices[i].y) );
+      }
+
+    }
+    establishBoundingBox();
+    setupSides();
+  }
 
 
 

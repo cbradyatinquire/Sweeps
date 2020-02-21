@@ -90,10 +90,10 @@ List<List<num>> colorsOfPieces;
 
 //relevant to the SETUP mode
 var SETUPMouseDown, SETUPTouchStart, SETUPMouseMove, SETUPTouchMove, SETUPMouseUp, SETUPTouchEnd;
-num hticks = 20;
-num vticks = 15;
-int hSubTicks = 1;
-int vSubTicks = 1;
+num hticks = 20;      //****CHANGE HERE FOR GRID CHANGES....
+num vticks = 15;    //****CHANGE HERE FOR GRID CHANGES....
+int hSubTicks = 2;    //****CHANGE HERE FOR GRID CHANGES....
+int vSubTicks = 2;    //****CHANGE HERE FOR GRID CHANGES....
 int maxhticks = 24;
 int maxvticks = 15;
 int minhticks = 2; //9;
@@ -1401,7 +1401,7 @@ void drawHorizontalAxis(CanvasRenderingContext2D ctxt, int bott) {
     ctxt.moveTo(hflips.x - 10, hflips.y - 10);
     ctxt.rect(hflips.x - 10, hflips.y - 10, 20, 20); //(hflips.x, hflips.y, 10, 0, 2 * PI);
     ctxt.closePath();
-    if (flipGrabbed == "horizontal") {
+    if (flipGrabbed == "horizontal" || activeDragging == "horizontal") {
       ctxt.fillStyle = "#7F4";
       ctxt.strokeStyle = "#7F4";
       ctxt.fill();
@@ -1480,7 +1480,7 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
     ctxt.moveTo(vflips.x - 10, vflips.y - 10);
     ctxt.rect(vflips.x - 10, vflips.y - 10, 20, 20);
     ctxt.closePath();
-    if (flipGrabbed == "vertical") {
+    if (flipGrabbed == "vertical" || activeDragging == "vertical") {
       ctxt.fillStyle = "#7F4";
       ctxt.strokeStyle = "#7F4";
       ctxt.fill();

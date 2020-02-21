@@ -3,6 +3,7 @@ part of sweeps;
 Point vflips = new Point(hoff - 10, voff);
 Point hflips = new Point(hoff, voff - 10);
 var flipGrabbed = "none";
+var activeDragging = flipGrabbed;
 
 var flipFlavor = "selected";
 
@@ -55,11 +56,13 @@ void clickLogicFLIP(Point pt) { // inputted point is where the mouse clicked; lo
   }
   else { // logic for flipting a piece yourself, when flipFlavor == "select" (dragThreshold is the error tolerance for a click)
     if (sqPixelDistance(pt, vflips) < dragThreshold) {
-       flipGrabbed = "vertical";
+       if ( activeDragging == "none" ) { flipGrabbed = "vertical"; }
+       else {activeDragging = "none"; }
 
       drawFLIP();
     } else if (sqPixelDistance(pt, hflips) < dragThreshold) {
-       flipGrabbed = "horizontal";
+      if ( activeDragging == "none" ) { flipGrabbed = "horizontal"; }
+      else {activeDragging = "none"; }
 
       drawFLIP();
     } else if (pt.y < 50 && pt.x < 50) { // this does not trigger flip yet, only makes screen change color to show it is flipting, flip happens when mouse lifts UP, in either stopTouchFLIP or stopDragFLIP
@@ -133,14 +136,15 @@ void drawFLIP() {
 
    */
   int i = 0;
+  //print( flipGrabbed + " " + activeDragging );
   while (i < pieces.length) {
-    if (flipGrabbed == "vertical") {
+    if (flipGrabbed == "vertical" || activeDragging == "vertical") {
       num cor = getSubTickCoordForPixelV(vflips.y);
-      pieces.forEach((piece) => piece.drawFlipped(ctx, flipGrabbed, cor));
+      pieces.forEach((piece) => piece.drawFlipped(ctx, "vertical", cor));
     }
-    if (flipGrabbed == "horizontal") {
+    if (flipGrabbed == "horizontal" || activeDragging == "horizontal") {
       num cor = getSubTickCoordForPixelH(hflips.x);
-      pieces.forEach((piece) => piece.drawFlipped(ctx, flipGrabbed, cor));
+      pieces.forEach((piece) => piece.drawFlipped(ctx, "horizontal", cor));
     }
     i++;
   }
@@ -190,23 +194,23 @@ void touchDragFLIP(TouchEvent evt) {
   Point currPoint = evt.changedTouches[0].client;
   if (draggingPiece != null) {
     draggingFLIP(currPoint);
-  } else if ( flipGrabbed != "none") {
+  } else if ( flipGrabbed != "none"   ) {
     dragFlipHotSpots( currPoint );
   }
 }
 
 void mouseDragFLIP(MouseEvent event) {
-  print("got to flip mouse");
+  //print("got to flip mouse");
   if (draggingPiece != null) {
     draggingFLIP(event.offset);
-  } else if ( flipGrabbed != "none") {
+  } else if ( flipGrabbed != "none"  ) {
     dragFlipHotSpots( event.offset );
   }
 }
 
 
 void dragFlipHotSpots( Point currentPt ) {
-  print("dragging " + flipGrabbed );
+  //print("dragging " + flipGrabbed );
   if (flipGrabbed == "horizontal") {
     hflips = new Point(  getXForHSubTick( getSubTickCoordForPixelH(currentPt.x) )  , hflips.y);
   } else if ( flipGrabbed == "vertical") {
@@ -253,24 +257,64 @@ void draggingFLIP(Point currentPt) {
 
 
 void stopDragFLIP(MouseEvent event) {
-  draggingPiece = null;
+  //draggingPiece = null;
+  //print(draggingPiece);
   if (flipGrabbed == "scissors") {
     doFlip(); // triggers flip when flipFlavor == "select"
   }
-  flipGrabbed = "none";  // resets flipGrabbed (from where it was set in clickLogicFlip)
+
+  if (draggingPiece == null ) {
+    activeDragging = flipGrabbed;
+    flipGrabbed = "none"; } // resets flipGrabbed (from where it was set in clickLogicFlip)
+  else {
+    print("would do the flip for the dragging piece NOW");
+    doTheActualFlip();
+  }
+  draggingPiece = null;
+
   drawFLIP();
 }
 
 void stopTouchFLIP(TouchEvent evt) {
-  draggingPiece = null;
+  //draggingPiece = null;
   if (flipGrabbed == "scissors") {
     doFlip(); // triggers flip when flipFlavor == "select"
   }
-  flipGrabbed = "none"; // resets flipGrabbed (from where it was set in clickLogicFlip)
+  //activeDragging = flipGrabbed;
+  if (draggingPiece == null ) {
+    activeDragging = flipGrabbed;
+    flipGrabbed = "none"; } // resets flipGrabbed (from where it was set in clickLogicFlip)
+  else {
+    print("would do the flip for the dragging piece NOW");
+    doTheActualFlip();
+  }
+  draggingPiece = null;
+
   drawFLIP();
 
 }
 
+
+void doTheActualFlip() {
+  int i = 0;
+  //print( flipGrabbed + " " + activeDragging );
+  while (i < pieces.length) {
+    print("TAAAAADAAAA");
+    if (pieces[i] == draggingPiece) {
+      if (flipGrabbed == "vertical" || activeDragging == "vertical") {
+        num cor = getSubTickCoordForPixelV(vflips.y);
+        pieces[i].actuallyFlip("vertical", cor);
+      }
+      if (flipGrabbed == "horizontal" || activeDragging == "horizontal") {
+        num cor = getSubTickCoordForPixelH(hflips.x);
+        pieces[i].actuallyFlip("horizontal", cor);
+      }
+    }
+    i++;
+  }
+  drawFLIP();
+
+}
 
 void drawOutlineFLIP(CanvasRenderingContext2D ctxt, Piece piece) {
   ctxt.strokeStyle = "#555";
