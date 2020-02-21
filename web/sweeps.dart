@@ -65,7 +65,7 @@ TextInputElement usernameBox, commentTextBox;
 
 
 int MODE = 0;
-var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Tilt to Sweep Down", "Click to Choose Vertices", "Click to Rotate; Drag to Arrange", "Reflect(!)"];
+var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Tilt to Sweep Down", "Construct Shapes to Dissect", "Click to Rotate; Drag to Arrange", "Reflect(!)"];
 bool readyToGoOn = true;
 // MODES:
 // 0: initial state
@@ -338,16 +338,16 @@ void testSwitchMode(MouseEvent e) {
     }
   } else if (e.offset.x > rbound && MODE == 5) {
     MODE = 3;
-    if (e.offset.y < (tools.height / 2)) {
-      cutFlavor = "all";
-      hasCut = false;
-      doModeSpecificLogic();
-    } else {
+  //  if (e.offset.y < (tools.height / 2)) {
+  //    cutFlavor = "all";
+  //    hasCut = false;
+  //    doModeSpecificLogic();
+  //  } else {
       cutFlavor = "selected";
       hasCut = true;
       setCutPoints();
       doModeSpecificLogic();
-    }
+  //  }
 
     originalPieces = copy(pieces);
     doModeSpecificLogic();
@@ -1042,7 +1042,8 @@ void drawTools() {
   }
 
   if ( MODE == 5 ){
-    ctx.drawImageScaled(forkedRightButton, tools.width - imwid, 0, imwid, imht);
+    //ctx.drawImageScaled(forkedRightButton, tools.width - imwid, 0, imwid, imht);
+    ctx.drawImageScaled(rightButton, tools.width - imwid, 0, imwid, imht);
   }
   
   if (MODE < 2 && readyToGoOn) {
