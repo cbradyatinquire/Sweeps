@@ -1353,7 +1353,7 @@ void drawHorizontalAxis(CanvasRenderingContext2D ctxt, int bott) {
     ctxt.moveTo(hcuts.x - 10, hcuts.y - 10);
     ctxt.rect(hcuts.x - 10, hcuts.y - 10, 20, 20); //(hcuts.x, hcuts.y, 10, 0, 2 * PI);
     ctxt.closePath();
-    if (cutGrabbed == "horizontal") {
+    if (cutGrabbed == "horizontal" || flipGrabbed == "horizontal" || activeDragging == "horizontal") {
       ctxt.fillStyle = "#7F4";
       ctxt.strokeStyle = "#7F4";
       ctxt.fill();
@@ -1415,7 +1415,7 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
     ctxt.moveTo(vcuts.x - 10, vcuts.y - 10);
     ctxt.rect(vcuts.x - 10, vcuts.y - 10, 20, 20);
     ctxt.closePath();
-    if (cutGrabbed == "vertical") {
+    if (cutGrabbed == "vertical" || flipGrabbed == "vertical" || activeDragging == "vertical") {
       ctxt.fillStyle = "#7F4";
       ctxt.strokeStyle = "#7F4";
       ctxt.fill();

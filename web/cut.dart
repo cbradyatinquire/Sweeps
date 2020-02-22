@@ -26,22 +26,30 @@ void setCutPoints() {
 
 //CUT MODE HAS AN IMMEDIATE RESPONSE TO THE CLICK.
 void startDragCUT(MouseEvent event) {
-  if (!doingRotation) {
+  if (!doingRotation && !doingReflection) {
     clickLogicCUT(event.offset);
   }
-  else {
+  if (doingRotation) {
     clickLogicROTATE(event.offset, true);
+  }
+  if (doingReflection) {
+    clickLogicREFLECT(event.offset, true);
+    dragFirstPieceClickedOn(event.offset);
   }
 }
 
 void startTouchCUT(TouchEvent evt) {
   Point initPoint = evt.changedTouches[0].client;
 
-  if (!doingRotation) {
+  if (!doingRotation && !doingReflection) {
     clickLogicCUT(initPoint);
   }
-  else {
+  if (doingRotation) {
     clickLogicROTATE(initPoint, false);
+  }
+  if (doingReflection) {
+    clickLogicREFLECT(initPoint, false);
+    dragFirstPieceClickedOn(initPoint);
   }
 }
 
@@ -95,19 +103,20 @@ void clickLogicCUT(Point pt) { // inputted point is where the mouse clicked; log
     }
   }
   else { // logic for cutting a piece yourself, when cutFlavor == "select" (dragThreshold is the error tolerance for a click)
-    if (sqPixelDistance(pt, vcuts) < dragThreshold) {
-      cutGrabbed = "vertical";
-      drawCUT();
-    } else if (sqPixelDistance(pt, hcuts) < dragThreshold) {
-      cutGrabbed = "horizontal";
-      drawCUT();
-    } else if (pt.y < 50 && pt.x < 50 && !doingReflection) { // this does not trigger cut yet, only makes screen change color to show it is cutting, cut happens when mouse lifts UP, in either stopTouchCUT or stopDragCUT
-      cutGrabbed = "scissors";
-      drawCUT();
-    } else {
-      drawCUT();
-      dragFirstPieceClickedOn(pt);
-    }
+      if (sqPixelDistance(pt, vcuts) < dragThreshold) {
+        cutGrabbed = "vertical";
+        drawCUT();
+      } else if (sqPixelDistance(pt, hcuts) < dragThreshold) {
+        cutGrabbed = "horizontal";
+        drawCUT();
+      } else if (pt.y < 50 && pt.x < 50 &&
+          !doingReflection) { // this does not trigger cut yet, only makes screen change color to show it is cutting, cut happens when mouse lifts UP, in either stopTouchCUT or stopDragCUT
+        cutGrabbed = "scissors";
+        drawCUT();
+      } else {
+        drawCUT();
+        dragFirstPieceClickedOn(pt);
+      }
   }
 }
 
@@ -222,7 +231,6 @@ void drawRotationConnection(Point shapePoint, Point rotationPoint, bool allowed)
 
 
 
-
 void clickLogicROTATE(Point pt, bool isMouse) {
   if (indexSelectedForRotation == -1) { // haven't selected a piece yet
     num i = getFirstIndex(pt);
@@ -243,6 +251,26 @@ void clickLogicROTATE(Point pt, bool isMouse) {
     rotatePiece(p);
     CUTMouseGetRotationPoint.pause();
     CUTTouchGetRotationPoint.pause();
+  }
+}
+
+void clickLogicREFLECT(Point pt, bool isMouse) {
+  if (sqPixelDistance(pt, vcuts) < dragThreshold) {
+    if (activeDragging == "none") {
+      flipGrabbed = "vertical";
+    }
+    else {
+      activeDragging = "none";
+    }
+    drawCUT();
+  } else if (sqPixelDistance(pt, hcuts) < dragThreshold) {
+    if (activeDragging == "none") {
+      flipGrabbed = "horizontal";
+    }
+    else {
+      activeDragging = "none";
+    }
+    drawCUT();
   }
 }
 
@@ -324,6 +352,19 @@ void drawCUT() {
 
 
     pieces[indexSelectedForRotation].drawAsDragging(ctx);
+  }
+
+
+  if (doingReflection) {
+    //print( flipGrabbed + " " + activeDragging );
+      if (flipGrabbed == "vertical" || activeDragging == "vertical") {
+        num cor = getSubTickCoordForPixelV(vcuts.y);
+        pieces.forEach((piece) => piece.drawFlipped(ctx, "vertical", cor));
+      }
+      if (flipGrabbed == "horizontal" || activeDragging == "horizontal") {
+        num cor = getSubTickCoordForPixelH(hcuts.x);
+        pieces.forEach((piece) => piece.drawFlipped(ctx, "horizontal", cor));
+      }
   }
 
   if (hasCut) {
@@ -411,7 +452,9 @@ void touchDragCUT(TouchEvent evt) {
   if (draggingPiece != null) {
     draggingCUT(currPoint);
   } else if ( cutGrabbed != "none") {
-    dragCutHotSpots( currPoint );
+    dragCutHotSpots( currPoint, cutGrabbed );
+  } else if ( flipGrabbed != "none"   ) {
+    dragCutHotSpots( currPoint, flipGrabbed );
   }
 }
 
@@ -419,16 +462,18 @@ void mouseDragCUT(MouseEvent event) {
   if (draggingPiece != null) {
     draggingCUT(event.offset);
   } else if ( cutGrabbed != "none") {
-    dragCutHotSpots( event.offset );
+    dragCutHotSpots( event.offset, cutGrabbed );
+  } else if ( flipGrabbed != "none"  ) {
+    dragCutHotSpots(event.offset, flipGrabbed);
   }
 }
 
 
-void dragCutHotSpots( Point currentPt ) {
+void dragCutHotSpots( Point currentPt, cutOrFlipIndicator ) {
   //print("dragging " + cutGrabbed );
-  if (cutGrabbed == "horizontal") {
+  if (cutOrFlipIndicator == "horizontal") {
     hcuts = new Point(  getXForHSubTick( getSubTickCoordForPixelH(currentPt.x) )  , hcuts.y);
-  } else if ( cutGrabbed == "vertical") {
+  } else if ( cutOrFlipIndicator == "vertical") {
     vcuts = new Point( vcuts.x,  getYForVSubTick( getSubTickCoordForPixelV(currentPt.y) ) );
   }
   drawCUT();
@@ -470,22 +515,63 @@ void draggingCUT(Point currentPt) {
 }
 
 
+void handleEndDragForFlip() {
+  if (draggingPiece == null ) {
+    activeDragging = flipGrabbed;
+    flipGrabbed = "none"; } // resets flipGrabbed (from where it was set in clickLogicFlip)
+  else {
+    //print("would do the flip for the dragging piece NOW");
+    doTheActualFlip();
+  }
+}
+
+
+void doTheActualFlip() {
+  int i = 0;
+  //print( flipGrabbed + " " + activeDragging );
+  while (i < pieces.length) {
+    //print("TAAAAADAAAA");
+    if (pieces[i] == draggingPiece) {
+      if (flipGrabbed == "vertical" || activeDragging == "vertical") {
+        num cor = getSubTickCoordForPixelV(vcuts.y);
+        pieces[i].actuallyFlip("vertical", cor);
+      }
+      if (flipGrabbed == "horizontal" || activeDragging == "horizontal") {
+        num cor = getSubTickCoordForPixelH(hcuts.x);
+        pieces[i].actuallyFlip("horizontal", cor);
+      }
+    }
+    i++;
+  }
+  drawCUT();
+}
+
+
+
 
 void stopDragCUT(MouseEvent event) {
-  draggingPiece = null;
+
   if (cutGrabbed == "scissors") {
     doCut(); // triggers cut when cutFlavor == "select"
   }
   cutGrabbed = "none";  // resets cutGrabbed (from where it was set in clickLogicCut)
+
+  if (doingReflection) { handleEndDragForFlip(); }
+
+  draggingPiece = null;
   drawCUT();
 }
 
 void stopTouchCUT(TouchEvent evt) {
-  draggingPiece = null;
+
   if (cutGrabbed == "scissors") {
     doCut(); // triggers cut when cutFlavor == "select"
   }
   cutGrabbed = "none"; // resets cutGrabbed (from where it was set in clickLogicCut)
+
+  if (doingReflection) { handleEndDragForFlip(); }
+
+  draggingPiece = null;
   drawCUT();
 
   if (indexSelectedForRotation != -1){

@@ -936,6 +936,69 @@ class Piece {
   }
 
 
+  num flipform( num ctr, num val) {
+
+    return ctr + (ctr - val);
+  }
+
+  void drawFlipped(CanvasRenderingContext2D ctxt, var horv, num coord) {
+
+    ctxt.beginPath();
+
+    ctxt.strokeStyle = "rgba(0, 0, 0, 0.8)";
+    ctxt.fillStyle = "rgba(190, 190, 190, 0.2)";  //fillsty;
+
+
+    Point strtpt = vertices.last;
+    //print(strtpt);
+    //print(coord);
+    if (horv == "horizontal") {
+      //print(flipform(coord, strtpt.x));
+      ctxt.moveTo( getXForHSubTick(flipform(coord, strtpt.x)), getYForVSubTick(strtpt.y)  ); }
+    else {
+      //print(flipform(coord, strtpt.y));
+      ctxt.moveTo( getXForHSubTick(strtpt.x), getYForVSubTick(flipform(coord, strtpt.y))   );
+    }
+
+    ctxt.setLineDash([3]); // making the line dashed
+    if (horv == "horizontal") {
+      vertices.forEach((vertex) => ctxt.lineTo(getXForHSubTick(flipform(coord, vertex.x)), getYForVSubTick(vertex.y)));
+    } else {
+      vertices.forEach((vertex) => ctxt.lineTo(getXForHSubTick(vertex.x), getYForVSubTick(flipform(coord, vertex.y))));
+    }
+    ctxt.closePath();
+    ctxt.fill();
+    ctxt.stroke();
+
+    ctxt.setLineDash([]); // making the line not dashed
+
+  }
+
+  //snaps to grid by moving only by integer amounts (TODO: does not snap vertices to grid, is this desirable?)
+  void actuallyFlip( var horv, num coord) {
+
+    for (int i = 0; i<vertices.length; i++) {
+      if (horv == "horizontal") {
+
+        vertices[i]=new Point( flipform(coord, vertices[i].x), vertices[i].y );
+      }
+      else {
+        vertices[i]=new Point( vertices[i].x, flipform(coord, vertices[i].y) );
+      }
+
+    }
+    establishBoundingBox();
+    setupSides();
+  }
+
+
+
+
+
+
+
+
+
   String pointToString(Point p) {
     return ("(" + p.x.toString() + ", " + p.y.toString() + ")");
   }
