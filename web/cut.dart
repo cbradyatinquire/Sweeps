@@ -521,12 +521,12 @@ void handleEndDragForFlip() {
     flipGrabbed = "none"; } // resets flipGrabbed (from where it was set in clickLogicFlip)
   else {
     //print("would do the flip for the dragging piece NOW");
-    doTheActualFlip();
+    tryToDoTheActualFlip();
   }
 }
 
 
-void doTheActualFlip() {
+void tryToDoTheActualFlip() {
   int i = 0;
   //print( flipGrabbed + " " + activeDragging );
   while (i < pieces.length) {
@@ -534,11 +534,15 @@ void doTheActualFlip() {
     if (pieces[i] == draggingPiece) {
       if (flipGrabbed == "vertical" || activeDragging == "vertical") {
         num cor = getSubTickCoordForPixelV(vcuts.y);
-        pieces[i].actuallyFlip("vertical", cor);
+        if (draggingPiece.flipInBounds("vertical", cor, vticks * vSubTicks, hticks * hSubTicks)) {
+          pieces[i].actuallyFlip("vertical", cor);
+        }
       }
       if (flipGrabbed == "horizontal" || activeDragging == "horizontal") {
         num cor = getSubTickCoordForPixelH(hcuts.x);
-        pieces[i].actuallyFlip("horizontal", cor);
+        if (draggingPiece.flipInBounds("horizontal", cor, vticks * vSubTicks, hticks * hSubTicks)) {
+          pieces[i].actuallyFlip("horizontal", cor);
+        }
       }
     }
     i++;

@@ -942,7 +942,30 @@ class Piece {
   }
 
 
-  //idea - make this return a boolean.  as we draw, check to see if any of the images of vertices is off screen.  if so, return FALSE.
+  //called before we actually flip, check to see if any of the images of vertices is off screen.  if so, return FALSE.
+  bool flipInBounds(  var horv, num coord, num worldY, num worldX ) {  //vticks * vSubTicks, hticks * hSubTicks
+    bool inbounds = true;
+    for (int i = 0; i<vertices.length; i++) {
+      if (horv == "horizontal") {
+        num candidate = flipform(coord, vertices[i].x);
+        if ( candidate > worldX || candidate < 0) {
+          //print("horizontal flip out of bounds " + candidate.toString() );
+          inbounds = false;
+        }
+      }
+      else {
+        num candidate = flipform(coord, vertices[i].y);
+        if ( candidate > worldY || candidate < 0) {
+          //print("vertical flip out of bounds " + candidate.toString() );
+          inbounds = false;
+        }
+      }
+    }
+    return inbounds;
+  }
+
+
+
   void drawFlipped(CanvasRenderingContext2D ctxt, var horv, num coord) {
 
     ctxt.beginPath();
