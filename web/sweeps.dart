@@ -64,7 +64,7 @@ TextInputElement usernameBox, commentTextBox;
 
 
 int MODE = 0;
-var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Tilt to Sweep Down", "Click to Choose Vertices", "Click to Rotate; Drag to Arrange"];
+var captions = ["Click to start!", "Set up Sweeper & Units", "Drag to Sweep", "Click to Cut; Drag to Arrange", "Tilt to Sweep Down", "Construct Shapes to Dissect", "Click to Rotate; Drag to Arrange"];
 bool readyToGoOn = true;
 // MODES:
 // 0: initial state
