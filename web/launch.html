@@ -49,7 +49,10 @@
 		</select>
        <br>
         <label class="opts" for="rotation">Rotation: </label>
-        <input class="opts" type="checkbox" id="rotation" value="rotation" onchange="updateLinks()" checked><span class="opts">Allow Rotation of Cut Pieces</span><br>
+        <input class="opts" type="checkbox" id="rotation" value="rotation" onchange="updateLinks()" checked><span class="opts">Allow Rotation of Pieces</span><br>
+		<br>
+		<label class="opts" for="reflection">Reflection: </label>
+		<input class="opts" type="checkbox" id="reflection" value="reflection" onchange="updateLinks()" checked><span class="opts">Allow Reflection of Pieces</span><br>
 		<br>
 
         <div id="advancedopts" hidden>
@@ -97,6 +100,13 @@
             } else {
                 qstring += "&rotation=false";
             }
+			let reflection = document.getElementById("reflection").checked;
+			console.log(reflection);
+			if (reflection == true) {
+				qstring += "&reflection=true";
+			} else {
+				qstring += "&reflection=false";
+			}
 			
 			let currentvalue = document.getElementById("sname").value;
 			let touse = (currentvalue.length < 1) ? "public" : currentvalue;

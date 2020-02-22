@@ -36,6 +36,9 @@
         //console.log(modeParam);
         var rotationsStr = urlParams.get("rotation");
         var rotationParam = (rotationsStr == "true") ? true : false;
+
+        var reflectionsStr = urlParams.get("reflection");
+        var reflectionParam = (reflectionsStr == "true") ? true : false;
         //let result = condition ? value1 : value2;
         //console.log(rotationParam);
         var verts = urlParams.get("vertices");
@@ -55,6 +58,7 @@
             // (mode 4 uses vertices which must be horizontally or vertically in line, however)
             // not used at all if mode is anything else
             rotationsAllowed : rotationParam,
+            reflectionsAllowed : reflectionParam,
             className: galleryname,
             mode : modeParam,
             // (proceeds normally if mode is 0 or 1)
