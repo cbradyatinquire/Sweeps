@@ -1047,4 +1047,24 @@ class Piece {
     return toReturn;
   }
 
+
+  String toStringUnwrapped() {
+    String toReturn = "";
+
+    int i = 0;
+    if (vertices.length > 0) {
+      toReturn = toReturn + pointToString(vertices[0]);
+      i = 1;
+    }
+
+    while (i < vertices.length) {
+      toReturn = toReturn + ", (" + vertices[i].x.toString() + ", " + vertices[i].y.toString() + ")";
+      i++;
+    }
+
+    //toReturn = toReturn + ")";
+
+    return toReturn;
+  }
+
 }

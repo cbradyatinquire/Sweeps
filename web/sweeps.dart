@@ -492,9 +492,10 @@ void testSwitchMode(MouseEvent e) {
       drawTools();
     }
   }
-  if ( MODE==3 ) { // && reflectionsAllowed == true) {
-    if ( e.offset.x > r2bound && e.offset.x < rbound) {
-      print("HERE!" + e.offset.x.toString() );
+  if ( MODE==5 ) { // && reflectionsAllowed == true) {
+    if (  ((e.offset.x - tools.width / 2).abs()  < 2  * cavalieriButtonTolerance) && (e.offset.y > tools.height / 3)  ) {
+      print("would export vertex list");
+      print ( exportVertexList() );
     }
   }
 }

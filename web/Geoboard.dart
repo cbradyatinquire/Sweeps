@@ -271,6 +271,12 @@ void drawEndGEO(Point p) {
 
 
 
+String exportVertexList() {
+  String asString = "";
+  pieces.forEach((piece) => asString += piece.toStringUnwrapped() + "|");
+  return asString;
+}
+
 // gets the grid point that a rubber band would snap to
 Point roundPoint(Piece p, int index, Point pt) { // piece, index of selected point, place to move selected point to
   Point inTicks = convertToTickCord(pt);
