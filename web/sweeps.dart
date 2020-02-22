@@ -734,6 +734,10 @@ void doModeSpecificLogic() {
       TurnOffGEO();
     }
 
+    if (!FLIPMouseDown.isPaused) {
+      TurnOffFLIP();
+    }
+
     rememberPresentSETUPSWEEP();
 
     //variables that need to be reset if you're coming back to this
@@ -760,6 +764,10 @@ void doModeSpecificLogic() {
       TurnOffGEO();
     }
 
+    if (!FLIPMouseDown.isPaused) {
+      TurnOffFLIP();
+    }
+
     grabbed = "";
     draggedUnits = 0;
     hasCut = false;
@@ -783,6 +791,9 @@ void doModeSpecificLogic() {
       TurnOffGEO();
     }
 
+    if (!FLIPMouseDown.isPaused) {
+      TurnOffFLIP();
+    }
     TurnOffCav();
 
     TurnOnCUT();
@@ -823,6 +834,10 @@ void doModeSpecificLogic() {
       TurnOffGEO();
     }
 
+    if (!FLIPMouseDown.isPaused) {
+      TurnOffFLIP();
+    }
+
     TurnOnCav();
 
     numDeviceMotionEvents = 0;
@@ -844,6 +859,10 @@ void doModeSpecificLogic() {
 
     if (!CUTMouseDown.isPaused) {
       TurnOffCUT();
+    }
+
+    if (!FLIPMouseDown.isPaused) {
+      TurnOffFLIP();
     }
 
     TurnOnGEO();
