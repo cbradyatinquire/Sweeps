@@ -25,7 +25,7 @@ part "ModeManagingMethods.dart";
 
 
 
-ImageElement forkedRightButton, rightButton, leftButton, rotateButtonUpState, rotateButtonDownState;
+ImageElement forkedRightButton, rightButton, leftButton, rotateButtonUpState, rotateButtonDownState, reflectButtonUpState, reflectButtonDownState;
 ImageElement cameraButton, rulerCompareButton, cutSelectedButton, cutSelectedClosedButton, cavalieriButton;
 CanvasElement canv, tools;
 DivElement splash;
@@ -78,6 +78,8 @@ int MODEAfterSetup;
 
 JsObject input = context['arguments'];
 bool rotationsAllowed = input['rotationsAllowed'];
+bool reflectionsAllowed = input['reflectionsAllowed'];
+
 String inputVertices = input['vertices'];
 
 Point inputPoint1, inputPoint2;
@@ -134,6 +136,8 @@ Point pieceDragOrigin;
 bool doingRotation = false;
 int indexSelectedForRotation = -1;
 
+bool doingReflection = false;
+
 // relevant only to the Cavalieri mode
 StreamSubscription<DeviceMotionEvent> TabletTiltSensorCav; // for tablets
 var mouseDownCav, mouseMoveCav, mouseUpCav; // for computers
@@ -178,6 +182,11 @@ void main() {
   cutSelectedClosedButton = new ImageElement()..src = "images/cutSelectedClosed.png";
   rotateButtonDownState = new ImageElement()..src = "images/rotateDown.png";
   rotateButtonUpState = new ImageElement()..src = "images/rotateUp.png";
+
+  //****CHANGE THESE TO QUINLEY'S IMAGES.
+  reflectButtonDownState = new ImageElement()..src = "images/rotateDown.png";
+  reflectButtonUpState = new ImageElement()..src = "images/rotateUp.png";
+
   canv = querySelector("#scanvas");
   tools = querySelector("#tcanvas");
   splash = querySelector("#splashdiv");
@@ -281,6 +290,7 @@ void doEventSetup() {
 
 void testSwitchMode(MouseEvent e) {
   int rbound = tools.width - 2 * tools.height;
+  int r2bound = tools.width - 4 * tools.height;
   int lbound = tools.height * 2;
 
   int screenCapIconTolerance = (tools.height / 2.0).round();
@@ -290,13 +300,39 @@ void testSwitchMode(MouseEvent e) {
     if (doingRotation) {
       doingRotation = false;
       indexSelectedForRotation = -1;
+      doingReflection = false;
+      flipGrabbed = "none";
+      activeDragging = "none";
     }
     else {
       doingRotation = true;
+      doingReflection = false;
+      flipGrabbed = "none";
+      activeDragging = "none";
     }
     drawCUT();
     drawTools();
   }
+
+  if (e.offset.x > r2bound && e.offset.x < rbound && MODE == 3 && reflectionsAllowed && hasCut) { // want to do a rotation
+    if (doingReflection) {
+      doingReflection = false;
+      flipGrabbed = "none";
+      activeDragging = "none";
+      doingRotation = false;
+      indexSelectedForRotation = -1;
+    }
+    else {
+      doingReflection = true;
+      flipGrabbed = "none";
+      activeDragging = "none";
+      doingRotation = false;
+      indexSelectedForRotation = -1;
+    }
+    drawCUT();
+    drawTools();
+  }
+
 
   if (e.offset.x > rbound && MODE < 3) { //we're in the right arrow
     if (readyToGoOn) {
@@ -454,6 +490,11 @@ void testSwitchMode(MouseEvent e) {
       showArea = !showArea;
       //drawSWEEP();
       drawTools();
+    }
+  }
+  if ( MODE==3 ) { // && reflectionsAllowed == true) {
+    if ( e.offset.x > r2bound && e.offset.x < rbound) {
+      print("HERE!" + e.offset.x.toString() );
     }
   }
 }
@@ -973,6 +1014,16 @@ void drawTools() {
     }
     else {
       ctx.drawImageScaled(rotateButtonUpState, tools.width - imwid, 0, imwid, imht);
+    }
+
+  }
+
+  if (MODE == 3 && reflectionsAllowed && hasCut) {
+    if (doingReflection){
+      ctx.drawImageScaled(reflectButtonDownState, tools.width - 2 * imwid, 0, imwid, imht);
+    }
+    else {
+      ctx.drawImageScaled(reflectButtonUpState, tools.width - 2 * imwid, 0, imwid, imht);
     }
 
   }

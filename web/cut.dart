@@ -6,6 +6,9 @@ Point vcuts = new Point(hoff - 10, voff);
 Point hcuts = new Point(hoff, voff - 10);
 var cutGrabbed = "none";
 
+var flipGrabbed = "none";
+var activeDragging = "none";
+
 // for rotation animations
 int numSubdivisions = 30;
 int numIterations = 0;
@@ -98,7 +101,7 @@ void clickLogicCUT(Point pt) { // inputted point is where the mouse clicked; log
     } else if (sqPixelDistance(pt, hcuts) < dragThreshold) {
       cutGrabbed = "horizontal";
       drawCUT();
-    } else if (pt.y < 50 && pt.x < 50) { // this does not trigger cut yet, only makes screen change color to show it is cutting, cut happens when mouse lifts UP, in either stopTouchCUT or stopDragCUT
+    } else if (pt.y < 50 && pt.x < 50 && !doingReflection) { // this does not trigger cut yet, only makes screen change color to show it is cutting, cut happens when mouse lifts UP, in either stopTouchCUT or stopDragCUT
       cutGrabbed = "scissors";
       drawCUT();
     } else {
