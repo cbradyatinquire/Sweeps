@@ -80,6 +80,11 @@ JsObject input = context['arguments'];
 bool rotationsAllowed = input['rotationsAllowed'];
 bool reflectionsAllowed = input['reflectionsAllowed'];
 
+num tryhticks = input['hticks'];
+num tryvticks = input['vticks'];
+num trysubs = input['subdivs'];
+
+
 String inputVertices = input['vertices'];
 
 Point inputPoint1, inputPoint2;
@@ -89,12 +94,12 @@ List<List<num>> colorsOfPieces;
 
 //relevant to the SETUP mode
 var SETUPMouseDown, SETUPTouchStart, SETUPMouseMove, SETUPTouchMove, SETUPMouseUp, SETUPTouchEnd;
-num hticks = 20;      //****CHANGE HERE FOR GRID CHANGES....
-num vticks = 15;    //****CHANGE HERE FOR GRID CHANGES....
-int hSubTicks = 2;    //****CHANGE HERE FOR GRID CHANGES....
-int vSubTicks = 2;    //****CHANGE HERE FOR GRID CHANGES....
-int maxhticks = 24;
-int maxvticks = 15;
+num hticks = tryhticks;      //****CHANGE HERE FOR GRID CHANGES....
+num vticks = tryvticks;    //****CHANGE HERE FOR GRID CHANGES....
+int hSubTicks = trysubs;    //****CHANGE HERE FOR GRID CHANGES....
+int vSubTicks = trysubs;    //****CHANGE HERE FOR GRID CHANGES....
+int maxhticks = 42;  //24
+int maxvticks = 32;  //15
 int minhticks = 2; //9;
 int minvticks = 2; //6;
 
@@ -196,6 +201,12 @@ void main() {
 
   manageInputs();
   manageWebpageInput(); // can react to outside requests to change the state
+
+  if (hticks == null) { hticks = 40; }
+  if (vticks == null) { vticks = 30; }
+  if (hSubTicks == null) { hSubTicks = 1; }
+  if (vSubTicks == null) { vSubTicks = 1; }
+
   splash.onClick.listen(startUp);
 }
 

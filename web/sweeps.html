@@ -39,6 +39,17 @@
 
         var reflectionsStr = urlParams.get("reflection");
         var reflectionParam = (reflectionsStr == "true") ? true : false;
+
+        var horzticks = urlParams.get("hticks");
+        var htx = (horzticks == null || parseInt(horzticks) == "NaN") ? 40 : parseInt(horzticks);
+
+        var verticks = urlParams.get("vticks");
+        var vtx = (verticks == null || parseInt(verticks) == "NaN") ? 30 : parseInt(verticks);
+
+        var subs = urlParams.get("subdivs");
+        var subtx = (subs == null || parseInt(subs) == "NaN") ? 1 : parseInt(subs);
+
+
         //let result = condition ? value1 : value2;
         //console.log(rotationParam);
         var verts = urlParams.get("vertices");
@@ -59,6 +70,9 @@
             // not used at all if mode is anything else
             rotationsAllowed : rotationParam,
             reflectionsAllowed : reflectionParam,
+            hticks : htx,
+            vticks : vtx,
+            subdivs : subtx,
             className: galleryname,
             mode : modeParam,
             // (proceeds normally if mode is 0 or 1)

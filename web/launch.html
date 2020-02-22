@@ -55,8 +55,15 @@
 		<label class="opts" for="reflection">Reflection: </label>
 		<input class="opts" type="checkbox" id="reflection" value="reflection" onchange="updateLinks()" checked><span class="opts">Allow Reflection of Pieces</span><br>
 		<br>
+		<label class="opts" for="htx">#horizontal ticks: </label>
+		<input id="htx" class="opts" type="text" size="3" value="40" onkeyup="updateLinks();">
+		<label class="opts" for="vtx">#vertical ticks: </label>
+		<input id="vtx" class="opts" type="text" size="3" value="30" onkeyup="updateLinks();">
+		<label class="opts" for="subs">#Unit subdivsions: </label>
+		<input id="subs" class="opts" type="text" size="3" value="1" onkeyup="updateLinks();">
+		<br><br>
 
-        <div id="advancedopts" hidden>
+		<div id="advancedopts" hidden>
             <div class="otitle"><i>Advanced Options (for GeoBoard only)</i></div>
             <label class="opts" for="vertices">Vertices: </label>
             <input type="text" id="vertices" class="opts" size="90" onkeyup="updateLinks();"><br>
@@ -93,15 +100,20 @@
                 qstring += "1";
                 document.getElementById("advancedopts").hidden = true;
             }
+			let ht = document.getElementById("htx").value;
+			let vt = document.getElementById("vtx").value;
+			let sb = document.getElementById("subs").value;
+			qstring += "&hticks=" + ht + "&vticks=" + vt + "&subdivs=" + sb;
+
 			let rotation = document.getElementById("rotation").checked;
-			console.log(rotation);
+			//console.log(rotation);
             if (rotation == true) {
                 qstring += "&rotation=true";
             } else {
                 qstring += "&rotation=false";
             }
 			let reflection = document.getElementById("reflection").checked;
-			console.log(reflection);
+			//console.log(reflection);
 			if (reflection == true) {
 				qstring += "&reflection=true";
 			} else {
