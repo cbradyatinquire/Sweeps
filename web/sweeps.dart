@@ -87,10 +87,10 @@ List<List<num>> colorsOfPieces;
 
 //relevant to the SETUP mode
 var SETUPMouseDown, SETUPTouchStart, SETUPMouseMove, SETUPTouchMove, SETUPMouseUp, SETUPTouchEnd;
-num hticks = 20;
-num vticks = 15;
-int hSubTicks = 1;
-int vSubTicks = 1;
+num hticks = 20;      //****CHANGE HERE FOR GRID CHANGES....
+num vticks = 15;    //****CHANGE HERE FOR GRID CHANGES....
+int hSubTicks = 2;    //****CHANGE HERE FOR GRID CHANGES....
+int vSubTicks = 2;    //****CHANGE HERE FOR GRID CHANGES....
 int maxhticks = 24;
 int maxvticks = 15;
 int minhticks = 2; //9;
@@ -319,16 +319,16 @@ void testSwitchMode(MouseEvent e) {
     }
   } else if (e.offset.x > rbound && MODE == 5) {
     MODE = 3;
-    if (e.offset.y < (tools.height / 2)) {
-      cutFlavor = "all";
-      hasCut = false;
-      doModeSpecificLogic();
-    } else {
-      cutFlavor = "selected";
-      hasCut = true;
-      setCutPoints();
-      doModeSpecificLogic();
-    }
+    //  if (e.offset.y < (tools.height / 2)) {
+    //    cutFlavor = "all";
+    //    hasCut = false;
+    //    doModeSpecificLogic();
+    //  } else {
+    cutFlavor = "selected";
+    hasCut = true;
+    setCutPoints();
+    doModeSpecificLogic();
+    //  }
 
     originalPieces = copy(pieces);
     doModeSpecificLogic();
@@ -959,7 +959,8 @@ void drawTools() {
   }
 
   if ( MODE == 5 ){
-    ctx.drawImageScaled(forkedRightButton, tools.width - imwid, 0, imwid, imht);
+    //ctx.drawImageScaled(forkedRightButton, tools.width - imwid, 0, imwid, imht);
+    ctx.drawImageScaled(rightButton, tools.width - imwid, 0, imwid, imht);
   }
   
   if (MODE < 2 && readyToGoOn) {
