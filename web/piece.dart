@@ -941,6 +941,8 @@ class Piece {
     return ctr + (ctr - val);
   }
 
+
+  //idea - make this return a boolean.  as we draw, check to see if any of the images of vertices is off screen.  if so, return FALSE.
   void drawFlipped(CanvasRenderingContext2D ctxt, var horv, num coord) {
 
     ctxt.beginPath();

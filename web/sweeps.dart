@@ -1350,8 +1350,15 @@ void drawHorizontalAxis(CanvasRenderingContext2D ctxt, int bott) {
     ctxt.beginPath();
     ctxt.moveTo(hcuts.x, hcuts.y);
     ctxt.lineTo(hcuts.x, hcuts.y + vrulerheight);
-    ctxt.moveTo(hcuts.x - 10, hcuts.y - 10);
-    ctxt.rect(hcuts.x - 10, hcuts.y - 10, 20, 20); //(hcuts.x, hcuts.y, 10, 0, 2 * PI);
+    if ( doingReflection ) {
+      ctxt.moveTo(hcuts.x, hcuts.y + 10 );
+      ctxt.arc(hcuts.x, hcuts.y, 10, -1 * PI / 2 , 3 * PI / 2);
+      //ctxt.moveTo(hcuts.x - 10, hcuts.y - 10);
+      //ctxt.rect(hcuts.x - 10, hcuts.y - 10, 20, 20);
+    } else {
+      ctxt.moveTo(hcuts.x - 10, hcuts.y - 10);
+      ctxt.rect(hcuts.x - 10, hcuts.y - 10, 20, 20); //(hcuts.x, hcuts.y, 10, 0, 2 * PI);
+    }
     ctxt.closePath();
     if (cutGrabbed == "horizontal" || flipGrabbed == "horizontal" || activeDragging == "horizontal") {
       ctxt.fillStyle = "#7F4";
@@ -1408,12 +1415,16 @@ void drawVerticalAxis(CanvasRenderingContext2D ctxt, int right) {
       }
       ctxt.stroke();
     }
-  } else if (MODE == 3 && cutFlavor == "selected") {
+  } else if (MODE == 3 && cutFlavor == "selected") {  //*****HERE TO CHANGE THE SHAPE OF THE GRABBER
     ctxt.beginPath();
     ctxt.moveTo(vcuts.x, vcuts.y);
     ctxt.lineTo(vcuts.x + hrulerwidth, vcuts.y);
-    ctxt.moveTo(vcuts.x - 10, vcuts.y - 10);
-    ctxt.rect(vcuts.x - 10, vcuts.y - 10, 20, 20);
+    if ( doingReflection ) {
+      ctxt.arc(vcuts.x, vcuts.y, 10, 0, 2 * PI);
+    } else {
+      ctxt.moveTo(vcuts.x - 10, vcuts.y - 10);
+      ctxt.rect(vcuts.x - 10, vcuts.y - 10, 20, 20);
+    }
     ctxt.closePath();
     if (cutGrabbed == "vertical" || flipGrabbed == "vertical" || activeDragging == "vertical") {
       ctxt.fillStyle = "#7F4";
