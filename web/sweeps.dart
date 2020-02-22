@@ -184,8 +184,8 @@ void main() {
   rotateButtonUpState = new ImageElement()..src = "images/rotateUp.png";
 
   //****CHANGE THESE TO QUINLEY'S IMAGES.
-  reflectButtonDownState = new ImageElement()..src = "images/rotateDown.png";
-  reflectButtonUpState = new ImageElement()..src = "images/rotateUp.png";
+  reflectButtonDownState = new ImageElement()..src = "images/reflectDown.png";
+  reflectButtonUpState = new ImageElement()..src = "images/reflectUp.png";
 
   canv = querySelector("#scanvas");
   tools = querySelector("#tcanvas");
@@ -941,6 +941,17 @@ void drawStatus(CanvasRenderingContext2D ctx, imwid, imht) {
     if (showArea) {
       currentToolsText += ": " + areaToDisplay;
     }
+    if (doingReflection) {
+      if (activeDragging == "none" && flipGrabbed == "none") { currentToolsText = "Choose & Position a Mirror";}
+      else if (flipGrabbed == "none") {currentToolsText = "Click a Shape to Flip"; }
+      else { currentToolsText = "Drag Mirror to Position";}
+    }
+    if (doingRotation) {
+      if (indexSelectedForRotation == -1) {
+        currentToolsText = "Click a Shape to Rotate";
+      } else {currentToolsText = "Click Center of Rotation";}
+    }
+    if ( reflectionsAllowed && !doingRotation && !doingReflection) { currentToolsText = "Dissect and Rearrange"; }
   } else if (MODE == 4 && cavalieriHeight > 0) {
     num denom = hSubTicks * vSubTicks;
     String fracString = " ";
@@ -952,7 +963,8 @@ void drawStatus(CanvasRenderingContext2D ctx, imwid, imht) {
     if (showArea) {
       currentToolsText += ": " + cavalieriArea.toString() + fracString + getAreaUnitsString();
     }
-  } else {
+  }
+  else {
     currentToolsText = captions[MODE];
   }
 
