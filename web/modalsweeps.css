@@ -6,7 +6,7 @@
   padding-top:      100px;
   position:         fixed;
   top:              0;
-  width:            500px;
+  width:            400px;
   z-index:          1;
 }
 
@@ -118,12 +118,12 @@
 }
 
 .comment-control-button {
-  font-size:   20px;
-  margin-left: 5px;
+  font-size:   10px;
+  margin-left: 2px;
 }
 
 .author-input {
-  font-size: 20px;
+  font-size: 15px;
 }
 
 .comment {
@@ -131,7 +131,7 @@
   border-top:    1px solid black;
   border-radius: 3px;
   margin-top:    15px;
-  padding:       10px 10px 5px 10px;
+  padding:       5px 5px 2px 5px;
 }
 
 .comment-text {
